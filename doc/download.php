@@ -46,20 +46,23 @@ PHP-PDB bliss.</p>
 
 <ul>
 <li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.tar.bz2">
-php-pdb.tar.bz2</a></li>
+php-pdb-cvs.tar.bz2</a></li>
 <li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.tar.gz">
-php-pdb.tar.gz</a></li>
+php-pdb-cvs.tar.gz</a></li>
 <li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.zip">
-php-pdb.zip</a></li>
+php-pdb-cvs.zip</a></li>
 </ul>
 
 <h3>Old versions</h3>
 
 <p>If you have CVS, you can get old versions.  Just read the CVS man page or
-documentation.  If you don't, I have a few of the older versions available
-for download from SourceForge.  Just head on over to the 
+documentation.  If you don't, or if you just want official releases, I have
+a few of the older versions available for download from SourceForge.  Just 
+head on over to the 
 <a href="http://sourceforge.net/project/showfiles.php?group_id=29740">
-download page</a> and pick whatever ancient version you want.</p>
+download page</a> and pick whatever ancient version you want.  If you want
+ones that are even older, just let me know and I'll give you packages back
+to the beginning of time.</p>
 
 <?PHP
 
