@@ -30,8 +30,10 @@ $TestType = 'Unknown';
 </ul>
 <h1>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
-<li>Datebook = <?PHP PassFail(DatebookTest(), 'be8223a89be8face9c4734df74cdec32') ?></li>
-<li>Doc = <?PHP PassFail(DocTest(), '56fa283daa40aa6d547cb866b46ef368') ?></li>
+<li>Datebook = <?PHP PassFail(DatebookTest(), 
+                              'acb80f080d5d8161fb6651e0fc0310df') ?></li>
+<li>Doc = <?PHP PassFail(DocTest(), 
+                         'ed869c7a31e720537f759fcc88d8c447') ?></li>
 </ul>
 <h1>Summary</h1>
 <table align=center bgcolor="#EFEFFF" border=1 cellpadding=10 cellspacing=0>
@@ -122,14 +124,20 @@ EOS;
 function GenerateMd5(&$PalmDB) {
    // Change the dates so the header looks the same no matter when we
    // generate the file
-   $PalmDB->CreationTime = 0;
-   $PalmDB->ModificationTime = 0;
-   $PalmDB->BackupTime = 0;
+   $PalmDB->CreationTime = 1;
+   $PalmDB->ModificationTime = 1;
+   $PalmDB->BackupTime = 1;
    
    ob_start();
    $PalmDB->WriteToStdout();
    $file = ob_get_contents();
    ob_end_clean();
+   
+   $fp = fopen($PalmDB->Name . '-test.pdb', 'wb');
+   if ($fp) {
+      $PalmDB->WriteToFile($fp);
+      fclose($fp);
+   }
    
    return md5($file);
 }
