@@ -69,7 +69,7 @@ $pdb = new PalmDoc("Doc Test");
 $pdb->AddDocText("This is a test.
 This is a test of the PHP-PDB DOC class.\\n");
 $pdb->AddDocText("This is only a test.");
-$pdb->DownloadPDB("Doc Test");
+$pdb->DownloadPDB("doc_test.pdb");
 ');
 
 
