@@ -190,9 +190,13 @@ function ShowInitialForm() {
          echo ' checked'; ?>>
       Project Gutenberg Text (<a href="http://promo.net/pg">What is 
       this?</a>)<br>
-      &nbsp; &nbsp; &nbsp;<input type=checkbox name="BreakOnChapter"<?PHP
-      if (isset($BreakOnChapter) && $BreakOnChapter) echo ' checked'; ?>>
-      Create a separate file for each chapter
+      &nbsp; &nbsp; &nbsp;Create a new DOC file every 
+      <input type=text name="BreakOnChapter" value="<?PHP
+      if (isset($BreakOnChapter) && $BreakOnChapter) {
+         settype($BreakOnChapter, 'integer');
+         echo htmlspecialchars($BreakOnChapter);
+      } else
+         echo '5'; ?>"> chapters
       
       </td>
   </tr>
