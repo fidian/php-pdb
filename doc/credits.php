@@ -56,6 +56,9 @@ with writing this class.</p>
    HideEmail('epascual', 'cie-mexico.com.mx') ?>&gt; -- Created the classes to
    handle <a href="modules/todo.php">Todo</a> and 
    <a href="modules/addrbook.php">Address Book</a> formats.</li>
+<li>Nuernberg, Cristiano &lt;<?PHP
+   HideEmail('cnuernberg', 'whdh.com') ?>&gt; -- Submitted a much better
+   example for MobileDB than what I had previously.</li>
 <li><a href="http://www.palm.com">Palm Computing, Inc.</a> -- Without them,
    there would not be a Palm OS.  Also, they provided <a
    href="http://www.palmos.com/dev/tech/docs/">documentation<a> (especially
