@@ -18,8 +18,8 @@ function FilterHTML($fileData) {
    global $FilterHTMLLinks;
    
    $Filters = array(
-      "'<script[^>]*>.*</script>'si" => "", // Strip out javascript
-                                            // (It's very pesky)
+      "'<script[^>]*>(.*)</script>'sie" =>   // Strip out javascript
+         "FilterHTMLScript('\\1')",         // (It's very pesky)
       "'<pre[^>]*>(.*)</pre[^>]*>'sie" =>
          "FilterHTMLPre('\\1')",            // <pre> tags
       "'[\r\n\s]'" => ' ',                  // Newlines are now spaces
@@ -93,6 +93,26 @@ function FilterHTMLPre($Str) {
       "FilterHTMLPre('\\1')", $post . '</pre>');
    
    return $pre . $post;
+}
+
+function FilterHTMLScript($Str) {
+   $tempStr = strtolower($Str);
+   $pos = strpos($tempStr, "</script");
+   
+   if ($pos === false)
+      return '';
+   
+   $pos = strpos($Str, '>', $pos);
+   
+   if ($pos === false)
+      return '';
+      
+   $post = substr($Str, $pos + 1);
+   
+   $post = preg_replace("'<script[^>]*>(.*)</script>'sie", 
+      "FilterHTMLScript('\\1')", $post . '</script>');
+   
+   return $post;
 }
 
 function FilterHTMLEntity($Ent) {
