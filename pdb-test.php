@@ -74,7 +74,7 @@ ob_start();
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
 <li>Addresses = <?PHP PassFail(AddressbookTest(),
-                              '94ea5f32f16799ae7fab0efedab39e15') ?></li>
+                              '3ce11d66da0a869632623f000460374a') ?></li>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
                               'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail(DocTest(false),
@@ -84,7 +84,7 @@ ob_start();
 <li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
                          '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
 <li>Todo = <?PHP PassFail(TodoTest(), 
-                              'cb0369cf094c88bd411325e55b2d202d') ?></li>
+                              'fab3c7ed7c40bfd63d3f1adfcac42227') ?></li>
 </ul>
 <?PHP
 

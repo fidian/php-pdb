@@ -147,15 +147,19 @@ class PalmDatebook extends PalmDB {
 	 $Flags += PDB_DATEBOOK_FLAG_EXCEPTIONS;
       if (isset($data['Note']) && $data['Note'] != '')
          $Flags += PDB_DATEBOOK_FLAG_NOTE;
-      if (isset($data['Repeat']) && is_array($data['Repeat']) &&
-          count($data['Repeat']) > 0)
-	 $Flags += PDB_DATEBOOK_FLAG_REPEAT;
       if (isset($data['Alarm']) && $data['Alarm'] != '' &&
           preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch))
          $Flags += PDB_DATEBOOK_FLAG_ALARM;
       if (isset($data['WhenChanged']) && $data['WhenChanged'] != '' &&
           $data['WhenChanged'])
 	 $Flags += PDB_DATEBOOK_FLAG_WHEN;
+	 
+      // Slightly more complex when dealing with the repeat array
+      if (isset($data['Repeat']) && is_array($data['Repeat']) &&
+          count($data['Repeat']) > 0 && isset($data['Repeat']['Type']) &&
+	  $data['Repeat']['Type'] > PDB_DATEBOOK_REPEAT_NONE &&
+	  $data['Repeat']['Type'] <= PDB_DATEBOOK_REPEAT_YEARLY)
+	 $Flags += PDB_DATEBOOK_FLAG_REPEAT;
 
       $data['Flags'] = $Flags;
    }

@@ -93,6 +93,7 @@ if it merged with GD.</li>
 <li>Take an in-depth look <a
 href="http://zurk.sourceforge.net/zdoc.html">here</a> for PeanutPress 
 files.</li>
+<li>Add in functionality like <a href="http://www.palmgear.com/software/showsoftware.cfm?prodID=16193">this</a></li>
 </ul>
 
 <?PHP
