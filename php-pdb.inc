@@ -323,9 +323,19 @@
       }
       
       
+      // Sets the hex-encoded data (or whatever) for the current record
+      // Use this instead of the Append* functions if you have an odd
+      // type of record (like a Datebook record).
+      // Also, use this instead of just setting $PDB->Records[]
+      // directly.
+      function SetRecord($Rec) {
+         $this->Records[$this->CurrentRecord] = $Rec;
+      }
+      
+      
       // Erases all data for the current record
       function ClearCurrentRecord() {
-         $this->Records[$this->CurrentRecord] = '';
+         $this->SetRecord('');
       }
       
       
@@ -522,7 +532,7 @@
 	 $header .= $this->Int16($this->Attributes);
 	 $header .= $this->Int16($this->Version);
 	 
-	 // Creation date & modification date
+	 // Creation, modification, and backup date
 	 if ($this->CreationTime != 0)
   	    $header .= $this->Int32($this->CreationTime + PDB_EPOCH_1904);
 	 else
