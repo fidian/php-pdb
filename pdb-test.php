@@ -21,7 +21,6 @@ $Tests = array();
 $TestType = 'Unknown';
 
 
-
 //
 // Perform the tests
 // Cache the results
@@ -38,26 +37,36 @@ ob_start();
 <h1><a name="Data"></a>Data conversion testing</h1><?PHP $TestType = 'Data' ?>
 <ul>
 <li>Int8 (Write) = <?PHP 
-  PassFail(PalmDB::Int8(40), '28') ?></li>
+  PassFail('return PalmDB::Int8(40);', 
+           '28') ?></li>
 <li>Int8 (Read) = <?PHP 
-  PassFail(PalmDB::LoadInt8(pack('H*', '28')), 40) ?></li>
+  PassFail('return PalmDB::LoadInt8(pack(\'H*\', \'28\'));', 
+           40) ?></li>
 <li>Int16 (Write) = <?PHP 
-  PassFail(PalmDB::Int16(1796), '0704') ?></li>
+  PassFail('return PalmDB::Int16(1796);', 
+           '0704') ?></li>
 <li>Int16 (Read) = <?PHP 
-  PassFail(PalmDB::LoadInt16(pack('H*', '0704')), 1796) ?></li>
+  PassFail('return PalmDB::LoadInt16(pack(\'H*\', \'0704\'));', 
+           1796) ?></li>
 <li>Int32 (Write) = <?PHP 
-  PassFail(PalmDB::Int32(40195090), '02655412') ?></li>
+  PassFail('return PalmDB::Int32(40195090);', 
+           '02655412') ?></li>
 <li>Int32 (Read) = <?PHP 
-  PassFail(PalmDB::LoadInt32(pack('H*', '02655412')), 40195090) ?></li>
+  PassFail('return PalmDB::LoadInt32(pack(\'H*\', \'02655412\'));', 
+           40195090) ?></li>
 <?PHP
    // Double() refers to $this, so it must be in an instantiated class
    $dbl = new PalmDB();
    $Fail = 0;
 ?>
 <li>Double (Write) = <?PHP 
-  $Fail += PassFail($dbl->Double(10.53), '40250f5c28f5c28f') ?></li>
+  $Fail += PassFail('$dbl = new PalmDB();
+                     return $dbl->Double(10.53);', 
+		     '40250f5c28f5c28f') ?></li>
 <li>Double (Read) = <?PHP 
-  $Fail += PassFail($dbl->LoadDouble(pack('H*', '40250f5c28f5c28f')), 10.53);
+  $Fail += PassFail('$dbl = new PalmDB();
+                     return $dbl->LoadDouble(pack(\'H*\', \'40250f5c28f5c28f\'));', 
+		     10.53);
     
   if ($Fail) {
       echo "<br>Don't worry -- this method is not used by anything in " .
@@ -69,22 +78,23 @@ ob_start();
 ?></li>
 <li>String (Write) = <?PHP 
   // Don't need to test reading -- just use substr() to get the data.
-  PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
+  PassFail('return PalmDB::String(\'abcd\', \'3\');', 
+           '616263') ?></li>
 </ul>
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
-<li>Addresses = <?PHP PassFail(AddressbookTest(),
-                              '3ce11d66da0a869632623f000460374a') ?></li>
-<li>Datebook = <?PHP PassFail(DatebookTest(), 
-                              'acb80f080d5d8161fb6651e0fc0310df') ?></li>
-<li>Doc = <?PHP PassFail(DocTest(false),
-                         'ed869c7a31e720537f759fcc88d8c447') ?></li>
-<li>Doc (compressed) = <?PHP PassFail(DocTest(true),
-                         '26664289f16ba7e0ebbfeb3663babd86') ?></li>
-<li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
-                         '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
-<li>Todo = <?PHP PassFail(TodoTest(), 
-                              'fab3c7ed7c40bfd63d3f1adfcac42227') ?></li>
+<li>Addresses = <?PHP PassFail('return AddressbookTest();',
+   '3ce11d66da0a869632623f000460374a') ?></li>
+<li>Datebook = <?PHP PassFail('return DatebookTest();',
+   'acb80f080d5d8161fb6651e0fc0310df') ?></li>
+<li>Doc = <?PHP PassFail('return DocTest(false);',
+   'ed869c7a31e720537f759fcc88d8c447') ?></li>
+<li>Doc (compressed) = <?PHP PassFail('return DocTest(true);',
+   '26664289f16ba7e0ebbfeb3663babd86') ?></li>
+<li>SmallBASIC = <?PHP PassFail('return SmallBASICTest();',
+   '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
+<li>Todo = <?PHP PassFail('return TodoTest();', 
+   'd009e145a7633a33f1376712e3a6bc12') ?></li>
 </ul>
 <?PHP
 
@@ -301,6 +311,7 @@ and I hope this doc text test works well.
 
 (Yeah, I know.  It doesn't rhyme.)
 EOS;
+   // Just in case the file is edited and the newlines are changed a bit.
    $text = str_replace("\r\n", "\n", $text);
    $text = str_replace("\r", "\n", $text);
    $text = explode("\n", $text);
@@ -400,6 +411,7 @@ function GenerateMd5(&$PalmDB, $DumpToScreen = false) {
    if (! $DumpToScreen) {
       $file = ob_get_contents();
       ob_end_clean();
+					       
       return md5($file);
    }
    
@@ -414,21 +426,30 @@ function GenerateMd5(&$PalmDB, $DumpToScreen = false) {
 
 function PassFail($test, $want = false) {
    global $TestType, $Tests;
-   
+
+   // Run the test, and try to detect errors
+   error_reporting(0);
+   $test_1 = eval($test);
+   error_reporting(E_ALL);
+   $test_2 = eval($test);
+
    if (! isset($Tests[$TestType]))
       $Tests[$TestType] = array('Fail' => 0, 'Pass' => 0);
       
    $FailMsg = '';
    $Failure = false;
    
-   if ($want === false) {
-      if ($test) {
-         $FailMsg = "Data:  \"$test\"";
+   if ($test_1 != $test_2) {
+      $FailMsg = "Warning or error encountered during test.";
+      $Failure = true;
+   } elseif ($want === false) {
+      if ($test_1) {
+         $FailMsg = "Data:  \"$test_1\"";
 	 $Failure = true;
       }
    } else {
-      if ($test != $want) {
-         $FailMsg = "Wanted \"$want\" but got \"$test\"";
+      if ($test_1 != $want) {
+         $FailMsg = "Wanted \"$want\" but got \"$test_1\"";
          $Failure = true;
       }
    }
@@ -443,5 +464,6 @@ function PassFail($test, $want = false) {
    $Tests[$TestType]['Pass'] ++;
    return 0;
 }
+
 
 ?>

@@ -104,6 +104,11 @@ class PalmTodoList extends PalmDB {
       }
       $RecordString .= $this->Int16($rawDate);
 
+      if (isset($data['Priority']))
+      	 $priority = $data['Priority'];
+      else
+         $priority = 1;
+
       if ($priority < 1)
          $priority = 1;
       if ($priority > 5)
@@ -195,16 +200,22 @@ class PalmTodoList extends PalmDB {
       $NewRec['Priority'] = $priority;
 
       $i = 3;
+      $max = strlen($fileData);
       $description = '';
       while ($fileData[$i] != "\0") {
+         echo "Looping\n";
          $description .= $fileData[$i];
          $i++;
+	 if ($i > $max)
+	    return true;
       }
       $i++;
       $note = '';
       while ($fileData[$i] != "\0") {
          $note .= $fileData[$i];
          $i++;
+	 if ($i > $max)
+	    return true;
       }
       $NewRec['Description'] = $description;
       $NewRec['Note'] = $note;
