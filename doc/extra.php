@@ -42,7 +42,7 @@ is at the bottom of the page.</p>
 
 <P>PHP-PDB is released under the <a
 href="http://www.gnu.org/copyleft/lesser.html">GNU LGPL</a> and is basically
-free to use for everyone.</p>
+free to use for everyone.  Please see the LGPL for specific details.</p>
 
 <h3>Still to do</h3>
 
@@ -58,10 +58,6 @@ support</a></li>
 href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">AportisDoc</a>
 <a href="http://www.pyrite.org/doc_format.php">Pyrite</a> ]
 </li>
-<li>Add example program <!-- twister! --> that converts HTML/text on the web
-to DOC format.</li>
-<li>Project Gutenberg files would be nice to convert from <a
-href="http://www.promo.net/pg/vol/how.html">their format</a> to DOC.</li>
 <li>Add phonebook format</li>
 <li>Add memo format</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if

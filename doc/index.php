@@ -43,6 +43,20 @@ file.</li>
 <li>Very limited appinfo and sortinfo support.</li>
 </ul>
 
+<h3>As Seen In ...</h3>
+
+<p>This PHP class works quite well and it is being used in the following
+manners.  If you want your site listed here, I'd love to add it -- tell me
+about it!</p>
+
+<ul>
+<li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
+href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC 
+format.
+<li><a href="http://rumkin.com/projects/marco/">Marco</a> - Data point
+conversion from different formats into the internal format used by Marco.
+</ul>
+
 <?PHP
 
 StandardFooter();

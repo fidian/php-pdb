@@ -40,6 +40,15 @@ if (file_exists('../../php-pdb.inc')) {
 
 set_time_limit(0);
 
+// The viewSource.php file will not let you view the filter
+// files.  If you want to see them, you can use the web-based
+// CVS viewer that SourceForge provides.  This awfully long URL
+// is broken onto two lines -- make sure it is all on one in 
+// your browser.
+//
+//     http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/php-pdb/
+//     php-pdb/doc/samples/filters/
+
 include('./filters/text.inc');
 include('./filters/html.inc');
 include('./filters/gutenberg.inc');
@@ -69,7 +78,9 @@ function StartHTML($title = '') {
       
 ?><html><head><title><?PHP echo $title ?></title></head>
 <body bgcolor="#FFFFFF">
-<h1 align=center><?PHP echo $title ?></h1>
+<p align=center><b><font size="+3"><?PHP echo $title ?></font></b><br>
+<font size="-1">(<a href="viewSource.php?file=twister.php">View
+Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
 <?PHP
 }
 
@@ -79,6 +90,12 @@ function ShowInitialHelp() {
 ?><p>Twister is a conversion tool to convert web pages, and text files into
 Palm DOC format.  It can be later extended to write to zTXT and other
 formats, once PHP-PDB has a class for accessing them.</p>
+
+<p><B><font size="+2" color="purple">Be Warned:</font></B> Twister is
+quite new and may not work well for you.  However, if it doesn't work to your
+expectations, just contact the <a
+href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
+hopefully the bugs will vanish quickly.</p>
 
 <p>To start the conversion process, just fill in this form:</p>
 <?PHP
@@ -123,7 +140,8 @@ function ShowInitialForm() {
       <input type=radio name="SourceType" value="Gutenberg"<?PHP
       if (isset($SourceType) && $SourceType == 'Gutenberg') 
          echo ' checked'; ?>>
-      Project Gutenberg Text<br>
+      Project Gutenberg Text (<a href="http://promo.net/pg">What is 
+      this?</a>)<br>
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="BreakOnChapter"<?PHP
       if (isset($BreakOnChapter) && $BreakOnChapter) echo ' checked'; ?>>
       Create a separate file for each chapter

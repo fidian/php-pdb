@@ -84,7 +84,11 @@ $BookmarkTest = array(
 <p>DOC files is the standard way of storing text files on a handheld.  You
 will need a DOC reader in order to see any DOC file you have loaded onto
 your device.  There are several ones listed <a 
-href="#DocReaders">below</a>.</p>
+href="#DocReaders">below</a>.  To create DOC files, there are many programs
+already out there that will work for you.  Additionally, you can use
+<a href="../samples/twister.php">Twister</a>, which just uses PHP and this
+PHP-PDB library to create DOC files from plain text files, web pages, and
+files from <a href="http://promo.net/pg/">Project Gutenberg</a>.</p>
 
 <p>Although the compressed form of DOC files and loading DOC files are both
 being worked on, you can still create and write uncompressed doc files quite
@@ -275,6 +279,12 @@ $pdb->AddDocText("This is only a test.");
 $pdb->DownloadPDB("doc_test.pdb");
 ');
 
+?>
+
+<p>Another example is the <a
+href="../samples/viewSource.php?file=bookmark_test.php">Bookmark Test</a>.</p>
+
+<?PHP
 
 StandardFooter();
 

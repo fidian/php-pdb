@@ -21,10 +21,12 @@ if (! isset($Stored)) {
 ?>
 <html><head><title>Bookmark Test Generator</title>
 </head><body bgcolor=#FFFFFF>
-<h2 align=center>What kind of bookmarks do you want generated?</h2>
+<p align=center><b><font size="+3">Bookmark Test Generator</font><br>
+<font size="-1">(<a href="viewSource.php?file=bookmark_test.php">View
+Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
+<h3 align=center>What kind of bookmarks do you want generated?</h2>
 <h3 align=center><a href="bookmark_test.php?Stored=1">Stored</a> - 
 <a href="bookmark_test.php?Stored=0">Embedded</a></h3>
-<h3 align=center><a href="../">Back to PHP-PDB Documentation</a></h3>
 </body></html>
 <?PHP
    exit();
