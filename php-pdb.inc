@@ -257,8 +257,10 @@
       function GoToRecord($num = false) {
          if ($num === false)
 	    return $this->CurrentRecord;
-	 if (gettype($num) == 'string' && ($num[0] = '+' || $num[0] == '-'))
+	 if (gettype($num) == 'string' && ($num[0] = '+' || $num[0] == '-')) {
+	    settype($num, 'integer');
 	    $num = $this->CurrentRecord + $num;
+	 }
 	 $oldRecord = $this->CurrentRecord;
          $this->CurrentRecord = $num;
 	 return $oldRecord;
