@@ -41,9 +41,9 @@ free to use for everyone.</p>
 <h3>Still to do</h3>
 
 <ul>
-<li>Add <a
+<li>Add better <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
-support.  (In progress -- Thanks Cassidy Lackey!)</li>
+support.</li>
 <li>Add todo format</li>
 <li>Add compression, decompression, and loading to DOC files.
 [ <a
@@ -52,6 +52,8 @@ href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html
 </li>
 <li>Add example program <!-- twister! --> that converts HTML/text on the web
 to DOC format.</li>
+<li>Project Gutenberg files would be nice to convert from <a
+href="http://www.promo.net/pg/vol/how.html">their format</a> to DOC.</li>
 <li>Add phonebook format</li>
 <li>Add memo format</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
