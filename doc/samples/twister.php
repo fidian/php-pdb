@@ -9,10 +9,10 @@
 
 if (file_exists('../../php-pdb.inc')) {
    include('../../php-pdb.inc');
-   include('../../php-pdb-doc.php');
+   include('../../modules/doc.php');
 } elseif (file_exists('./php-pdb.inc')) {
    include('./php-pdb.inc');
-   include('./php-pdb-doc.php');
+   include('./modules/doc.php');
 }
 
 
