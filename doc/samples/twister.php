@@ -95,7 +95,7 @@ exit();
 
 function StartHTML($title = '') {
    if ($title == '')
-      $title = 'Twister!';
+      $title = 'Twister';
       
 ?><html><head><title><?PHP echo $title ?></title></head>
 <body bgcolor="#FFFFFF">
@@ -113,26 +113,24 @@ function ShowInitialHelp() {
 ?><p>Twister is a conversion tool to convert web pages, and text files into
 Palm DOC format.  SmallBASIC .BAS files can be converted to SmallBASIC for
 PalmOS format.  It can be later be easily extended to write to zTXT and other
-formats, once PHP-PDB has classes for accessing them.</p>
+formats, once PHP-PDB has classes for accessing them.  To start the
+conversion process, just fill out the form below.  The file will be
+converted and you will see links to download the converted file.</p>
 
-<p><B><font size="+2" color="purple">Be Warned:</font></B> Twister is
-quite new and may not work well for you.  However, if it doesn't work to your
-expectations, just contact the <a
+<p>Twister is quite new and may not work perfectly.  If you experience
+problems or if something is not converted quite right (like the HTML looks
+goofy when converted to text), the just contact the <a
 href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
-hopefully the bugs will vanish quickly.</p>
+we will see what we can do.</p>
 
 <?PHP if ($SourceForge) { ?>
-<P><b>Because this script is hosted on <a
-href="http://sourceforge.net">SourceForge</a>,</b> the URL converter does
-not work.  However, if you were to copy this script to your own site and run
-it, the URL converter should work fine.</p>
+<P><b>The URL converter doesn't work on <a
+href="http://sourceforge.net">SourceForge</a>,</b> but it will if you
+download <a href="http://php-pdb.sourceforge.net/download.php">PHP-PDB</a>
+and have it running on your own site.  <font size="-1">(Sorry.)</font></p>
 
-<?PHP } ?>
-<p>To start the conversion process, just fill in the form below.  The file
-will be converted (or an error message will be displayed) and you should see
-links for downloading the converted file.  This requires cookies to run
-properly.</p>
-<?PHP
+<?PHP 
+   }
 }
 
 
@@ -144,31 +142,32 @@ function ShowInitialForm() {
    echo "<br>\n";
 
    ShowDownloadLinks();
-   
+
 ?><form action="<?PHP echo $MyFilename 
 ?>" method="post" enctype="multipart/form-data">
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
     <td align=right><b>Source:</b></td>
-    <td><input type=radio name="Source" value="File"<?PHP
-      if (! isset($Source) || $Source != 'URL') echo ' checked'; ?>>
-      File:  <input type=file name=filedata size=45<?PHP
-      if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
-      . '"'; ?>><br>
-      
-      <?PHP if (! $SourceForge) { ?>
-      <input type=radio name="Source" value="URL"<?PHP
-      if (isset($Source) && $Source == 'URL') echo ' checked'; ?>> 
+    <td><?PHP if (! $SourceForge) { ?>
+      <input type=radio name="Source value="URL"<?PHP
+      if (! isset($Source) || $Source != 'File') echo ' checked'; ?>>
       URL:  <input type=input name=urldata size=60<?PHP
       if (isset($urldata)) echo ' value="' . htmlspecialchars($urldata)
+      . '"'; ?>><br>
+      <?PHP } ?>
+      
+      <input type=radio name="Source" value="File"<?PHP
+      if ((isset($Source) && $Source == 'File') || $SourceForge) 
+         echo ' checked'; ?>>
+      File:  <input type=file name=filedata size=45<?PHP
+      if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
       . '"'; ?>>
-      <?PHP } else { ?><br>
-      <i>(Twister! supports converting URLs, but Sourceforge does not allow
-      downloading from URLs.  Download and install <a
-      href="http://php-pdb.sourceforge.net/">PHP-PDB</a> on your own site
-      and Twister! should work fine.  It's be included in the "doc/samples"
-      directory.)</i><?PHP
+      
+      <?PHP if ($SourceForge) { ?>
+      <br>
+      <i>(Sourceforge does not allow downloading from URLs, but Twister
+      does support it.)</i><?PHP
       } ?></td>
   </tr>
   <tr>
@@ -213,7 +212,7 @@ function ShowInitialForm() {
       if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
       <br>
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
-      Don't compress DOC file (Much faster, but also bigger)
+      Don't compress DOC file (faster to convert, larger file)
       <br><br>
 
       <input type=radio name="TargetType" value="SmallBASIC"<?PHP
