@@ -239,13 +239,13 @@ ShowExample('
 $addr = new PalmAddress();
 
 // Remember -- category 0 is reserved.
-$categorias = array(1 => \'VIP\', \'AAA\', \'Inicial\');
-$addr->SetCategoryList($categorias);
+$categories = array(1 => \'VIP\', \'AAA\', \'Inicial\');
+$addr->SetCategoryList($categories);
 $fields = array(\'LastName\' => \'Pascual\',
                 \'FirstName\' => \'Eduardo\',
                 \'Phone1\' => \'21221552\',
                 \'Phone2\' => \'58808912\',
-                \'Phone5\' => \'epascual@cie.com.mx\',
+                \'Phone5\' => \'epascual at cie.com.mx\',
                 \'Address\' => \'Hda. la Florida 10A\',
                 \'City\' => \'Izcalli\');
 $addr->SetRecordRaw($fields);
@@ -255,7 +255,7 @@ $fields = array(\'LastName\' => \'de tal\',
                 \'Address\' => \'Direccion\',
                 \'Phone1\' => \'21232425\',
                 \'Phone1Type\' => PDB_ADDR_LABEL_HOME,
-                \'Phone2\' => \'fulanito@dondesea.com\',
+                \'Phone2\' => \'fulanito at dondesea.com\',
                 \'Phone2Type\' => PDB_ADDR_LABEL_EMAIL,
                 \'Phone3Type\' => PDB_ADDR_LABEL_WORK,
                 \'Phone4Type\' => PDB_ADDR_LABEL_FAX,
@@ -286,12 +286,13 @@ echo "ModTime: $addr->ModificationTime<br>\n";
 echo "BackTime: $addr->BackupTime<br>\n";
 echo "NumRec: ".$addr->GetRecordCount()."<br>\n";
 $recids = $addr->GetRecordIDs();
+$cats = $addr->GetCategoryList();					       
 foreach ($recids as $ID) {
   $record = $addr->GetRecordRaw($ID);
   echo "Record $ID:<BR>";
-  $attrib = $addr->GetRecordAttrib();
-  echo "- Category: " . ($attrib & PDB_CATEGORY_MASK) . " = " .
-    $addr->CategoryList[$attrib & PDB_CATEGORY_MASK][\'Name\'] . "<br>\n";
+  $attrib = $addr->GetRecordAttrib($ID);
+  echo "- Category number: " . ($attrib & PDB_CATEGORY_MASK) . " = " .
+    $cats[$attrib & PDB_CATEGORY_MASK][\'Name\'] . "<br>\n";
   echo "- Private: " . 
     (($attrib & PDB_RECORD_ATTRIB_PRIVATE) ? "Yes" : "No") ."<br>\n";
   echo " Fields:<br>\n";
