@@ -609,7 +609,6 @@ class PalmDB {
       $list[0] = array('Name' => 'Unfiled', 'Renamed' => false);
       
       $keys = array_keys($list);
-      sort($keys);
       
       // Loop through the array
       $CatsWritten = 0;
@@ -649,19 +648,16 @@ class PalmDB {
       $this->CategoryList[0] = array('Name' => 'Unfiled', 'Renamed' => false);
       
       $CatsWritten = 0;
-      $LastIdWritten = 0;
       $RenamedFlags = 0;
       $CategoryStr = '';
       $IdStr = '';
       $keys = array_keys($this->CategoryList);
-      sort($keys, SORT_NUMERIC);
       
       // Loop through the array
       foreach ($keys as $id) {
          // If there is room for more categories ...
          if ($CatsWritten < PDB_CATEGORY_NUM && $id < 256) {
 	    $CatsWritten ++;
-	    $LastIdWritten = $id;
 	    $RenamedFlags *= 2;
 	    
 	    // Set the "Renamed" flag if available
@@ -687,20 +683,21 @@ class PalmDB {
       }
       
       // Add blank categories to the end
+      $id = 0;
       while ($CatsWritten < PDB_CATEGORY_NUM) {
+         $id ++;
+	 while (isset($this->CategoryList[$id]))
+	    $id ++;
+	 
          $CatsWritten ++;
 	 $LastIdWritten ++;
 	 $RenamedFlags *= 2;
 	 $CategoryStr .= $this->PadString('', PDB_CATEGORY_NAME_LENGTH);
-	 $IdStr .= $this->Int8($LastIdWritten);
+	 $IdStr .= $this->Int8($id);
       }
       
       $TrailingBytes = $this->Int8($LastIdWritten);
       $TrailingBytes .= $this->Int8(0);
-	 
-      // Error checking
-      if ($LastIdWritten >= 256)
-         return $this->PadString('', PDB_CATEGORY_SIZE);
 	 
       return $this->Int16($RenamedFlags) . $CategoryStr . $IdStr . 
          $TrailingBytes;
