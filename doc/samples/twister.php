@@ -144,7 +144,7 @@ function ShowInitialForm() {
    ShowDownloadLinks();
    
 ?><form action="<?PHP echo $MyFilename 
-?>" method="post" >
+?>" method="post" enctype="multipart/form-data">
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
