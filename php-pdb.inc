@@ -27,25 +27,25 @@
     * Maybe some code will be from PalmImage
     * http://palmimage.sourceforge.net/
     */
-    
-   $PDB_HEADER_SIZE = 72; // Size of the database header
-   $PDB_INDEX_HEADER_SIZE = 6; // Size of the record index header
-   $PDB_RECORD_HEADER_SIZE = 8; // Size of the record index entry
-   $PDB_RESOURCE_SIZE = 10;  // Size of the resource index entry
-   $PDB_EPOCH_1904 = 2082844800; // Difference between Palm's time and Unix
+
+   define('PDB_HEADER_SIZE', 72); // Size of the database header
+   define('PDB_INDEX_HEADER_SIZE', 6); // Size of the record index header
+   define('PDB_RECORD_HEADER_SIZE', 8); // Size of the record index entry
+   define('PDB_RESOURCE_SIZE', 10);  // Size of the resource index entry
+   define('PDB_EPOCH_1904', 2082844800); // Difference between Palm's time and Unix
    
-   $PDB_ATTRIB_RESOURCE = 1;
-   $PDB_ATTRIB_READ_ONLY = 2;
-   $PDB_ATTRIB_APPINFO_DIRTY = 4;
-   $PDB_ATTRIB_BACKUP = 8;
-   $PDB_ATTRIB_OK_NEWER = 16;
-   $PDB_ATTRIB_RESET = 32;
-   $PDB_ATTRIB_OPEN = 64;
+   define('PDB_ATTRIB_RESOURCE', 1);
+   define('PDB_ATTRIB_READ_ONLY', 2);
+   define('PDB_ATTRIB_APPINFO_DIRTY', 4);
+   define('PDB_ATTRIB_BACKUP', 8);
+   define('PDB_ATTRIB_OK_NEWER', 16);
+   define('PDB_ATTRIB_RESET', 32);
+   define('PDB_ATTRIB_OPEN', 64);
    
-   $PDB_RECORD_ATTRIB_PRIVATE = 8;
-   $PDB_RECORD_ATTRIB_DELETED = 16;
-   $PDB_RECORD_ATTRIB_DIRTY = 32;
-   $PDB_RECORD_ATTRIB_EXPUNGED = 64;
+   define('PDB_RECORD_ATTRIB_PRIVATE', 8);
+   define('PDB_RECORD_ATTRIB_DELETED', 16);
+   define('PDB_RECORD_ATTRIB_DIRTY', 32);
+   define('PDB_RECORD_ATTRIB_EXPUNGED', 64);
    
    class PalmDB {
       var $Records = array(); // All of the data from the records is here
@@ -186,11 +186,17 @@
       }
 
 
+      function GetRecordIDs() {
+	 return array_keys($this->Records);
+      }
+      
+      function GetRecordCount() {
+         return count($this->Records);
+      }
+      
+      
       // Returns the hexadecimal header of the pdb file
       function MakeHeader() {
-         global $PDB_EPOCH_1904, $PDB_HEADER_SIZE, $PDB_INDEX_HEADER_SIZE,
-	    $PDB_RECORD_HEADER_SIZE;
-      
          // 32 bytes = name, but only 31 available (one for null)
 	 $header = $this->String($this->Name, 31);
 	 $header .= 
@@ -203,15 +209,15 @@
 	 
 	 // Creation date & modification date
 	 if ($this->CreationTime != 0)
-  	    $header .= $this->Int32($this->CreationTime + $PDB_EPOCH_1904);
+  	    $header .= $this->Int32($this->CreationTime + PDB_EPOCH_1904);
 	 else
 	    $header .= $this->Int32(0);
 	 if ($this->ModificationTime != 0)
-  	    $header .= $this->Int32($this->ModificationTime + $PDB_EPOCH_1904);
+  	    $header .= $this->Int32($this->ModificationTime + PDB_EPOCH_1904);
 	 else
 	    $header .= $this->Int32(0);
 	 if ($this->BackupTime != 0)
-  	    $header .= $this->Int32($this->BackupTime + $PDB_EPOCH_1904);
+  	    $header .= $this->Int32($this->BackupTime + PDB_EPOCH_1904);
 	 else
 	    $header .= $this->Int32(0);
 	 
@@ -231,15 +237,13 @@
 	 $header .= $this->Int32(0);
 
          // Number of records
-	 $header .= $this->Int16(count($this->Records));
+	 $header .= $this->Int16($this->GetRecordCount());
 	 
 	 // Dump each record
-	 if (count($this->Records) == 0) {
-	    $header .= '0000'; // placeholder bytes
-	 } else {
-	    $Offset = $PDB_HEADER_SIZE + $PDB_INDEX_HEADER_SIZE;
-	    $Offset += $PDB_RECORD_HEADER_SIZE * count($this->Records);
-	    $keys = array_keys($this->Records);
+	 if ($this->GetRecordCount() != 0) {
+	    $Offset = PDB_HEADER_SIZE + PDB_INDEX_HEADER_SIZE;
+	    $Offset += PDB_RECORD_HEADER_SIZE * count($this->Records);
+	    $keys = $this->GetRecordIDs();
 	    sort($keys, SORT_NUMERIC);
   	    foreach ($keys as $index) {
 	       $header .= $this->Int32($Offset);
@@ -256,6 +260,7 @@
                $Offset += $this->GetRecordSize($index);
 	    }
 	 }
+	 $header .= '0000'; // placeholder bytes
 
          // AppInfo and SortInfo blocks go here
 	 // It's a shame that we don't support them yet
@@ -263,12 +268,12 @@
 	 return $header;
       }
       
-      
+
       function WriteToFile($file) {
          $header = $this->MakeHeader();
          fwrite($file, pack("H*", $header), 
 	        strlen($header) / 2);
-	 $keys = array_keys($this->Records);
+	 $keys = $this->GetRecordIDs();
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
 	    $data = $this->GetRecord($index);
@@ -287,7 +292,7 @@
 	 
          $header = $this->MakeHeader();
          echo pack("H*", $header);
-	 $keys = array_keys($this->Records);
+	 $keys = $this->GetRecordIDs();
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
 	    $data = $this->GetRecord($index);

@@ -7,7 +7,7 @@
  * See the LEGAL file for more information
  */
  
-$PDB_DOC_RECORD_SIZE = 4096;
+define('PDB_DOC_RECORD_SIZE', 4096);
  
 class PalmDoc extends PalmDB {
    function PalmDoc ($Title = '') {
@@ -20,9 +20,7 @@ class PalmDoc extends PalmDB {
    }
    
    function AddDocText ($String) {
-      global $PDB_DOC_RECORD_SIZE;
-      
-      $SpaceLeft = $PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
+      $SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
       while ($String) {
          if ($SpaceLeft > 0) {
 	    $this->AppendString($String, $SpaceLeft);
@@ -31,17 +29,16 @@ class PalmDoc extends PalmDB {
 	 } else {
 	    $Curr = $this->GoToRecord();
 	    $this->GoToRecord($Curr + 1);
-	    $SpaceLeft = $PDB_DOC_RECORD_SIZE;
+	    $SpaceLeft = PDB_DOC_RECORD_SIZE;
 	 }
       }
    }
    
    function MakeDocRecordZero () {
-      global $PDB_DOC_RECORD_SIZE;
-
       $oldRec = $this->GoToRecord(0);
       $this->ClearCurrentRecord();
       $this->AppendInt16(1);  // Version
+        // 1 = uncompressed, 2 = compressed
       $this->AppendInt16(0);  // Reserved
       
       $Content_Length = 0;
@@ -58,8 +55,9 @@ class PalmDoc extends PalmDB {
       }
       $this->AppendInt32($Content_Length);       // Doc Size
       $this->AppendInt16($MaxIndex);             // Number of Records
-      $this->AppendInt16($PDB_DOC_RECORD_SIZE);  // Record size
+      $this->AppendInt16(PDB_DOC_RECORD_SIZE);  // Record size
       $this->AppendInt32(0);                     // Reserved
+
       $this->GoToRecord($oldRec);
    }
    
@@ -75,6 +73,17 @@ class PalmDoc extends PalmDB {
       if (! isset($this->Records[$num]))
          return '';
       return $this->Records[$num];
+   }
+   
+   function GetRecordIDs() {
+      return array_merge(PalmDB::GetRecordIDs(), array(0));
+   }
+   
+   function GetRecordCount() {
+      $c = count($this->Records);
+      if ($c)
+         $c ++;
+      return $c;
    }
 }
 
