@@ -158,7 +158,7 @@ class PalmDB {
    function Int32($value) {
       $big = $value / 65536;
       settype($big, 'integer');
-      $value = $this->Int16($big) . $this->Int16($value - ($big * 65536));
+      $value = PalmDB::Int16($big) . PalmDB::Int16($value - ($big * 65536));
       return $value;
    }
    
@@ -707,7 +707,7 @@ class PalmDB {
       // Some platforms and some browsers don't respond well if
       // there are illegal characters (such as spaces) in the name of
       // the file being downloaded.
-      $filename = ereg_replace('[^-a-zA-Z0-9\\.]', '_', $filename);
+      $filename = preg_replace('/[^-a-zA-Z0-9\\.]/', '_', $filename);
       
       if (strstr($HTTP_USER_AGENT, 'compatible; MSIE ') !== false &&
           strstr($HTTP_USER_AGENT, 'Opera') === false) {
