@@ -353,8 +353,14 @@
       // type of record (like a Datebook record).
       // Also, use this instead of just setting $PDB->Records[]
       // directly.
-      function SetRecordRaw($Rec) {
-         $this->Records[$this->CurrentRecord] = $Rec;
+      // SetRecordRaw('data');
+      // SetRecordRaw(24, 'data');   (specifying the record num)
+      function SetRecordRaw($A, $B = false) {
+         if ($B === false) {
+	    $B = $A;
+	    $A = $this->CurrentRecord;
+	 }
+         $this->Records[$A] = $B;
       }
       
       
