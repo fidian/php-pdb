@@ -1,13 +1,19 @@
 <?PHP
 
-include "php-pdb.inc";
-include "php-pdb-datebook.inc";
-include "php-pdb-doc.inc";
+// Turn on all error reporting
+ini_set('error_reporting', E_ALL);
+
+include "./php-pdb.inc";
+include "./php-pdb-datebook.inc";
+include "./php-pdb-doc.inc";
+
+$Tests = array();
+$TestType = 'Unknown';
 
 ?>
 <html><head><title>PHP-PDB Testing</title>
 <body bgcolor="#FFFFFF">
-<h1>Data conversion testing</h1>
+<h1>Data conversion testing</h1><?PHP $TestType = 'Data' ?>
 <ul>
 <li>Int8 = <?PHP PassFail(PalmDB::Int8(40), '28') ?></li>
 <li>Int16 = <?PHP PassFail(PalmDB::Int16(1796), '0704') ?></li>
@@ -15,11 +21,38 @@ include "php-pdb-doc.inc";
 <li>Double = <?PHP PassFail(PalmDB::Double(10.53), '40250f5c28f5c28f') ?></li>
 <li>String = <?PHP PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
 </ul>
-<h1>Modules</h1>
+<h1>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
-<li>Datebook = <?PHP PassFail(DatebookTest()) ?></li>
-<li>Doc = <?PHP PassFail(DocTest()) ?></li>
+<li>Datebook = <?PHP PassFail(DatebookTest(), 'be8223a89be8face9c4734df74cdec32') ?></li>
+<li>Doc = <?PHP PassFail(DocTest(), '56fa283daa40aa6d547cb866b46ef368') ?></li>
 </ul>
+<h1>Summary</h1>
+<table align=center bgcolor="#EFEFFF" border=1 cellpadding=10 cellspacing=0>
+<tr><th>Test Type</th><th>Pass</th><th>Fail</th><th>% Working</th></tr>
+<?PHP
+   $TestTotalPass = 0;
+   $TestTotalFail = 0;
+   
+   foreach ($Tests as $Type => $Test) {
+      $Percent = $Test['Pass'] / ($Test['Pass'] + $Test['Fail']);
+      $Percent *= 100;
+      $Percent = intval($Percent);
+      echo "<tr><td>" . $Type . "</td><td align=center>" . 
+         $Test['Pass'] . "</td><td align=center>" .
+         $Test['Fail'] . "</td><td align=center>" . $Percent . 
+	 " %</td></tr>\n";
+      $TestTotalPass += $Test['Pass'];
+      $TestTotalFail += $Test['Fail'];
+   }
+?><tr><td><b>Total</b></td><td align=center><b><?PHP echo $TestTotalPass
+?></b></td><td align=center><b><?PHP echo $TestTotalFail
+?></b></td><td align=center><b><?PHP
+   $Percent = $TestTotalPass / ($TestTotalPass + $TestTotalFail);
+   $Percent *= 100;
+   $Percent = intval($Percent);
+   echo $Percent;
+?> %</b></td></tr>
+</table>
 </body></html>
 <?PHP
 
@@ -44,20 +77,7 @@ function DatebookTest() {
    // Add the record to the datebook
    $d->SetRecordRaw($Record);
    
-   // Change the dates so the header looks the same no matter when we
-   // generate the file
-   $d->CreationTime = 0;
-   $d->ModificationTime = 0;
-   $d->BackupTime = 0;
-   
-   ob_start();
-   $d->WriteToStdout();
-   $file = ob_get_contents();
-   ob_end_clean();
-
-   if (md5($file) == 'b2b9ff7287dfc1e2a15a86a41a0291f3')
-      return true;
-   return false;
+   return GenerateMd5($d);
 }
 
 
@@ -87,32 +107,54 @@ EOS;
       $newText .= $t . "\n";
    }
    $d->AddDocText($newText);
-   
+ 
+   return GenerateMd5($d);
+}
+
+
+function GenerateMd5(&$PalmDB) {
    // Change the dates so the header looks the same no matter when we
    // generate the file
-   $d->CreationTime = 0;
-   $d->ModificationTime = 0;
-   $d->BackupTime = 0;
+   $PalmDB->CreationTime = 0;
+   $PalmDB->ModificationTime = 0;
+   $PalmDB->BackupTime = 0;
    
    ob_start();
-   $d->WriteToStdout();
+   $PalmDB->WriteToStdout();
    $file = ob_get_contents();
    ob_end_clean();
-
-   if (md5($file) == '56fa283daa40aa6d547cb866b46ef368')
-      return true;
-   return false;
+   
+   return md5($file);
 }
 
 
 function PassFail($test, $want = false) {
-   if (($want === false && $test) ||
-       ($want !== false && $test == $want))
+   global $TestType, $Tests;
+   
+   if (! isset($Tests[$TestType]))
+      $Tests[$TestType] = array('Fail' => 0, 'Pass' => 0);
+      
+   $FailMsg = '';
+   $Failure = false;
+   
+   if ($want === false) {
+      if ($test) {
+         $FailMsg = "Data:  \"$test\"";
+	 $Failure = true;
+      }
+   } else {
+      if ($test != $want) {
+         $FailMsg = "Wanted \"$want\" but got \"$test\"";
+         $Failure = true;
+      }
+   }
+   
+   if ($Failure) {
+      echo "<FONT color=\"red\">fail</font><br>$FailMsg";
+      $Tests[$TestType]['Fail'] ++;
+   } else {
       echo "<FONT color=\"green\">pass</font>";
-   else {
-      echo "<FONT color=\"red\">fail</font>";
-      if ($want !== false)
-         echo " - Got \"$test\", wanted \"$want\".";
+      $Tests[$TestType]['Pass'] ++;
    }
 }
 
