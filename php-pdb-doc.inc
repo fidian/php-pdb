@@ -66,12 +66,12 @@ class PalmDoc extends PalmDB {
 
    // Returns the size of the record specified, or the current record if
    // no record is specified
-   function GetRecordSize_Class($num = false) {
+   function GetRecordSize($num = false) {
       if ($num === false)
          $num = $this->CurrentRecord;
       if ($num == 0)
          return 16;
-      return PalmDB::GetRecordSize_Class($num);
+      return PalmDB::GetRecordSize($num);
    }
    
    
