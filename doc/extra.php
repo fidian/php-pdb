@@ -17,6 +17,18 @@ else
    $PDB_TEST = 'samples/pdb-test.php';
 ?>
 
+<h3>What do you need for PHP-PDB</h3>
+
+<ul>
+<li>A server that runs PHP 4.0.1 or later.</li>
+<li>It would be nice to have it fast and for it to have lots of memory.</li>
+<li>Extra memory is good, since PHP doesn't manipulate 8-bit strings very
+well.  Because of this, I use hex encoded data, doubling the size of the
+.pdb file in memory when loaded.  So, if you want to work with a 500k DOC
+file, you should have 1 meg of memory free or your server will do a lot of
+swapping.</li>
+</ul>
+
 <h3>Making sure PHP-PDB works</h3>
 
 <p>After you installed PHP-PDB somewhere, just use your web browser and view
@@ -54,6 +66,10 @@ href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.</li>
 <li>Regex bookmark scanning for Twister!  (Idea from <a
 href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
+<li>Instead of breaking on chapter, you could break on # of records or
+approximate size.</li>
+<Li>Would backwards size searching for compressing DOC records be faster?
+Test it out.  DOC compression is too slow.</li>
 </ul>
 
 <p><b>New Ideas:</b></p>
