@@ -15,19 +15,7 @@ class PalmSmallBASIC extends PalmDB {
    function PalmSmallBASIC ($Title = '') {
       PalmDB::PalmDB('TEXT', 'SmBa', $Title);
 
-      $this->EraseText();
-   }
-
-
-   // Gets all of the document's text and returns it as a string
-   function GetText () {
-      $String = '';
-      $i = 1;
-      while (isset($Records[$i])) {
-         $String .= pack('H*', $Records[$i]);
-	 $i ++;
-      }
-      return $String;
+      $this->Records = array();
    }
 
 
@@ -144,9 +132,11 @@ class PalmSmallBASIC extends PalmDB {
       $name = $this->String($keys[$num]);
       $Str .= $this->PadString($this->String($keys[$num]), 64);
       
-      $Str .= $this->String($this->Records[$keys[$num]]);
+      $code = $this->Records[$keys[$num]];
+      $code = substr($code, 0, PDB_SMALLBASIC_MAX_SECTION);
+      $Str .= $this->String($code);
       
-      return $Str;
+      return $Str . '00';
    }
    
    
