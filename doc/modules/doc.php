@@ -76,7 +76,7 @@ length for embedded bookmarks could vary.</p>
 <?PHP ShowExampleFile('../samples/bookmark_test.php'); ?>
 
 <p>The example will create a test DOC (also availale <a
-href="../programs/bookmark_test.php">here</a>) that has both kinds of bookmarks.
+href="../samples/bookmark_test.php">here</a>) that has both kinds of bookmarks.
 Below is a table showing various doc readers and what type of bookmarks they
 support.  If you wish to add to this file, just mail me (link at bottom of
 page) or the php-pdb-general mailing list.</p>
