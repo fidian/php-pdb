@@ -35,8 +35,8 @@ class PalmDatebook extends PalmDB {
       $this->RecordGetFunc = 'PalmDatebookRecordGet';
       $this->RecordSizeFunc = 'PalmDatebookRecordSize';
    }
-   
-   function PalmDatebookRecordGet($num) {
+
+   function GetRecord($num) {
       $this->ClearCurrentRecord();
       $data = $this->DatebookRecords[$this->CurrentRecord];
       if (! isset($data))
@@ -71,14 +71,11 @@ class PalmDatebook extends PalmDB {
       $this->AppendInt8(0);
    }
    
-   function PalmDatebookRecordSize($num) {
-   }
-   
-   function PalmDatebookSetRecord($RecordData) {
+   function SetDatebookRecord($RecordData) {
       $this->DatebookRecords[$this->CurrentRecord] = $RecordData;
    }
    
-   function PalmDatebookGetRecord($RecordData) {
+   function GetDatebookRecord($RecordData) {
       if (! isset($this->DatebookRecords[$this->CurrentRecord]))
          return array();
       return $this->DatebookRecords[$this->CurrentRecord];
