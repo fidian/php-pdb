@@ -250,22 +250,29 @@ class PalmDoc extends PalmDB {
 	 $lastMatchPos = 0;
 	 $lastMatchSize = 0;
 	 $Key = substr($In, $pos, 2);
+
+         while (isset($spots[$Key][0]) && $pos - $spots[$Key][0] >= 4094) {
+	    // Expire elements that we don't need
+	    array_shift($spots[$Key]);
+	 }
 	 
-	 foreach ($spots[$Key] as $potential) {
+	 $index = 0;
+	 while (isset($spots[$Key][$index]) && $spots[$Key][$index] < $pos) {
+	    $potential = $spots[$Key][$index];
+	    $index ++;
+
 	    // Remember -- $pos and $potential are pointing at hex-encoded
 	    // strings!
-	    if ($potential < $pos && $pos - $potential < 4094) {
-	       $size = 2;
-	       while ($size < 21 &&
-	              $size + $potential < $pos &&
-		      $In[$potential + $size] == $In[$pos + $size])
-	          $size ++;
-	       if ($size % 2)
-	          $size --;
-	       if ($size / 2 > $lastMatchSize) {
-	          $lastMatchPos = ($pos - $potential) / 2;
-		  $lastMatchSize = $size / 2;
-	       }
+	    $size = 2;
+	    while ($size < 21 &&
+	           $size + $potential < $pos &&
+		   $In[$potential + $size] == $In[$pos + $size])
+	       $size ++;
+	    if ($size % 2)
+	       $size --;
+	    if ($size / 2 > $lastMatchSize) {
+	       $lastMatchPos = ($pos - $potential) / 2;
+	       $lastMatchSize = $size / 2;
 	    }
 	 }
 	 

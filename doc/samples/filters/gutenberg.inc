@@ -14,11 +14,19 @@ function FilterGutenberg($fileData, $BreakOnChapter) {
    $fileData = str_replace("\r", "\n", $fileData);
    
    // Look for the "Small Print!"
-   list($SmallPrint, $fileData) = explode("*END*\n", $fileData, 2);
-   $SmallPrint .= '*END*';
+   $fileData = explode("*END*\n", $fileData, 2);
+   if (isset($fileData[1])) {
+      $SmallPrint = $fileData[0];
+      $fileData = $fileData[1];
+      
+      $SmallPrint .= '*END*';
    
-   // Reformat the "Small Print!"
-   $SmallPrint = FilterGutenbergSmallPrint($SmallPrint);
+      // Reformat the "Small Print!"
+      $SmallPrint = FilterGutenbergSmallPrint($SmallPrint);
+   } else {
+      $SmallPrint = '';
+      $fileData = $fileData[0];
+   }
    
    // Reformat the story
    $fileData = FilterGutenbergText($fileData, $BreakOnChapter);
