@@ -22,6 +22,7 @@
  *      If SourceType == 'Gutenberg'
  *         BreakOnChapter = checkbox for breaking the file on chapters
  *      TargetType = 'DOC'
+ *      TitleOfDoc = Title
  *
  *   If action == 'download'
  *      file = name of the file in $SavedFiles
@@ -36,6 +37,8 @@ if (file_exists('../../php-pdb.inc')) {
 }
 
 // START HERE
+
+set_time_limit(0);
 
 include('./filters/text.inc');
 include('./filters/html.inc');
@@ -81,33 +84,44 @@ formats, once PHP-PDB has a class for accessing them.</p>
 
 
 function ShowInitialForm() {
-   global $MyFilename;
+   global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
+      $BreakOnChapter, $TargetType, $TitleOfDoc;
+   // $UncompressedDoc
    
 ?><form action="<?PHP echo $MyFilename ?>" method="post">
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
     <td align=right><b>Source:</b></td>
-    <td><input type=radio name="Source" value="File">
+    <td><input type=radio name="Source" value="File"<?PHP
+      if (! isset($Source) || $Source != 'URL') echo ' checked'; ?>>
       File:  <input type=file name=filedata size=45><br>
-      <input type=radio name="Source" value="URL" checked> 
-      URL:  <input type=input name=urldata size=60 value="http://rumkin.com/alice30.txt"></td>
+      <input type=radio name="Source" value="URL"<?PHP
+      if (isset($Source) && $Source == 'URL') echo ' checked'; ?>> 
+      URL:  <input type=input name=urldata size=60></td>
   </tr>
   <tr>
     <td align=right><b>Source Type:</b></td>
-    <td><input type=radio name="SourceType" value="HTML">
+    <td><input type=radio name="SourceType" value="HTML"<?PHP
+      if (! isset($SourceType) || ($SourceType != 'Text' && 
+         $SourceType != 'Gutenberg')) echo ' checked'; ?>>
       HTML<br>
       <br>
       
-      <input type=radio name="SourceType" value="Text">
+      <input type=radio name="SourceType" value="Text"<?PHP
+      if (isset($SourceType) && $SourceType == 'Text') echo ' checked'; ?>>
       Text<br>
-      &nbsp; &nbsp; &nbsp;<input type=checkbox name="RewrapParagraphs">
+      &nbsp; &nbsp; &nbsp;<input type=checkbox name="RewrapParagraphs"<?PHP
+      if (isset($RewrapParagraphs) && $RewrapParagraphs) echo ' checked'; ?>>
       Rewrap paragraphs<br>
       <br>
       
-      <input type=radio name="SourceType" value="Gutenberg" checked>
+      <input type=radio name="SourceType" value="Gutenberg"<?PHP
+      if (isset($SourceType) && $SourceType == 'Gutenberg') 
+         echo ' checked'; ?>>
       Project Gutenberg Text<br>
-      &nbsp; &nbsp; &nbsp;<input type=checkbox name="BreakOnChapter" checked>
+      &nbsp; &nbsp; &nbsp;<input type=checkbox name="BreakOnChapter"<?PHP
+      if (isset($BreakOnChapter) && $BreakOnChapter) echo ' checked'; ?>>
       Create a separate file for each chapter
       
       </td>
@@ -115,7 +129,11 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Convert Into:</b></td>
     <td><input type=radio name="TargetType" value="DOC" checked>
-      DOC<!--
+      DOC<br>
+      &nbsp; &nbsp; &nbsp;DOC Title:
+      <input type=text name="TitleOfDoc" value="<?PHP
+      if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
+      <!--
       <br>
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file
@@ -128,19 +146,73 @@ function ShowInitialForm() {
 </table>
 </form>
 <?PHP
+
+   ShowDownloadLinks();
 }
 
 
 function ConvertFile() {
+   global $TitleOfDoc;
    StartHTML('Converting File');
-   $filedata = GetTheFile();
-   if ($filedata !== false) {
-      $rawData = ConvertFromFormat($filedata);
-      if ($rawData !== false) {
-         StoreAsPRC($rawData);
-      }
+   if (ConversionSanityChecks()) {
+      ShowInitialForm();
+      return;
    }
+   $filedata = GetTheFile();
+   if ($filedata === false) {
+      ShowInitialForm();
+      return;
+   }
+   
+   $rawData = ConvertFromFormat($filedata);
+   if ($rawData === false) {
+      ShowInitialForm();
+      return;
+   }
+   
+   if (is_array($rawData)) {
+      foreach ($rawData as $index => $d) {
+         StoreAsPRC($TitleOfDoc . ' [' . ($index + 1) . '/' .
+	    count($rawData) . ']', $d);
+      }
+   } else {
+      StoreAsPRC($TitleOfDoc, $rawData);
+   }
+   
    ShowDownloadLinks();
+}
+
+
+// Returns true on error
+function ConversionSanityChecks() {
+   global $TargetType, $TitleOfDoc, $Source, $filedata, $urldata, $SourceType;
+   
+   if ($TargetType == 'DOC' && $TitleOfDoc == '') {
+      ShowError('You must specify a title for the DOC file.');
+      return true;
+   }
+   if ($TargetType != 'DOC') {
+      ShowError('Invalid target type.');
+      return true;
+   }
+   if ($Source != 'File' && $Source != 'URL') {
+      ShowError('Invalid source.');
+      return true;
+   }
+   if ($Source == 'File' && ! $filedata) {
+      ShowError('Invalid file source.  Make sure to upload a file.');
+      return true;
+   }
+   if ($Source == 'URL' && ! $urldata) {
+      ShowError('Invalid URL source.  Make sure to specify a URL.');
+      return true;
+   }
+   if ($SourceType != 'Text' && $SourceType != 'HTML' && 
+       $SourceType != 'Gutenberg') {
+      ShowError('Invalid source type.');
+      return true;
+   }
+   return false;
 }
 
 
@@ -209,7 +281,8 @@ function GetTheFile() {
       while (! feof($fp)) {
          $d .= fread($fp, 8192);
       }
-      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) . '.');
+      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) . 
+         ".\nStarting conversion of the file.");
       fclose($fp);
       return $d;
    }
@@ -222,12 +295,16 @@ function ConvertFromFormat($filedata) {
    global $SourceType, $RewrapParagraphs, $BreakOnChapter;
    
    if ($SourceType == 'Text') {
+      if (! isset($RewrapParagraphs))
+         $RewrapParagraphs = false;
       return FilterText($filedata, $RewrapParagraphs);
    }
    if ($SourceType == 'HTML') {
       return FilterHtml($filedata);
    }
-   if ($SourceType == 'Gutenberg' {
+   if ($SourceType == 'Gutenberg') {
+      if (! isset($BreakOnChapter))
+         $BreakOnChapter = false;
       return FilterGutenberg($filedata, $BreakOnChapter);
    }
    ShowError('Invalid source type.');
@@ -235,7 +312,9 @@ function ConvertFromFormat($filedata) {
 }
 
 
-function StoreAsPRC($rawData) {
+function StoreAsPRC($title, $rawData) {
+   ShowStatus("StoreAsPRC:  $title");
+   echo "<pre>" . htmlspecialchars($rawData) . "\n</pre>\n";
 }
 
 
