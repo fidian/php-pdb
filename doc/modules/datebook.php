@@ -17,6 +17,14 @@ StandardHeader('Datebook Files', 'modules');
 events.  It is supposed to make things easier, but might be a bit complex to
 learn at first.</p>
 
+<p>If you install this database onto your handheld, it will <i>overwrite</i>
+the one that already exists on your handheld.  This is obviously irritating.
+Please keep that in mind.  An ideal use for this PHP class would be for
+talking to a conduit, where the conduit would upload the current datebook,
+the server would parse it and add/modify/delete entries with this class, the
+server would send the modified datebook back to the conduit, and the conduit
+would replace the device's datebook with the modified one.</p>
+
 <h3>Including into your program</h3>
 
 <?PHP
