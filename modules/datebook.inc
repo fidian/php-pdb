@@ -429,7 +429,7 @@ class PalmDatebook extends PalmDB {
 	 $Repeat['unknown2'] = $this->LoadInt8(substr($fileData, 7, 1));
 	 $fileData = substr($fileData, 8);
 	 
-	 if ($End != 65535 && $End <= 0)
+	 if ($End != 65535 && $End >= 0)
   	    $Repeat['End'] = $this->Int16ToDate($End);
       
          if ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
