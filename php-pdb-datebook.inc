@@ -224,7 +224,10 @@ class PalmDatebook extends PalmDB {
    // Overrides the GetRecord method.  We store data in associative arrays.
    // Just convert the data into the proper format and then return the
    // generated string.
-   function GetRecord($num) {
+   function GetRecord($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
+	 
       if (! isset($this->Records[$num]) || ! is_array($this->Records[$num]))
          return PalmDB::GetRecord($num);
       
