@@ -14,7 +14,7 @@ StandardHeader('Basic Use');
 ?>
 
 <P>PHP-PDB can create nearly any type of <a
-href="http://www.palmos.com/">PalmOS</a> database through the most basic
+href="http://www.palmos.com/">Palm OS</a> database through the most basic
 functions, as illustrated here.
 
 <h3>Including into your program</h3>

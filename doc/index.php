@@ -60,6 +60,10 @@ should eventually be released from this site.</li>
 <li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
 href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC or
 SmallBASIC format.</li>
+<!--
+<li><a href="http://palmvoc.sourceforge.net/">palmvoc</a> - Free vocabulary
+trainer for Palm OS.</li>
+-->
 </ul>
 
 <?PHP

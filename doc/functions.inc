@@ -134,7 +134,7 @@ function ShowExample($text) {
 ?><table align=center width=80% border=1 cellpadding=5 cellspacing=0
 bgcolor=#DFFFDF>
 <tr>
-<td><font face='courier'><?PHP
+<td><font face='courier' size='-1'><?PHP
 
    $text = trim($text);
    $text = htmlspecialchars($text);
