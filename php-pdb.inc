@@ -639,9 +639,9 @@ class PalmDB {
 	    
 	    $Offset += $this->GetRecordSize($index);
 	    // *new* method 3
-	    $Mod4 = $Offset % 4;
-	    if ($Mod4)
-	       $Offset += 4 - $Mod4;
+	    //$Mod4 = $Offset % 4;
+	    //if ($Mod4)
+	    //   $Offset += 4 - $Mod4;
 	 }
       }
       
@@ -651,13 +651,13 @@ class PalmDB {
       // AppInfo and SortInfo blocks go here
       if ($AppInfo_Size > 0)
          // *new* method 1
-         //$header .= $this->GetAppInfo();
-         $header .= $this->PadTo4ByteBoundary($this->GetAppInfo());
+         $header .= $this->GetAppInfo();
+         //$header .= $this->PadTo4ByteBoundary($this->GetAppInfo());
       
       if ($SortInfo_Size > 0)
          // *new* method 2
-         //$header .= $this->GetSortInfo();
-         $header .= $this->PadTo4ByteBoundary($this->GetSortInfo());
+         $header .= $this->GetSortInfo();
+         //$header .= $this->PadTo4ByteBoundary($this->GetSortInfo());
 
       return $header;
    }
