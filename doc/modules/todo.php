@@ -13,20 +13,10 @@ StandardHeader('ToDo List', 'modules');
 
 ?>
 
-<p>DOCUMENTATION IN PROGRESS  -- The documentation below is not for the ToDo
-module.</p>
+<p>The todo module is mostly straightforward, and should be fairly easy to
+use.</p>
 
-<p>This class uses a completely different for for storing information about
-events.  It is supposed to make things easier, but might be a bit complex to
-learn at first.</p>
-
-<p>If you install this database onto your handheld, it will <i>overwrite</i>
-the one that already exists on your handheld.  This is obviously irritating.
-Please keep that in mind.  An ideal use for this PHP class would be for
-talking to a conduit, where the conduit would upload the current datebook,
-the server would parse it and add/modify/delete entries with this class, the
-server would send the modified datebook back to the conduit, and the conduit
-would replace the device's datebook with the modified one.</p>
+<?PHP ShowOverwriteWarning() ?>
 
 <h3>Including into your program</h3>
 
@@ -34,20 +24,20 @@ would replace the device's datebook with the modified one.</p>
 
 ShowExample('
 include \'php-pdb.inc\';
-include \'modules/datebook.inc\';
+include \'modules/todo.inc\';
 ');
 
 ?>
 
 <h3>Creating a new database</h3>
 
-<P>Since a datebook has a specified type, creator, and name, the class takes
-care of knowing what they are.  Creation of a new datebook is a snap.
+<P>Since a todo list has a specified type, creator, and name, the class takes
+care of knowing what they are.  Creation of a new database is a snap.
 
 <?PHP
 
 ShowExample('
-$DB = new PalmDatebook();
+$DB = new PalmTodoList();
 ');
 
 ?>
@@ -62,6 +52,11 @@ Use</a> for more information.</p>
 <p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
+<h3>Category Support and Record Attributes</h3>
+
+<p>This supports categories and attributes.  See <a
+href="../example.php">Basic Use</a> for more information.</p>
+
 <h3>Other functions</h3>
 
 <dl>
@@ -72,7 +67,7 @@ SetRecordRaw()</b></dt>
 functions.  You use both of these to get/set records in the database.</dd>
 
 <dt><b>NewRecord()</b></dt>
-<dd>Returns an array with some default data for a new Datebook record.  Does
+<dd>Returns an array with some default data for a new Todo record.  Does
 not actually add the record.  Use SetRecordRaw() for that.</dd>
 
 </dl>
@@ -88,125 +83,83 @@ zero), it is considered to be set.</p>
 <tr>
 <th>Key</th><th>Example</th><th>Description</th>
 </tr>
-<tr><td>StartTime</td><td>2:00</td><td>Starting time of the event, 24 hour
-format</td></tr>
-<tr><td>Endtime</td><td>13:00</td><td>Ending time of the event, 24 hour
-format</td></tr>
-<tr><td>Date</td><td>2001-01-23</td><td>Year, month, and day of the
-event</td></tr>
-<tr><td>Description</td><td>Eat At Joe's</td><td>The title or the name of 
-the event</td></tr>
-<tr><td>Alarm</td><td>5d</td><td>[Optional] A number of units before the
-event to sound an alarm (m = minutes, h = hours, d = days)</td></tr>
-<tr><td>Repeat</td><td><i>Special</i></td><td>[Optional] An array detailing
-how the event should repeat</td></tr>
-<tr><td>Note</td><td>Order a burger and fries</td><td>[Optional] A note for
-the event</td></tr>
-<tr><td>Exceptions</td><td><i>Special</i></td><td>[Optional] Exceptions when
-the event should not happen</td></tr>
-<tr><td>WhenChanged</td><td>1</td><td>[Optional] True if the "when info" for
-the event has changed.</td></tr>
-<tr><td>Flags</td><td>3</td><td>[Optional] User flags for the event</td></tr>
+<tr><td>Description</td><td>This is my todo</td><td>Short description of
+thing to do</td></tr>
+<tr><td>Note</td><td>Extended information</td><td>[Optional] A note attached to the
+record</td></tr>
+<tr><td>DueDate</td><td>2001-01-23</td><td>[Optional] Year, month, and day of when the
+item should be done</td></tr>
+<tr><td>Priority</td><td>1</td><td>[Optional]Priority of the event ([1-5])</td></tr>
+<tr><td>Completed</td><td>false</td><td>[Optional] True/false indicating
+whether the action was completed or not.</td></tr>
 </table>
 
-<p>EndTime must happen at or after StartTime.  The time the event occurs may
-not pass midnight (0:00).  If the event doesn't have a time (an all-day 
-event), use '' or do not define StartTime and EndTime.</p>
-
-<p>Exceptions are specified in an array consisting of dates the event
-occured and did not happen or should not be shown.  Dates are in the format
-<tt>YYYY-MM-DD</tt>, just like the Date attribute of the record.</p>
-
-<p>Repeating events are special, and the Repeat attribute of the record is
-set to an array.
-
-<dl>
-<dt>No repeat (or just leave Repeat undefined):</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_NONE;</dd>
-<dt>Daily repeating events:</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_DAILY;</dd>
-<dd>$repeat['Frequency'] = FREQUENCY; // Explained below</dd>
-<dd>$repeat['End'] = END_DATE; // Explained below</dd>
-<dt>Weekly repeating events:</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_Weekly;</dd>
-<dd>$repeat['Frequency'] = FREQUENCY; // Explained below</dd>
-<dd>$repeat['End'] = END_DATE; // Explained below</dd>
-<dd>$repeat['Days'] = DAYS; // Explained below</dd>
-<dd>$repeat['StartOfWeek'] = SOW; // Explained below</dd>
-<dt>"Monthly by day" repeating events:  (happens on a specific weekday)</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_MONTH_BY_DAY;</dd>
-<dd>$repeat['Frequency'] = FREQUENCY; // Explained below</dd>
-<dd>$repeat['End'] = END_DATE; // Explained below</dd>
-<dd>$repeat['WeekNum'] = WEEKNUM; // Explained below</dd>
-<dd>$repeat['DayNum'] = DAYNUM; // Explained below</dd>
-<dt>"Monthly by date" repeating events:  (happens on a specific numbered 
-day)</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_MONTH_BY_DATE;</dd>
-<dd>$repeat['Frequency'] = FREQUENCY; // Explained below</dd>
-<dd>$repeat['End'] = END_DATE; // Explained below</dd>
-<dt>Yearly repeating events:</dt>
-<dd>$repeat['Type'] = PDB_DATEBOOK_REPEAT_YEARLY;</dd>
-<dd>$repeat['Frequency'] = FREQUENCY; // Explained below</dd>
-<dd>$repeat['End'] = END_DATE; // Explained below</dd>
-</dl>
-
-<dl>
-<dt>FREQUENCY</dt>
-<dd>The frequency of the event.  If it is a daily event and you want it to
-happen every other day, set Frequency to 2.  This will default to 1 if not
-specified.</dd>
-<dt>END_DATE</dt>
-<dd>The last day, month, and year on which the event occurs.  Format is
-<tt>YYYY-MM-DD</tt>.  If not specified, no end date will be set.</dd>
-<dt>DAYS</dt>
-<dd>What days during the week the event occurs.  This is a string of numbers
-from 0 to 6.  I'm not sure if 0 is Sunday or if 0 is the start of the week
-from the preferences.  If you have a weekly repeating event and you want it
-to repeat on Thursday, you set this to "4".</dd>
-<dt>SOW</dt>
-<dd>As quoted from P5-Palm:<br>
-<blockquote>"I'm not sure what this is, but the Datebook app appears to
-perform some hairy calculations involving this."</blockquote></dd>
-<dt>WEEKNUM</dt>
-<dd>The number of the week on which the event occurs.  5 is the last week of
-the month.  0 is the first.</dd>
-<dt>DAYNUM</dt>
-<dd>The day of the week on which the event occurs.  Again, I don't know if 0
-is Sunday or if 0 is the start of the week from the preferences.</dd>
-</dl>
-
-<p>There are also two mysterious 'unknown' fields for the repeat event and
-they will be populated if the database is loaded from a file.  They will
-otherwise default to 0.  They are 'unknown1' and 'unknown2'.</p>
-
+<p>If description is not specified, then the string 'No description' will be
+used instead.</p>
 
 <h3>Example</h3>
 
 <?PHP
 
 ShowExample('
-// Create an instance of the class
-$pdb = new PalmDatebook();
+// Write Example
+$todo = new PalmTodoList();
+$categories = array(1 => \'Visita\', \'Fax\', \'Correo\');
+$todo->SetCategoryList($categories);
+$record = array(\'Description\' => \'Enviar Fax\',
+                \'Note\' => "25\nProbar palm",
+                \'Priority\' => 2);
+$todo->SetRecordRaw($record);
+$todo->SetRecordAttrib(2); // Category 2
 
-// Create a repeating event that happens every other Friday.
-// I want it to be an all-day event that says "Pay Day!"
-$Repeat = array(
-   "Type" => PDB_DATEBOOK_REPEAT_WEEKLY,
-   "Frequency" => 2,
-   "Days" => "5",
-   "StartOfWeek" => 0
-);
-$Record = array(
-   "Date" => "2001-11-2",
-   "Description" => "Pay Day!",
-   "Repeat" => $Repeat
-);
+$todo->GoToRecord(\'+1\');
+$record = array(\'Description\' => \'Llamar a juan\',
+                \'Note\' => \'35\',
+		\'Completed\' => true,
+                \'DueDate\' => \'2002-5-31\');
+$todo->SetRecordRaw($record);
+$todo->SetRecordAttrib(PDB_RECORD_ATTRIB_DIRTY |
+                       PDB_RECORD_ATTRIB_PRIVATE | 0);
+                       // Category 0, dirty, private
 
-// Add the record to the datebook
-$pdb->SetRecordRaw($Record);
+$fp = fopen(\'./pdbs/todo.pdb\',\'wb\');
+$todo->WriteToFile($fp);
+fclose($fp);
+');
 
-// Advance to the next record just in case we want to add more events
-$pdb->GoToRecord("+1");
+ShowExample('
+// Read Example
+$pdb = new PalmTodoList();
+$fp = fopen(\'./tdread.pdb\', \'r\');
+$pdb->ReadFile($fp);
+fclose($fp);
+
+echo "Name: $pdb->Name<BR>\n";
+echo "Type ID: $pdb->TypeID<br>\n";
+echo "Creator: $pdb->CreatorID<br>\n";
+echo "Attributes: $pdb->Attributes<br>\n";
+echo "Version: $pdb->Version<br>\n";
+echo "ModNum: $pdb->ModNumber<br>\n";
+echo "CreationTime: $pdb->CreationTime<br>\n";
+echo "ModTime: $pdb->ModificationTime<br>\n";
+echo "BackTime: $pdb->BackupTime<br>\n";
+echo \'NumRec: \'.$pdb->GetRecordCount()."<br>\n";
+$recids = $pdb->GetRecordIDs();
+$record1 = $pdb->GetRecordRaw($recids[0]);
+$attrib = $pdb->GetRecordAttrib($recids[0]);
+echo "record1 = $record1<br>\n";
+echo "Desc: " . $record1[\'Description\'] . "<br>\n";
+echo "Note: " . $record1[\'Note\'] . "<br>\n";
+echo \'Due Date: \' . $record1[\'DueDate\'] . "<br>\n";
+echo \'Cat: \' . $record1[\'Category\'] . "<br>\n";
+$categories = $pdb->GetCategoryList();
+echo "NumCat = " . count($categories) . "<br>\n";
+foreach ($categories as $k => $v) {
+  echo "categories[$k] = $v<br>\n";
+  foreach ($categories[$k] as $key => $val) {
+    echo "  categories[$k][$key] = $val<br>";
+  }
+}
 ');
 
 StandardFooter();

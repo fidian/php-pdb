@@ -134,30 +134,6 @@ class PalmDatebook extends PalmDB {
    }
    
    
-   // Converts a date string ( YYYY-MM-DD )( "2001-10-31" )
-   // into bitwise ( YYYY YYYM MMMD DDDD )
-   // Should only be used when saving
-   function DateToInt16($date) {
-      $YMD = explode('-', $date);
-      return ($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2];
-   }
-   
-   
-   // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
-   // Into the human readable date string ( YYYY-MM-DD )( "2001-10-31" )
-   // Should only be used when loading
-   function Int16ToDate($number) {
-      $year = $number / 512;
-      settype($year, "integer");
-      $year += 1904;
-      $number = $number % 512;
-      $month = $number / 32;
-      settype($month, "integer");
-      $day = $number % 32;
-      return $year . '-' . $month . '-' . $day;
-   }  
-
-
    // Prepares the record flags for the specified record;
    // Should only be used when saving
    function GetRecordFlags(& $data) {

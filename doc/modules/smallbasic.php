@@ -67,6 +67,10 @@ automatically trimmed when the database is written.</p>
 <p>This works just like loading files with the base class.  Please see <a
 href="../example.php">Basic Use</a> for further information.</p>
 
+<h3>Category Support and Record Attributes</h3>
+
+<p>SmallBASIC files do not support categories nor record attributes.</p>
+
 <h3>Other functions</h3>
 
 <dl>

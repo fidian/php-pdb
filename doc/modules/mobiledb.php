@@ -50,6 +50,11 @@ Use</a> for more information.</p>
 <p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
+<h3>Category Support and Record Attributes</h3>
+
+<p>MobileDB databases do support categories, but they are used strictly for
+keeping track of internal data.  Do not use them.</p>
+
 <h3>Other functions</h3>
 
 <p>There are no utility functions defined yet.  Sorry.</p>

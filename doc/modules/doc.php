@@ -138,6 +138,10 @@ the database if the contents were changed.</p>
 <p>This works just like loading files with the base class.  Please see <a
 href="../example.php">Basic Use</a> for further information.</p>
 
+<h3>Category Support and Record Attributes</h3>
+
+<p>DOC files do not support categories nor record attributes.</p>
+
 <h3>Adding Bookmarks</h3>
 
 <p>In DOC files, there are two ways to make bookmarks -- stored and

@@ -8,43 +8,6 @@
  * See http://php-pdb.sourceforge.net/ for more information about the library
  */
  
-// Attributes for the record
-define('PDB_TODO_ATTRIB_EXPUNGED', 0x80);
-define('PDB_TODO_ATTRIB_DELETED', 0x40);
-define('PDB_TODO_ATTRIB_ARCHIVE', 0x08);  // Only set if expunged or deleted
-define('PDB_TODO_ATTRIB_DIRTY', 0x20);
-define('PDB_TODO_ATTRIB_PRIVATE', 0x010);
-
-// Easier to use one of these if you need it
-define('PDB_TODO_ATTRIB_DELE_EXP', 0xC0);  // Deleted and Expunged bits
-define('PDB_TODO_ATTRIB_HIGH', 0xF0);  // All of above except Archive bit
-
-/* A special note about the attributes:
- * The lower 4 bits (0x01 through 0x08) are usually reserved for the
- * category.  Apparently, if the record is expunged or deleted, then
- * the category is tossed aside and the archive bit can come into play.
- * This overlap is somewhat bad.  To try to help you out, the category
- * bits and attribute bits are separated in the class.  Please access
- * category bits with the record key of 'category' and the attribute
- * bits are available with the 'attributes' array key.
- *
- * Do not set a category and the archive bit at the same time.
- *
- * When checking to see if the record has the archive bit enabled, you
- * would be wise to use code similar to this:
- *
- *   if ($record['attributes'] & PDB_ADDR_ATTRIB_DELE_EXP) {
- *      if ($record['attributes'] & PDB_ADDR_ATTRIB_ARCHIVE) {
- *         echo "Record deleted/expunged and archive bit set.";
- *      } else {
- *         echo "Record deleted/expunged and archive bit not set.";
- *      }
- *   } else {
- *      echo "Record is not deleted/expunged.";
- *   }
- */
-
-
 /* The data for SetRecordRaw and from GetRecordRaw should be/return a
  * special array, detailed below.  Optional values can be set to '' or not
  * defined.  If they are anything else (including zero), they are considered
@@ -52,28 +15,26 @@ define('PDB_TODO_ATTRIB_HIGH', 0xF0);  // All of above except Archive bit
  *
  * Key            Example             Description
  * ----------------------------------------------
- * description    ToDo                This is the ToDo text
- * note           Note                ^ A note for the todo
- * due_date       2002-06-03          ^ Year-Month-Day of the todo
- * completed      1                   ^ 1/0 (default 0 not completed)
- * priority       3                   ^ 1-5 (default 1)
- * category       2                   ^ 0-15 (default 0)
- * attributes     ???                 ^ Bitmask of attributes (see above)
+ * Description    ToDo                This is the ToDo text
+ * Note           Note                ^ A note for the todo
+ * DueDate        2002-06-03          ^ Year-Month-Day of the todo
+ * Completed      1                   ^ 1/0 (default 0 not completed)
+ * Priority       3                   ^ 1-5 (default 1)
+ *
+ * If description is not specified, then the string 'No description' will be
+ * used.
  */
  
 class PalmTodoList extends PalmDB {
-   var $CategoryList;
-   var $FirstDay;
+   var $dirty = 0;      // Unknown
+   var $sortOrder = 0;  // Unknown
 
    // Constructor.
    function PalmTodoList() {
       PalmDB::PalmDB('DATA','todo','ToDoDB');
     
       //Set a default CategoryList array.
-      $this->CategoryList[1]['Name'] = 'Bussines';
-      $this->CategoryList[1]['Renamed'] = false;
-      $this->CategoryList[2]['Name'] = 'Personal';
-      $this->CategoryList[2]['Renamed'] = false;
+      $this->SetCategoryList(array(1 => 'Business', 'Personal'));
 
       $this->FirstDay = 0;
    }
@@ -82,41 +43,16 @@ class PalmTodoList extends PalmDB {
    // This doesn't actually add the record.
    function NewRecord() {
       // No due date by default.
-      $Item['due_date'] = '';
+      $Item['DueDate'] = '';
 
-      $Item['completed'] = 0;
-      $Item['prioity'] = 1;
+      $Item['Completed'] = 0;
+      $Item['Priority'] = 1;
 
-      $Item['description'] = '';
-      $Item['note'] = '';
-
-      $Item['category'] = 0;
+      $Item['Description'] = '';
+      $Item['Note'] = '';
 
       return $Item;
    }
-
-   // Converts a date string ( YYYY-MM-DD )( "2001-10-31" )
-   // into bitwise ( YYYY YYYM MMMD DDDD )
-   // Should only be used when saving
-   function DateToInt16($date) {
-      $YMD = explode('-', $date);
-      return ($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2];
-   }
-   
-   
-   // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
-   // Into the human readable date string ( YYYY-MM-DD )( "2001-10-31" )
-   // Should only be used when loading
-   function Int16ToDate($number) {
-      $year = $number / 512;
-      settype($year, "integer");
-      $year += 1904;
-      $number = $number % 512;
-      $month = $number / 32;
-      settype($month, "integer");
-      $day = $number % 32;
-      return $year . '-' . $month . '-' . $day;
-   }  
 
    // Overrides the GetRecordSize method.
    // Probably should only be used when saving
@@ -135,12 +71,12 @@ class PalmTodoList extends PalmDB {
       // NULL for note
       $Bytes = 5;
 
-      if ($data['description'] != '') {
-         $Bytes += strlen($data['description']);
+      if (isset($data['Description'])) {
+         $Bytes += strlen($data['Description']);
       }
 
-      if ($data['note'] != '') {
-         $Bytes += strlen($data['note']);
+      if (isset($data['Note'])) {
+         $Bytes += strlen($data['Note']);
       }
 
       return $Bytes;
@@ -161,25 +97,30 @@ class PalmTodoList extends PalmDB {
       $data = $this->Records[$num];
       $RecordString = '';
 
-      if (isset($data['due_date'])) {
-         list($Y,$M,$D) = split('-',$data['due_date']);
-         $rawDate = ($D & 0x001f) |
-                    (($M & 0x000f) << 5) |
-                    ((($Y - 1904) & 0x007f) << 9);
+      if (isset($data['DueDate'])) {
+         $rawDate = $this->DateToInt16($data['DueDate']);
       } else {
          $rawDate = 0xffff;
       }
       $RecordString .= $this->Int16($rawDate);
 
-      $priority = $data['priority'] & 0x7f;
-      if ($data['completed']) {
+      if ($priority < 1)
+         $priority = 1;
+      if ($priority > 5)
+         $priority = 5;
+      if (isset($data['Completed']) && $data['Completed']) {
          $priority |= 0x80;
       }
       $RecordString .= $this->Int8($priority);
 
-      $RecordString .= $this->String($data['description']);
+      if (isset($data['Description']) && $data['Description'] != '')
+         $RecordString .= $this->String($data['Description']);
+      else
+         $RecordString .= $this->String('No description');
       $RecordString .= $this->Int8(0);
-      $RecordString .= $this->String($data['note']);
+      
+      if (isset($data['Note']))
+         $RecordString .= $this->String($data['Note']);
       $RecordString .= $this->Int8(0);
 
       return $RecordString;
@@ -191,31 +132,14 @@ class PalmTodoList extends PalmDB {
          $B = $A;
          $A = $this->CurrentRecord;
       }
-      if (!isset($B['priority'])) {
-         $B['priority'] = 1;
-      }
-      if (!isset($B['category'])) {
-         $B['category'] = 0;
+      if (!isset($B['Priority'])) {
+         $B['Priority'] = 1;
       }
       $this->Records[$A] = $B;
-
-      if (isset($B['attributes'])) {
-         if ($B['attributes']['expunged'] || $B['attributes']['deleted']) {
-            $atts = $B['attributes'] & PDB_TODO_ATTRIB_ARCHIVE;
-         } else {
-            $atts = $B['category'] & PDB_CATEGORY_MASK;
-         }
-       
-         $atts |= $B['attributes'] & PDB_TODO_ATTRIB_HIGH;
-
-         $this->RecordAttrs[$A] = $atts;
-      } else {
-         $this->RecordAttrs[$A] = $B['category'] & PDB_CATEGORY_MASK;
-      }
    }
 
    // Returns the size of the AppInfo block.  It is the size of the
-   // category list plus four bytes.
+   // category list plus six bytes.
    function GetAppInfoSize() {
       return PDB_CATEGORY_SIZE + 6;
    }
@@ -223,52 +147,34 @@ class PalmTodoList extends PalmDB {
    // Returns the AppInfo block. It is composed of the category list.
    function GetAppInfo() {
       // Category List.
-      $this->AppInfo = $this->CreateCategoryData($this->CategoryList);
+      $AppInfo = $this->CreateCategoryData();
 
-      // Unknown thing (first_day_in_week)
-      // 00 00 00 00 FD 00 == where FD is the first day in week.
+      // Two unknown (reserved?) bytes
       // I'm using 0 as the default value since I don't know what it should be
-      $this->AppInfo .= $this->Int16(0);
-      $this->AppInfo .= $this->Int16(0);
-      $this->AppInfo .= $this->Int8(count($this->CategoryList) - 1);
-      $this->AppInfo .= $this->Int8(0);
-      return $this->AppInfo;
+      $AppInfo .= $this->Int16(0);
+      // Two bytes for "dirty" information?
+      $AppInfo .= $this->Int16($this->dirty);
+      // One byte for sort order?
+      $AppInfo .= $this->Int8($this->sortOrder);
+      // One null byte to land on an even boundary
+      $AppInfo .= $this->Int8(0);
+      return $AppInfo;
    }
 
-   // Sets the category list.
-   function SetCategoryList($list) {
-      if (!is_array($list)) {
-         return false;
-      }
-
-      // Validates if the first element is empty.
-      $i = ($list[0] != '' ? 1 : 0);
-
-      $keys = array_keys($list);
-      sort($keys);
-      foreach ($keys as $id) {
-         $this->CategoryList[$id+$i]['Name'] = $list[$id];
-         $this->CategoryList[$id+$i]['Renamed'] = false;
-      }
-      return true;
-   }
-
-   // Returns the category list.
-   function GetCategoryList() {
-      return $this->CategoryList;
-   }
 
    // Parse $fileData for the information we need when loading a Todo
    // file.
    function LoadAppInfo($fileData) {
-      $this->AppInfo = bin2hex($fileData);
-      $this->CategoryList = $this->LoadCategoryData($fileData);
-      $fileData = substr($fileData, PDB_CATEGORY_SIZE + 4);
-      $this->FirstDay = $this->LoadInt8($fileData);
+      $this->LoadCategoryData($fileData);
+      // Skip past the category information and some unknown data
+      $fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
+      $this->dirty = $this->LoadInt16($fileData);
+      $fileData = substr($fileData, 2);
+      $this->sortOrder = $this->LoadInt8($fileData);
    }
 
    // Converts the todo record data loaded from a file into the internal
-   // storage method that is useed for the rest of the class and for ease of
+   // storage method that is used for the rest of the class and for ease of
    // use.
    // Return false to signal no error.
    function LoadRecord($fileData, $RecordInfo) {
@@ -276,21 +182,17 @@ class PalmTodoList extends PalmDB {
 
       $NewRec = $this->NewRecord();
 
-      //Load date
+      // Load date
       $date = $this->LoadInt16(substr($fileData,0,2));
       if ($date != 0xffff) {
-         $day = $date & 0x001f;
-	 $month = ($date >> 5) & 0x000f;
-	 $year = ($date >> 9) & 0x007f;
-	 $year += 1904;
-	 $NewRec['due_date'] = "$year-$month-$day";
+         $NewRec['DueDate'] = $this->Int16ToDate($date);
       }
 
       $priority = $this->LoadInt8(substr($fileData,2,1));
       $completed = $priority & 0x80;
       $priority &= 0x7f;
-      $NewRec['completed'] = $completed ? 1 : 0;
-      $NewRec['priority'] = $priority;
+      $NewRec['Completed'] = $completed ? 1 : 0;
+      $NewRec['Priority'] = $priority;
 
       $i = 3;
       $description = '';
@@ -304,16 +206,7 @@ class PalmTodoList extends PalmDB {
          $note .= $fileData[$i];
          $i++;
       }
-      $NewRec['description'] = $description;
-      $NewRec['note'] = $note;
-      $NewRec['attributes'] = $RecordInfo['Attrs'] & PDB_TODO_ATTRIB_HIGH;
-     
-      if ($RecordInfo['Attrs'] & PDB_ADDR_ATTRIB_DELE_EXP) {
-         $NewRec['attributes'] |=
-	    $RecordInfo['Attrs'] & PDB_ADDR_ATTRIB_ARCHIVE;
-      } else {
-         $NewRec['category'] = $RecordInfo['Attrs'] & PDB_CATEGORY_MASK;
-      }
-      $this->Records[$RecordInfo['UID']] = $NewRec;
+      $NewRec['Description'] = $description;
+      $NewRec['Note'] = $note;
    }
 }

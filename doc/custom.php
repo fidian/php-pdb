@@ -78,9 +78,9 @@ ShowExample('
 // characters at the end of each string.
 $pdb->AppendString($array_of_data[0]);
 $pdb->AppentInt8(0);
-$pdb->AppendString($array_of_data[0]);
+$pdb->AppendString($array_of_data[1]);
 $pdb->AppentInt8(0);
-$pdb->AppendString($array_of_data[0]);
+$pdb->AppendString($array_of_data[2]);
 $pdb->AppentInt8(0);
 ');
 
@@ -140,7 +140,7 @@ three lines should complete the task:</p>
 
 ShowExample('
 foreach ($pdb->GetRecordIDs() as $id) {
-   $pdb->RecordAttrs[$id] |= PDB_RECORD_ATTRIB;
+   $pdb->RecordAttrs[$id] |= PDB_RECORD_ATTRIB_DIRTY;
 }
 ');
 

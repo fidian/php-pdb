@@ -56,7 +56,7 @@ ob_start();
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
 <li>Addresses = <?PHP PassFail(AddressbookTest(),
-                              '563db99e05e0130d8e0fecbfdc066da5') ?></li>
+                              '5c74028c4ca08d92ff104ff65d3cc4f8') ?></li>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
                               'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail(DocTest(false),
@@ -66,7 +66,7 @@ ob_start();
 <li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
                          '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
 <li>Todo = <?PHP PassFail(TodoTest(), 
-                              'a9395d688c7ae7b1cc9e983d761f4e5f') ?></li>
+                              '14b7a8ea0ea1e885ce358f80a7aec81e') ?></li>
 </ul>
 <?PHP
 
@@ -197,39 +197,36 @@ function AddressbookTest() {
    $addr = new PalmAddress();
    
    // Create some categories
-   $categorias = array('VIP','AAA','Inicial');
+   $categorias = array(1 => 'VIP','AAA','Inicial');
    $addr->SetCategoryList($categorias);
    
    // Add one entry
-   $fields = array('name' => 'Pascual',
- 		   'firstName' => 'Eduardo',
-		   'phone1' => '21221552',
-		   'phone2' => '58808912',
-		   'phone5' => 'epascual@cie.com.mx',
-		   'address' => 'Hda. la Florida 10A',
-		   'city' => 'Izcalli');
-   $record['fields'] = $fields;
-   $addr->SetRecordRaw($record);
+   $fields = array('LastName' => 'Pascual',
+ 		   'FirstName' => 'Eduardo',
+		   'Phone1' => '21221552',
+		   'Phone2' => '58808912',
+		   'Phone5' => 'epascual@cie.com.mx',
+		   'Address' => 'Hda. la Florida 10A',
+		   'City' => 'Izcalli');
+   $addr->SetRecordRaw($fields);
    $addr->GoToRecord('+1');
    
    // Add another
-   $fields = array('name' => 'de tal',
-		   'firstName' => 'fulanito',
-		   'address' => 'Direccion',
-		   'phone1' => '21232425',
-		   'phone2' => 'fulanito@dondesea.com');
-   $phones = array('phone1' => PDB_ADDR_LABEL_HOME,
-		   'phone2' => PDB_ADDR_LABEL_EMAIL,
-		   'phone3' => PDB_ADDR_LABEL_WORK,
-		   'phone4' => PDB_ADDR_LABEL_FAX,
-		   'phone5' => PDB_ADDR_LABEL_OTHER,
-		   'display' => 1,
-		   'reserved' => '');
-   $record['fields'] = $fields;
-   $record['phoneLabel'] = $phones;
-   $record['category'] = 1;
-   $record['attributes'] = PDB_ADDR_ATTRIB_PRIVATE;
-   $addr->SetRecordRaw($record);
+   $fields = array('LastName' => 'de tal',
+		   'FirstName' => 'fulanito',
+		   'Address' => 'Direccion',
+		   'Phone1' => '21232425',
+		   'Phone2' => 'fulanito@dondesea.com',
+                   'Phone1Type' => PDB_ADDR_LABEL_HOME,
+		   'Phone2Type' => PDB_ADDR_LABEL_EMAIL,
+		   'Phone3Type' => PDB_ADDR_LABEL_WORK,
+		   'Phone4Type' => PDB_ADDR_LABEL_FAX,
+		   'Phone5Type' => PDB_ADDR_LABEL_OTHER,
+		   'Display' => 1,
+		   'Reserved' => '');
+   $addr->SetRecordRaw($fields);
+   $addr->SetRecordAttrib(PDB_RECORD_ATTRIB_PRIVATE |
+                          1);  // Private record, category 1
    
    return GenerateMd5($addr);
 }
@@ -337,27 +334,25 @@ function TodoTest() {
    $todo = new PalmTodoList();
    
    // Add some categories
-   $categorias = array('Visita','Fax','Correo');
+   $categorias = array(1 => 'Visita', 'Fax', 'Correo');
    $todo->SetCategoryList($categorias);
    
    // Add a record
-   $record = array('description' => 'Enviar Fax',
-                   'note' => "25\nProbar palm",
-		   'priority' => 2,
-		   'completed' => 0,
-		   'category' => 2,
-		   'due_date' => '');
+   $record = array('Description' => 'Enviar Fax',
+                   'Note' => "25\nProbar palm",
+		   'Priority' => 2);
    $todo->SetRecordRaw($record);
+   $todo->SetRecordAttrib(2);  // Category #2
    $todo->GoToRecord('+1');
    
    // Add another record
-   $record = array('description' => 'Llamar a juan',
-                   'note' => '35',
-                   'category' => 0,
-                   'due_date' => '2002-5-31',
-                   'attributes' => PDB_TODO_ATTRIB_PRIVATE &
-		                   PDB_TODO_ATTRIB_DIRTY);
+   $record = array('Description' => 'Llamar a juan',
+                   'Note' => '35',
+                   'DueDate' => '2002-5-31');
    $todo->SetRecordRaw($record);
+   $todo->SetRecordAttrib(PDB_RECORD_ATTRIB_PRIVATE |
+                          PDB_RECORD_ATTRIB_DIRTY |
+			  0); // Two flags and category 0
 
    return GenerateMd5($todo);
 }
@@ -372,19 +367,25 @@ function TodoTest() {
 // GenerateMd5
 //
 
-function GenerateMd5(&$PalmDB) {
+function GenerateMd5(&$PalmDB, $DumpToScreen = false) {
    // Change the dates so the header looks the same no matter when we
    // generate the file
    $PalmDB->CreationTime = 1;
    $PalmDB->ModificationTime = 1;
    $PalmDB->BackupTime = 1;
    
-   ob_start();
+   if (! $DumpToScreen)
+      ob_start();
+      
    $PalmDB->WriteToStdout();
-   $file = ob_get_contents();
-   ob_end_clean();
    
-   return md5($file);
+   if (! $DumpToScreen) {
+      $file = ob_get_contents();
+      ob_end_clean();
+      return md5($file);
+   }
+   
+   return 'MD5 not generated';
 }
 
 

@@ -25,22 +25,43 @@ define('PDB_RESOURCE_SIZE', 10);  // Size of the resource index entry
 define('PDB_EPOCH_1904', 2082844800); // Difference between Palm's time and Unix
 
 // Attribute Flags
-define('PDB_ATTRIB_RESOURCE', 1);
-define('PDB_ATTRIB_READ_ONLY', 2);
-define('PDB_ATTRIB_APPINFO_DIRTY', 4);
-define('PDB_ATTRIB_BACKUP', 8);
-define('PDB_ATTRIB_OK_NEWER', 16);
-define('PDB_ATTRIB_RESET', 32);
-define('PDB_ATTRIB_OPEN', 64);
-define('PDB_ATTRIB_LAUNCHABLE', 512);
+define('PDB_ATTRIB_RESOURCE', 0x01);
+define('PDB_ATTRIB_READ_ONLY', 0x02);
+define('PDB_ATTRIB_APPINFO_DIRTY', 0x04);
+define('PDB_ATTRIB_BACKUP', 0x08);
+define('PDB_ATTRIB_OK_NEWER', 0x10);
+define('PDB_ATTRIB_RESET', 0x20);
+define('PDB_ATTRIB_OPEN', 0x40);
+// Where are 0x80 and 0x100?
+define('PDB_ATTRIB_LAUNCHABLE', 0x200);
 
 // Record Flags
 // The first nibble is reserved for the category number
 // See PDB_CATEGORY_MASK
-define('PDB_RECORD_ATTRIB_PRIVATE', 16);
-define('PDB_RECORD_ATTRIB_DELETED', 32);
-define('PDB_RECORD_ATTRIB_DIRTY', 64);
-define('PDB_RECORD_ATTRIB_EXPUNGED', 128);
+define('PDB_RECORD_ATTRIB_ARCHIVE', 0x08);  // Special -- see below
+define('PDB_RECORD_ATTRIB_PRIVATE', 0x10);
+define('PDB_RECORD_ATTRIB_DELETED', 0x20);
+define('PDB_RECORD_ATTRIB_DIRTY', 0x40);
+define('PDB_RECORD_ATTRIB_EXPUNGED', 0x80);
+define('PDB_RECORD_ATTRIB_DEL_EXP', 0xC0);  // Mask for easier use
+define('PDB_RECORD_ATTRIB_MASK', 0xF0);  // The 4 bytes for the attributes
+define('PDB_RECORD_ATTRIB_CATEGORY_MASK', 0xFF);  // 1 byte
+
+/* The archive bit should only be used when the record is deleted or
+ * expunged.
+ *
+ * if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
+ *    // Lower 3 bits (0x07) should be 0
+ *    if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
+ *       echo "Record is deleted/expunged and should be archived.\n";
+ *    else
+ *       echo "Record is deleted/expunged and should not be archived.\n";
+ * } else {
+ *    // Lower 4 bits are the category
+ *    echo "Record is not deleted/expunged.\n";
+ *    echo "Record's category # is " . ($attr & PDB_CATEGORY_MASK) . "\n";
+ * }
+ */
 
 // Category support
 define('PDB_CATEGORY_NUM', 16);  // Number of categories
@@ -80,6 +101,8 @@ class PalmDB {
    var $SortInfo = '';         // Basic SortInfo block
    var $DoubleMethod = PDB_DOUBLEMETHOD_UNTESTED;
                                // What method to use for converting doubles
+   var $CategoryList = array();  // Category data (not used by default --
+                               // See "Category Support" comment below)
 
 
    // Creates a new database class
@@ -241,7 +264,34 @@ class PalmDB {
       return 0;
    }
    
+
+   // Converts a date string ( YYYY-MM-DD )( "2001-10-31" )
+   // into bitwise ( YYYY YYYM MMMD DDDD )
+   // Should only be used when saving
+   function DateToInt16($date) {
+      $YMD = explode('-', $date);
+      settype($YMD[0], 'integer');
+      settype($YMD[1], 'integer');
+      settype($YMD[2], 'integer');
+      return ((($YMD[0] - 1904) & 0x7F) << 9) | 
+             (($YMD[1] & 0x0f) << 5) |
+	     ($YMD[2] & 0x1f);
+   }
    
+   
+   // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
+   // Into the human readable date string ( YYYY-MM-DD )( "2001-2-28" )
+   // Should only be used when loading
+   function Int16ToDate($number) {
+      settype($number, 'integer');
+      $year = ($number >> 9) & 0x7F;
+      $year += 1904;
+      $month = ($number >> 5) & 0xF;
+      $day = $number & 0x1F;
+      return $year . '-' . $month . '-' . $day;
+   }  
+
+
    // Converts a string into hexadecimal.
    // If $maxLen is specified and is greater than zero, the string is 
    // trimmed and will contain up to $maxLen characters.
@@ -373,6 +423,17 @@ class PalmDB {
    }
    
    
+   // Returns the attributes for the specified record or the current
+   // record if not specified.
+   function GetRecordAttrib($Rec = false) {
+      if ($Rec === false)
+         $Rec = $this->CurrentRecord;
+      if (isset($this->RecordAttrs[$Rec]))
+         return $this->RecordAttrs[$Rec] & PDB_RECORD_ATTRIB_CATEGORY_MASK;
+      return 0;
+   }
+   
+   
    // Returns the raw data inside the current/specified record.  Use this
    // for odd record types (like a Datebook record).  Also, use this
    // instead of just using $PDB->Records[] directly.
@@ -402,16 +463,31 @@ class PalmDB {
    }
    
    
-   // Deletes the current record
-   // You are urged to use GoToRecord() and jump to an existing record
-   // after this function call so that the deleted record doesn't
-   // get accidentally recreated/used -- all append functions will
-   // create a new, empty record if the current record doesn't exist.
-   function DeleteCurrentRecord() {
-      if (isset($this->Records[$this->CurrentRecord]))
-         unset($this->Records[$this->CurrentRecord]);
-      if (isset($this->RecordAttrs[$this->CurrentRecord]))
-         unset($this->RecordAttrs[$this->CurrentRecord]);
+   // Sets the attributes for the specified record or the current
+   // record if not specified.
+   // Note:  The 'attributes' byte also sets the category.
+   // SetRecordAttrib($attr);
+   // SetRecordAttrib($RecNo, $attr);
+   function SetRecordAttrib($A, $B = false) {
+      if ($B === false) {
+         $B = $A;
+	 $A = $this->CurrentRecord;
+      }
+      $this->RecordAttrs[$A] = $B & PDB_RECORD_ATTRIB_CATEGORY_MASK;
+   }
+   
+   
+   // Deletes the specified record or the current record if not specified.
+   // If you delete the current record and then use an append function, the
+   // record will be recreated.
+   function DeleteRecord($RecNo = false) {
+      if ($RecNo === false) {
+         $RecNo = $this->CurrentRecord;
+      }
+      if (isset($this->Records[$RecNo]))
+         unset($this->Records[$RecNo]);
+      if (isset($this->RecordAttrs[$RecNo]))
+         unset($this->RecordAttrs[$RecNo]);
    }
    
    
@@ -472,58 +548,145 @@ class PalmDB {
    
    /*
     * Category Support
+    *
+    * If you plan on using categories in your module, you will have to use
+    * these next four functions.  
+    *
+    * In your LoadAppInfo(), you should have something like this ...
+    *    function LoadAppInfo($fileData) {
+    *       $this->LoadCategoryData($fileData);
+    *       $fileData = substr($fileData, PDB_CATEGORY_SIZE);
+    *       // .....
+    *    }
+    *
+    * In your GetAppInfo() function, you need to output the categories ...
+    *    function GetAppInfo() {
+    *       $AppInfo = $this->CreateCategoryData();
+    *       // .....
+    *       return $AppInfo;
+    *    }
+    *
+    * To change the category data, use SetCategoryList() and GetCategoryList()
+    * helper functions.
     */
-    
-   // Creates the hex-encoded data to be stuck in the AppInfo
-   // block if the database supports categories.
+   
+   // Returns the category data.  See SetCategoryList() for a description
+   // of the format of the array returned.
+   function GetCategoryList() {
+      return $this->CategoryList;
+   }
+   
+   
+   // Sets the categories to what you specified.
    //
-   // Data format:
+   // Data format:  (easy way)
    //    $categoryArray[id#] = name
-   // Or:
-   //    $categoryArray[id#]['name'] = name
-   //    $categoryArray[id#]['renamed'] = true / false
+   // Or:  (how it is stored in the class)
+   //    $categoryArray[id#]['Name'] = name
+   //    $categoryArray[id#]['Renamed'] = true / false
    //
    // Tips:
    //  * I'd suggest numbering your categories sequentially
    //  * Do not have a category 0.  It must always be 'Unfiled'.  This
-   //    function will overwrite any category with the ID of 0.
-   //  * There is a maximum of 16 categories, including 'Unfiled'.
+   //    function will enforce this rule.
+   //  * There is a maximum of 16 categories, including 'Unfiled'.  This
+   //    means that you only have 15 left to play with.
    //
    // Category 0 is reserved for 'Unfiled'
    // Categories 1-127 are used for handheld ID numbers
    // Categories 128-255 are used for desktop ID numbers
-   // Do not let category numbers be created larger than 255
-   function CreateCategoryData($CategoryArray) {
-      $CategoryArray[0] = array('Name' => 'Unfiled', 'Renamed' => false);
+   // Do not let category numbers be created larger than 255 -- this function
+   // will erase categories with an ID larger than 255
+   //
+   // I would strongly suggest not using a number higher than 200 because 
+   // if there are any blank categories, then they get sequentially larger
+   // IDs from the highest one used.  This means that if you use an ID of 255
+   // and you didn't use up all 15 available categories, then blank ones
+   // are created with ID numbers starting at 256.  This is *bad* and will
+   // cause the category data to not be written when the .pdb file is saved.
+   function SetCategoryList($list) {
+      // Force category ID 0 to be "Unfiled"
+      $list[0] = array('Name' => 'Unfiled', 'Renamed' => false);
+      
+      $keys = array_keys($list);
+      sort($keys);
+      
+      // Loop through the array
+      $CatsWritten = 0;
+      foreach ($keys as $id) {
+         // If there is room for more categories ...
+         if ($CatsWritten < PDB_CATEGORY_NUM && $id < 256) {
+	    $CatsWritten ++;
+	    
+	    // Set the "Renamed" flag if available
+	    // By default, the Renamed flag is false
+	    $RenamedFlag = false;
+	    if (is_array($list[$id]) && isset($list[$id]['Renamed']) &&
+		$list[$id]['Renamed'])
+	       $RenamedFlag = true;
+	       
+	    // Set the name of the category
+	    $name = '';
+	    if (is_array($list[$id])) {
+	       if (isset($list[$id]['Name']))
+	          $name = $list[$id]['Name'];
+	    } else {
+	       $name = $list[$id];
+	    }
+	    
+	    $this->CategoryList[$id] = array('Name' => $name,
+	                                     'Renamed' => $RenamedFlag);
+	 }
+      }
+   }   
+   
+   // Creates the hex-encoded data to be stuck in the AppInfo
+   // block if the database supports categories.
+   //
+   // See SetCategoryList() for the format of $CategoryArray
+   function CreateCategoryData() {
+      // Force category ID 0 to be "Unfiled"
+      $this->CategoryList[0] = array('Name' => 'Unfiled', 'Renamed' => false);
+      
       $CatsWritten = 0;
       $LastIdWritten = 0;
       $RenamedFlags = 0;
       $CategoryStr = '';
       $IdStr = '';
-      $keys = array_keys($CategoryArray);
-      sort($keys);
+      $keys = array_keys($this->CategoryList);
+      sort($keys, SORT_NUMERIC);
+      
+      // Loop through the array
       foreach ($keys as $id) {
-         if ($CatsWritten < PDB_CATEGORY_NUM) {
+         // If there is room for more categories ...
+         if ($CatsWritten < PDB_CATEGORY_NUM && $id < 256) {
 	    $CatsWritten ++;
 	    $LastIdWritten = $id;
 	    $RenamedFlags *= 2;
-	    if (is_array($CategoryArray[$id]) && 
-	        isset($CategoryArray[$id]['Renamed']) &&
-		$CategoryArray[$id]['Renamed'])
+	    
+	    // Set the "Renamed" flag if available
+	    // By default, the Renamed flag is false
+	    if (is_array($this->CategoryList[$id]) && 
+	        isset($this->CategoryList[$id]['Renamed']) &&
+		$this->CategoryList[$id]['Renamed'])
 	       $RenamedFlags += 1;
+	       
+	    // Set the name of the category
 	    $name = '';
-	    if (is_array($CategoryArray[$id])) {
-	       if (isset($CategoryArray[$id]['Name']))
-	          $name = $CategoryArray[$id]['Name'];
-	    } else
-	       $name = $CategoryArray[$id];
+	    if (is_array($this->CategoryList[$id])) {
+	       if (isset($this->CategoryList[$id]['Name']))
+	          $name = $this->CategoryList[$id]['Name'];
+	    } else {
+	       $name = $this->CategoryList[$id];
+	    }
 	    $name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
 	    $CategoryStr .= $this->PadString($name,
 	                                     PDB_CATEGORY_NAME_LENGTH);
 	    $IdStr .= $this->Int8($id);
 	 }
       }
-	 
+      
+      // Add blank categories to the end
       while ($CatsWritten < PDB_CATEGORY_NUM) {
          $CatsWritten ++;
 	 $LastIdWritten ++;
@@ -546,8 +709,8 @@ class PalmDB {
    
    // This should be called by other subclasses that use category support
    // It returns a category array.  Each element in the array is another
-   // array with the key 'name' set to the name of the category and 
-   // the key 'renamed' set to the renamed flag for that category.
+   // array with the key 'Name' set to the name of the category and 
+   // the key 'Renamed' set to the renamed flag for that category.
    function LoadCategoryData($fileData) {
       $RenamedFlags = $this->LoadInt16(substr($fileData, 0, 2));
       $Offset = 2;
@@ -581,7 +744,7 @@ class PalmDB {
       }
       
       // Ignore the last ID
-      return $CategoriesParsed;
+      $this->CategoryList = $CategoriesParsed;
    }
    
    
@@ -678,10 +841,7 @@ class PalmDB {
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
 	    $header .= $this->Int32($Offset);
-	    if (isset($this->RecordAttrs[$index]))
-	       $header .= $this->Int8($this->RecordAttrs[$index]);
-	    else
-	       $header .= $this->Int8(0);
+	    $header .= $this->Int8($this->GetRecordAttrib($index));
 	    
 	    // The unique id is just going to be the record number
 	    $header .= $this->Int24($index);

@@ -30,7 +30,6 @@ define('PDB_MOBILEDB_SORT_LENGTH', 4);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmMobileDB  extends PalmDB {
-   var $CategoryData;  // Category information
    var $MobileDBVersion;  // Version number
    var $MobileDBLock;  // Hash of password
    var $MobileDBDontSearch;  // True = DB is invisible to Find
@@ -53,15 +52,9 @@ class PalmMobileDB  extends PalmDB {
 
    // Sets all of the variables to a good default value
    function InitializeMobileDB() {
-      $this->CategoryData = array(
-         0 => array('Name' => 'Unfiled', 'Renamed' => false),
-	 1 => array('Name' => 'FieldLabels', 'Renamed' => false),
-	 2 => array('Name' => 'DataRecords', 'Renamed' => false),
-	 3 => array('Name' => 'DataRecordsFout', 'Renamed' => false),
-	 4 => array('Name' => 'Preferences', 'Renamed' => false),
-	 5 => array('Name' => 'DataType', 'Renamed' => false),
-	 6 => array('Name' => 'FieldLengths', 'Renamed' => false)
-      );
+      $this->SetCategoryList(array('Unfiled', 'FieldLabels', 'DataRecords',
+                                   'DataRecordsFout', 'Preferences',
+				   'DataType', 'FieldLengths'));
       $this->MobileDBVersion = PDB_MOBILEDB_DBVERSION;
       $this->MobileDBLock = 0;
       $this->MobileDBDontSearch = 0;
@@ -118,6 +111,7 @@ class PalmMobileDB  extends PalmDB {
 
    // Returns the size of the AppInfo block
    function GetAppInfoSize() {
+      // The "+ 6" after the category size is for the MobileDB Version & lock
       // The "+ 2" at the end gets the AppInfo to a 4-byte boundary.
       return PDB_CATEGORY_SIZE + 6 + (PDB_MOBILEDB_FILTER_LENGTH * 3) +
          (PDB_MOBILEDB_SORT_LENGTH * 3) + 2;
@@ -126,7 +120,7 @@ class PalmMobileDB  extends PalmDB {
    
    // Returns the AppInfo block
    function GetAppInfo() {
-      $AppInfo = $this->CreateCategoryData($this->CategoryData);
+      $AppInfo = $this->CreateCategoryData();
       $AppInfo .= $this->Int16($this->MobileDBVersion);
       $AppInfo .= $this->Int32($this->MobileDBLock);
       
@@ -178,7 +172,7 @@ class PalmMobileDB  extends PalmDB {
    // Should only be called within this class
    // Return false to signal no error
    function LoadAppInfo($fileData) {
-      $this->CategoryData = $this->LoadCategoryData($fileData);
+      $this->LoadCategoryData($fileData);
       $fileData = substr($fileData, PDB_CATEGORY_SIZE);
       $this->MobileDBVersion = $this->LoadInt16($fileData);
       // WARNING -- this is short-circuited

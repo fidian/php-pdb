@@ -117,7 +117,7 @@ fclose($fp);
 echo "Name: $addr->Name<br>\n";
 echo "Type: $addr->TypeID<br>";
 echo "Creator: $addr->CreatorID<br>\n";
-echo "Atttributes: $addr->Atributes<br>\n";
+echo "Attributes: $addr->Attributes<br>\n";
 echo "Version: $addr->Version<br>\n";
 echo "ModNum: $addr->ModNumber<br>\n";
 echo "CreationTime: $addr->CreationTime<br>\n";
@@ -135,7 +135,106 @@ foreach ($recids as $ID) {
 
 ?>
 
+<h3>Category Support and Record Attributes</h3>
+
+<p>If you plan on using categories, you will need to understand a bit of
+tricky information.  The attributes byte also has the category information
+in it.  The lower four bits (0x0F) usually are the category number (0 - 15),
+but if the record is deleted or expunged, then it is no longer category
+information and the fourth bit (0x08) is a flag for if the record should be
+archived or not.  This may be a bit confusing, so here's some code to help
+you out:</p>
+
+<?PHP
+
+ShowExample('
+// Get the record attributes
+$attr = $pdb->GetRecordAttrib();
+
+// If the record is deleted or expunged ...
+if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
+   // Check if the record should be archived
+   if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
+      echo "Record is deleted/expunged and should be archived.\n";
+   else
+      echo "Record is deleted/expunged and should not be archived.\n";
+} else {
+   // If the record is not deleted/expunged, then the lower four
+   // bits are the category number.
+   echo "Record is not deleted/expunged.\n";
+   echo "Record category number = " . ($attr & PDB_CATEGORY_MASK) . "\n";
+}
+');
+
+?>
+
+<p>This little bit of code might help you figure out more information about
+the attributes.</p>
+
+<?PHP
+
+ShowExample('
+$attrib = $pdb->GetRecordAttrib();
+
+// Show which attributes are there
+if ($attrib & PDB_ADDR_ATTRIB_EXPUNGED) echo "Record is expunged.<br>\n";
+if ($attrib & PDB_ADDR_ATTRIB_DELETED) echo "Record is deleted.<br>\n";
+if ($attrib & PDB_ADDR_ATTRIB_DIRTY) echo "Record is dirty.<br>\n";
+if ($attrib & PDB_ADDR_ATTRIB_PRIVATE) echo "Record is private.<br>\n";
+if ($attrib & PDB_ADDR_ATTRIB_DEL_EXP) {
+   // The archive bit is only set if the record is deleted or expunged.
+   // Otherwise, the lower bits specify the category.
+   if ($attrib & PDB_ADDR_ATTRIB_ARCHIVE) 
+      echo "Record is marked to be archived.<br>\n";
+}
+');
+
+?>
+
+<p>In order to define/see what the 16 categories are, you use the
+SetCategoryList() and GetCategoryList() functions.  See SetCategoryList()
+for special rules that apply to the array of data.  If you wish to include
+category support in your module/application, you will need to create an
+extender class and add LoadAppInfo() and GetAppInfo() functions which
+load/save the category data correctly:</p>
+
+<?PHP
+
+ShowExample('
+// LoadAppInfo() example
+function LoadAppInfo($fileData) {
+   // Load category data
+   $this->LoadCategoryData($fileData);
+   // Skip past category data
+   $fileData = substr($fileData, PDB_CATEGORY_SIZE);
+   
+   // .... rest of your code goes here
+}
+
+
+// GetAppInfo() example
+function GetAppInfo() {
+   $AppInfo = $this->CreateCategoryData();
+   
+   // .... rest of your code goes here
+   // .... append data to the $AppInfo string
+   
+   return $AppInfo;
+}
+');
+
+?>
+
+<p>Check out the explanations for the SetRecordAttrib(), GetRecordAttrib(),
+GetCategoryList(), SetCategoryList(), CreateCategoryData(), and
+LoadCategoryData() functions below.</p>
+
 <h3>Other functions</h3>
+
+<p>This is not a comprehensive list.  There are other functions in the main
+class, but they are primarily used for converting data and would be best
+used in modules.  Read the source if you want to see what the rest of the
+functions are.</p>
 
 <dl>
 
@@ -202,6 +301,61 @@ written.</dd>
 <dt><b>GetRecordCount()</b></dt>
 <dd>Returns the number of records.  This should match the number of keys
 returned by GetRecordIDs().</dd>
+
+<dt><b>GetCategoryList()</b></dt>
+<dd>Returns an array containing the different categories.  See
+SetCategoryList() for the format of the array.</dd>
+
+<dt><b>SetCategoryList($data)</b></dt>
+<dd>Sets the categories to what you specified.  $data is in one of two
+different formats:</dd>
+<dd><?PHP
+
+ShowExample('
+// Easy way:
+$data[$id] = "Name";
+
+// Harder, but this is how GetCategoryList() returns data
+$data[$id] = array(\'Name\' => "Name",
+                   \'Renamed\' => false);
+		   
+/* $id is a number from 0 to 15.
+ * "Name" is the category\'s name
+ * The Renamed flag is true/false.  Not sure what it does.
+ */
+');
+
+?></dd>
+<dd>Tips/Rules:<br>
+<ul>
+<li>I'd suggest numbering your categories sequentially.</li>
+<li>Do not have a category 0.  It must always be the 'Unfiled' category.
+If you do specify a category 0, then it will merely be overwritten.</li>
+<li>There's a maximum of 16 categories, including 'Unfiled'.  This means
+that you only have 15 to play with.</li>
+<li>Categories 1-127 are typically reserved for handheld ID numbers</li>
+<li>Categories 128-255 are used for desktip ID numbers</li>
+<li>Do not let categories be created with ID numbers larger than 255 -- they
+will be ignored/erased.</li>
+<li>I'd strongly suggest not using a number higher than about 240.  You are
+given 16 categories.  If you don't use them all, blank ones are added to the
+end, and they are given sequentially larger numbers from the last ID found.
+This means that if you use an ID of 255 and you didn't use all of your 15
+categories that you can change, then a blank one with an ID of 256 will be
+added.  This error is caught but not corrected, and all of the category data
+will not be written when the file is saved/written to the browser.</li>
+</ul>
+<li>If you just want to set the categories quickly, you can use code like
+this:<br><tt>$pdb->SetCategoryList(array(1 => 'Category1', 'Category2',
+'Etc.'))</dd>
+
+<dt><b>CreateCategoryData()</b></dt>
+<dd>Looks at the category information stored in the class and creates the
+proper hex-encoded data for the AppInfo block.</dd>
+
+<dt><b>LoadCategoryData($fileData)</b></dt>
+<dd>Used when loading data from a file.  Reads in a chunk of the AppInfo
+block into the class's data structures.</dd>
 
 </dl>
 

@@ -72,7 +72,7 @@ class PalmDoc extends PalmDB {
    // Used only for writing the file
    function MakeDocRecordZero () {
       $oldRec = $this->GoToRecord(0);
-      $this->DeleteCurrentRecord();
+      $this->DeleteRecord();
       if ($this->IsCompressed)
          $this->AppendInt16(2);  // "Version"   2 = compressed
       else
