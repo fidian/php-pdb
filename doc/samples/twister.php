@@ -153,7 +153,7 @@ function ShowInitialForm() {
       
       <input type=radio name="Source" value="File"<?PHP
       if ((isset($Source) && $Source == 'File') || 
-	  ! ini_get('allow_url_fopen)')
+	  ! ini_get('allow_url_fopen'))
          echo ' checked'; ?>>
       File:  <input type=file name=filedata size=45<?PHP
       if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
