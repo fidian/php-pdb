@@ -10,8 +10,7 @@
 /* The data for the GetRecord and SetRecord functions should return/be fed
  * an array.  Optional values can be set to '' or not defined.  If they are
  * anything else (including zero), they are considered to be 'set'.  Optional
- * values are marked with a ^.  For events without a time, use '' or do not
- * define both the StartTime and EndTime.
+ * values are marked with a ^.
  *
  * Key           Example          Description
  * ------------------------------------------
@@ -20,9 +19,25 @@
  * Date          2001-01-23       Year-Month-Day of event
  * Description   Title            This is the title of the event
  * Alarm         5d               ^ Number of units (m=min, h=hours, d=days)
- * Repeat        ???              ^ Repeating event data (not supported)
+ * Repeat        ???              ^ Repeating event data
  * Note          NoteNote         ^ A note for the event
- * Exceptions    ???              ^ Exceptions to the event (not supported)
+ * Exceptions    ???              ^ Exceptions to the event
+ *
+ * EndTime must happen at or after StartTime.  The time the event occurs
+ * may not pass midnight.  If the event doesn't have a time, use '' or do
+ * not define StartTime and EndTime.
+ * 
+ * Repeat events can be:
+ *            No repeat (unset or empty string)
+ *   D        Daily repeat
+ *   W[days]  Weekly repeat that happens on the specified days
+ *   M[days]  Monthly repeat event *blahblah*
+ *   Y        Yearly repeat
+ * 
+ * Repeat events also have a frequency.
+ *
+ * Exceptions are specified in an array consisting of dates the event occured
+ * and did not happen or should not be shown.
  */
  
 class PalmDatebook extends PalmDB {
@@ -51,7 +66,11 @@ class PalmDatebook extends PalmDB {
 	 $this->AppendInt16(65535);
 	 $this->AppendInt16(65535);
       }
+      
       // The day of the event
+      // For repeating events, this is the first day the event occurs
+      //
+      // 'Date' = "2001-10-31"
       // bitwise:  [YYYY YYYM  MMMD DDDD]
       $YMD = explode('-', $data['Date']);
       $this->AppendInt16(($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2]);
@@ -79,6 +98,23 @@ class PalmDatebook extends PalmDB {
       if (! isset($this->DatebookRecords[$this->CurrentRecord]))
          return array();
       return $this->DatebookRecords[$this->CurrentRecord];
+   }
+   
+   function GetAppInfoSize() {
+      // FIXME
+      return 0;
+   }
+   
+   function GetAppInfo() {
+      // Category list
+      $this->AppInfo = PalmDB::CreateAppInfoCategories(array());
+      
+      // Unknown thing (first_day_in_week)
+      // 00 00 FD 00 == where FD is the first day in week.
+      // I'm using 0 as the value since I don't know what it should be
+      $this->AppInfo .= $this->Int32(0);
+      
+      return $this->AppInfo;
    }
 }
 
