@@ -1,0 +1,19 @@
+This was a patch submitted by Christoph Barth <cbarth at urbanet dot ch>
+for adding export to Palm support to moregroupware.
+
+It was submitted on January 21, 2002.  Things may have changed since then.
+
+It was created with
+   moregroupware, release 0.5.5 (CVS)
+   php-pdb, likely version 1.2.0 or another version released at about that
+      time
+   Linux, 2.4.10-4GB
+   PHP, version 4.0.6
+   Palm III, Palm OS version 3.3
+
+I haven't actually tried it.  Your mileage may vary.
+
+PHP-PDB is actually included with this patch.
+
+No instructions were given to me about installation.  A "cleaned" version
+was proposed, but it never materialized, so this is the best I can do.
