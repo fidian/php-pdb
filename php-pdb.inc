@@ -253,8 +253,7 @@
 	          $header .= $this->Int8(0);
 		  
 	       // The unique id is just going to be the record number
-	       // plus 0x6F8000
-	       $UID = $this->Int32($index + 7307264);
+	       $UID = $this->Int32($index);
 	       $UID = substr($UID, 2);
 	       $header .= $UID;
 
