@@ -103,6 +103,23 @@ class PalmSmallBASIC extends PalmDB {
    }
    
 
+   // Returns the size of the specified record
+   function GetRecordSize($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
+	 
+      if ($num == 0)
+         return 70;
+	 
+      $keys = $this->GetOrderedSectionNames();
+      $num --;
+      if (! isset($keys[$num]))
+         return 0;
+	 
+      return strlen($this->Records[$keys[$num]]) + 70;
+   }
+   
+   
    // Returns the data of the specified record, or the current record if no
    // record is specified.  If the record doesn't exist, returns ''.
    function GetRecord($num = false) {
@@ -129,12 +146,13 @@ class PalmSmallBASIC extends PalmDB {
       else
          $Str .= $this->Int16(0);  // Flags (0 for every other section)
       $name = $this->String($keys[$num]);
-      $Str .= $this->PadString($this->String($keys[$num]), 64);
+      $name = substr($name, 0, 63);  // Trim if it is too long of a name
+      $Str .= $this->PadString($name, 64);
 
       $code = $this->Records[$keys[$num]];
       $code = substr($code, 0, PDB_SMALLBASIC_MAX_SECTION);
       $Str .= $this->String($code);
-      
+
       return $Str . '00';
    }
    
