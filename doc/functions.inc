@@ -130,7 +130,7 @@ OutString="";
 for (j=0;j<MaIlMe.length;j++){
 OutString+=MaIlMe[j];
 }document.write(unescape(OutString));
-</SCRIPT><NOSCRIPT>Sorry, you need javascript to this email address</noscript><?PHP
+</SCRIPT><NOSCRIPT>Sorry, you need javascript to see this email address</noscript><?PHP
 }
 
 
