@@ -21,8 +21,12 @@
  *         RewrapParagraphs = checkbox for rewrapping paragraphs
  *      If SourceType == 'Gutenberg'
  *         BreakOnChapter = checkbox for breaking the file on chapters
- *      TargetType = 'DOC'
- *      TitleOfDoc = Title
+ *      TargetType = 'DOC', 'SmallBASIC'
+ *      if TargetType == 'DOC'
+ *         TitleOfDoc = Title
+ *         UncompressedDOC = true/false to generate an uncompressed doc
+ *      if TargetType == 'SmallBASIC'
+ *         TitleOfBasicFile = Title of basic file to generate
  *
  *   If action == 'download'
  *      file = name of the file in $SavedFiles
@@ -31,16 +35,22 @@
 if (file_exists('../../php-pdb.inc')) {
    include('../../php-pdb.inc');
    include('../../modules/doc.inc');
+   include('../../modules/smallbasic.inc');
 } elseif (file_exists('./php-pdb.inc')) {
    include('./php-pdb.inc');
    include('./modules/doc.inc');
+   include('./modules/smallbasic.inc');
 }
 
 include('../functions.inc');
 
 // START HERE
 
-set_time_limit(0);
+// Two minutes should be more than enough.
+// If nothing else, it should stop the server from being
+// brought to its knees by a snippet of bad code.
+// (Speaking from experience.)
+set_time_limit(120);
 
 // The viewSource.php file will not let you view the filter
 // files.  If you want to see them, you can use the web-based
@@ -76,7 +86,6 @@ if (isset($action) && $action == "download") {
 } elseif (isset($action) && $action == "convert") {
    ConvertFile();
 } else {
-   session_start();
    ShowInitialHelp();
    ShowInitialForm();
 }
@@ -102,7 +111,8 @@ function ShowInitialHelp() {
    
    StartHTML();
 ?><p>Twister is a conversion tool to convert web pages, and text files into
-Palm DOC format.  It can be later extended to write to zTXT and other
+Palm DOC format.  SmallBASIC .BAS files can be converted to SmallBASIC for
+PalmOS format.  It can be later be easily extended to write to zTXT and other
 formats, once PHP-PDB has classes for accessing them.</p>
 
 <p><B><font size="+2" color="purple">Be Warned:</font></B> Twister is
@@ -129,12 +139,12 @@ properly.</p>
 function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
       $BreakOnChapter, $TargetType, $TitleOfDoc, $SourceForge, $filedata,
-      $urldata, $UncompressedDoc;
+      $urldata, $UncompressedDoc, $TitleOfBasicFile;
    
    ShowDownloadLinks();
    
 ?><form action="<?PHP echo $MyFilename 
-?>" method="post" enctype="multipart/form-data">
+?>" method="post" >
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
@@ -149,7 +159,7 @@ function ShowInitialForm() {
       <input type=radio name="Source" value="URL"<?PHP
       if (isset($Source) && $Source == 'URL') echo ' checked'; ?>> 
       URL:  <input type=input name=urldata size=60<?PHP
-      if (isset($filedata)) echo ' value="' . htmlspecialchars($urldata)
+      if (isset($urldata)) echo ' value="' . htmlspecialchars($urldata)
       . '"'; ?>>
       <?PHP } else { ?><br>
       <i>(Twister! supports converting URLs, but Sourceforge does not allow
@@ -188,8 +198,9 @@ function ShowInitialForm() {
   </tr>
   <tr>
     <td align=right><b>Convert Into:</b></td>
-    <td><input type=radio name="TargetType" value="DOC" checked>
-      DOC<br>
+    <td><input type=radio name="TargetType" value="DOC"<?PHP
+      if (! isset($TargetType) || $TargetType != 'SmallBASIC')
+         echo ' checked'; ?>> DOC<br>
       &nbsp; &nbsp; &nbsp;DOC Title:
       <input type=text name="TitleOfDoc" value="<?PHP
       if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
@@ -197,8 +208,14 @@ function ShowInitialForm() {
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file
       <br><br>
-      
-      <i>(More will be added later)</i>
+
+      <input type=radio name="TargetType" value="SmallBASIC"<?PHP
+      if (isset($TargetType) && $TargetType == 'SmallBASIC')
+         echo ' checked'; ?>> SmallBASIC<br>
+      &nbsp; &nbsp; &nbsp;Name of File:
+      <input type=text name="TitleOfBasicFile" value="<?PHP
+      if (isset($TitleOfBasicFile)) 
+         echo htmlspecialchars($TitleOfBasicFile); ?>">
       </td>
   </tr>
   <tr>
@@ -212,7 +229,8 @@ function ShowInitialForm() {
 
 
 function ConvertFile() {
-   global $TitleOfDoc;
+   global $TitleOfDoc, $TitleOfBasicFile, $TargetType;
+   
    StartHTML('Converting File');
    if (ConversionSanityChecks()) {
       ShowInitialForm();
@@ -230,13 +248,18 @@ function ConvertFile() {
       return;
    }
    
+   if ($TargetType == 'SmallBASIC')
+      $DaTitle = $TitleOfBasicFile;
+   if ($TargetType == 'DOC')
+      $DaTitle = $TitleOfDoc;
+   
    if (is_array($rawData)) {
       foreach ($rawData as $index => $d) {
-         StoreAsPRC($TitleOfDoc . ' [' . ($index + 1) . '/' .
+         StoreAsPRC($DaTitle . ' [' . ($index + 1) . '/' .
 	    count($rawData) . ']', $d);
       }
    } else {
-      StoreAsPRC($TitleOfDoc, $rawData);
+      StoreAsPRC($DaTitle, $rawData);
    }
    
    ShowStatus("Conversion complete!");
@@ -247,17 +270,19 @@ function ConvertFile() {
 
 // Returns true on error
 function ConversionSanityChecks() {
-   global $TargetType, $TitleOfDoc, $Source, $filedata, $urldata, $SourceType;
-   
-   if ($TargetType == 'DOC' && $TitleOfDoc == '') {
-      ShowError('You must specify a title for the DOC file.');
-      return true;
-   }
-   if ($TargetType != 'DOC') {
-      ShowError('Invalid target type.');
-      return true;
-   }
-   if ($Source != 'File' && $Source != 'URL') {
+   global $TargetType, $TitleOfDoc, $Source, $filedata, $urldata,
+      $SourceType, $TitleOfBasicFile;
+
+   if (! isset($TargetType) || ($TargetType != 'DOC' && $TargetType !=
+       'SmallBASIC')) { ShowError('Invalid target type.'); return true; } if
+       ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == ''))
+       { ShowError('You must specify a title for the DOC file.'); return
+       true; } if ($TargetType == 'SmallBASIC' && (!
+       isset($TitleOfBasicFile) || $TitleOfBasicFile == '')) {
+       ShowError('You must specify a file name for the SmallBASIC file.');
+       return true; }
+
+   if (! isset($Source) || ($Source != 'File' && $Source != 'URL')) {
       ShowError('Invalid source.');
       return true;
    }
@@ -274,6 +299,7 @@ function ConversionSanityChecks() {
       ShowError('Invalid source type.');
       return true;
    }
+   
    return false;
 }
 
@@ -386,8 +412,8 @@ function ConvertFromFormat($filedata) {
 
 
 function StoreAsPRC($title, $rawData) {
-   //echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
-   global $SavedPDB, $UncompressedDoc;
+   // echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
+   global $SavedPDB, $UncompressedDoc, $TargetType;
    
    $fileName = preg_replace('/[^-a-zA-Z_0-9]/', '_', $title);
    
@@ -397,14 +423,25 @@ function StoreAsPRC($title, $rawData) {
    }
    
    $SavedInfo['Title'] = $title;
-   $SavedInfo['Type'] = 'DOC';
+   $SavedInfo['Type'] = $TargetType;
    $SavedInfo['Time'] = time();
-   if (isset($UncompressedDoc) && $UncompressedDoc)
-      $prc = new PalmDoc($title, false);
-   else
-      $prc = new PalmDoc($title);
-   $prc->AddDocText($rawData);
-   ShowStatus("Compressing the DOC.\nThis could take a very long time.");
+   if ($TargetType == 'DOC') {
+      if (isset($UncompressedDoc) && $UncompressedDoc)
+         $prc = new PalmDoc($title, false);
+      else
+         $prc = new PalmDoc($title);
+      $prc->AddDocText($rawData);
+      ShowStatus("Compressing the DOC.\nThis could take a very long time.");
+   } elseif ($TargetType == 'SmallBASIC') {
+      $prc = new PalmSmallBASIC($title);
+      $result = $prc->ConvertFromText($rawData);
+      if (is_array($result)) {
+         ShowError('Error converting the file.  The section "' .
+	    $result[1] . '" is too big.  It must be broken into ' .
+	    'multiple sections for the conversion to work.');
+	 return;
+      }
+   }
    ob_start();
    $prc->WriteToStdout();
    $prc = ob_get_contents();

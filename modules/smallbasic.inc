@@ -59,15 +59,13 @@ class PalmSmallBASIC extends PalmDB {
       
       $Lines = explode("\n", $String);
 
-      $RecordNames = array();
-      $RecordCode = array();
       $ThisName = PDB_SMALLBASIC_MAIN_SECTION;
       while (count($Lines)) {
          if (strncmp($Lines[0], '#sec:', 5) == 0) {
 	    $ThisName = array_shift($Lines);
 	    $ThisName = substr($ThisName, 5);
 	 } else {
-	    if (isset($Sections[$ThisName]))
+	    if (isset($this->Records[$ThisName]))
 	       $this->Records[$ThisName] .= "\n";
 	    else
 	       $this->Records[$ThisName] = '';
@@ -90,7 +88,8 @@ class PalmSmallBASIC extends PalmDB {
    function GetOrderedSectionNames() {
       $keys = array_keys($this->Records);
       sort($keys);
-      if (! isset($this->Records[PDB_SMALLBASIC_MAIN_SECTION]))
+      if (! isset($this->Records[PDB_SMALLBASIC_MAIN_SECTION]) ||
+          $keys[0] == PDB_SMALLBASIC_MAIN_SECTION)
          return $keys;
       $SkipName = $keys[0];
       $index = 1;
@@ -107,7 +106,7 @@ class PalmSmallBASIC extends PalmDB {
    // Returns the data of the specified record, or the current record if no
    // record is specified.  If the record doesn't exist, returns ''.
    function GetRecord($num = false) {
-      if ($num == false)
+      if ($num === false)
          $num = $this->CurrentRecord;
 	 
       if ($num == 0)
@@ -125,13 +124,13 @@ class PalmSmallBASIC extends PalmDB {
          // Not sure if this is always the same as the one in the
 	 // header.  Since it was the same when I was given the specs, 
 	 // I just used the define()d value.
-      if ($keys[$index] == PDB_SMALLBASIC_MAIN_SECTION)
+      if ($keys[$num] == PDB_SMALLBASIC_MAIN_SECTION)
          $Str .= $this->Int16(1);  // Flags (1 for main section)
       else
          $Str .= $this->Int16(0);  // Flags (0 for every other section)
       $name = $this->String($keys[$num]);
       $Str .= $this->PadString($this->String($keys[$num]), 64);
-      
+
       $code = $this->Records[$keys[$num]];
       $code = substr($code, 0, PDB_SMALLBASIC_MAX_SECTION);
       $Str .= $this->String($code);
