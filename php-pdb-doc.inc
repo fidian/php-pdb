@@ -100,7 +100,7 @@ class PalmDoc extends PalmDB {
    // Returns the number of records to write
    function GetRecordCount() {
       $c = count($this->Records);
-      if (isset($this->Records[0]) && $c)
+      if (! isset($this->Records[0]) && $c)
          $c ++;
       return $c;
    }
