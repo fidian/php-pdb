@@ -251,7 +251,6 @@ pen off
 EOS;
    $text = str_replace("\r\n", "\n", $text);
    $text = str_replace("\r", "\n", $text);
-   $text = explode("\n", $text);
    $d->ConvertFromText($text);
  
    return GenerateMd5($d);
