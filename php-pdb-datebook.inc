@@ -273,7 +273,8 @@ class PalmDatebook extends PalmDB {
       $Flags = $data['Flags'];
       $RecordString .= $this->Int16($Flags);
       
-      if ($Flags & PDB_DATEBOOK_FLAG_ALARM) {
+      if ($Flags & PDB_DATEBOOK_FLAG_ALARM &&
+          ereg('^([0-9]*)([mMhHdD])$', $data['Alarm'], $AlarmMatch)) {
          $RecordString .= $this->Int8($AlarmMatch[1]);
 	 $AlarmMatch[2] = strtolower($AlarmMatch[2]);
 	 if ($AlarmMatch[2] == 'm')
@@ -508,8 +509,8 @@ class PalmDatebook extends PalmDB {
       }
       
       $this->Records[$RecordInfo['UID']] = $NewRec;
+      return false;
    }
-   return false;
 }
 
 ?>
