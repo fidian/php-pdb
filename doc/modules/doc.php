@@ -90,9 +90,9 @@ already out there that will work for you.  Additionally, you can use
 PHP-PDB library to create DOC files from plain text files, web pages, and
 files from <a href="http://promo.net/pg/">Project Gutenberg</a>.</p>
 
-<p>Although the compressed form of DOC files and loading DOC files are both
-being worked on, you can still create and write uncompressed doc files quite
-easily.</p>
+<p>Although the loading DOC files is
+being worked on, you can still create and write compressed and uncompressed 
+doc files quite easily.</p>
 
 <h3>Including into your program</h3>
 
@@ -115,7 +115,10 @@ create.</p>
 
 ShowExample('
 $DB = new PalmDoc("Name Of Document");
-  // Typical usage
+  // Typical usage to create a compressed DOC file
+
+$DB = new PalmDoc("Uncompressed DOC", false);
+  // This is how you create an uncompressed DOC file
   
 $pdb = new PalmDoc();
   // Special:  If you want to create an instance of the class
@@ -132,7 +135,8 @@ Use</a> for more information.</p>
 
 <h3>Loading the database</h3>
 
-<p>Not yet supported.</p>
+<p>Not yet supported.  As soon as I get the decompression code in place,
+loading DOC files will be supported.</p>
 
 <h3>Adding Bookmarks</h3>
 
@@ -275,7 +279,8 @@ ShowExample('
 $pdb = new PalmDoc("Doc Test");
 $pdb->AddDocText("This is a test.
 This is a test of the PHP-PDB DOC class.\\n");
-$pdb->AddDocText("This is only a test.");
+$pdb->AddDocText("This is only a test.\\n");
+$pdb->AddDocText("This DOC will be automatically compressed.");
 $pdb->DownloadPDB("doc_test.pdb");
 ');
 

@@ -28,8 +28,8 @@ class PalmDoc extends PalmDB {
    function GetDocText () {
       $String = '';
       $i = 1;
-      while (isset($Records[$i])) {
-         $String .= pack('H*', $Records[$i]);
+      while (isset($this->Records[$i])) {
+         $String .= pack('H*', $this->Records[$i]);
 	 $i ++;
       }
       return $String;
@@ -157,8 +157,12 @@ class PalmDoc extends PalmDB {
    function GetRecord($num = false) {
       if ($num === false)
          $num = $this->CurrentRecord;
-      if ($num == 0)
+	 
+      if ($num == 0) {
          $this->MakeDocRecordZero();
+	 return $this->Records[0];
+      }
+      
       if (! isset($this->Records[$num])) {
          $bookmark = -1;
 	 while (! isset($this->Records[$num]) && $num > 0) {
@@ -178,7 +182,7 @@ class PalmDoc extends PalmDB {
          return '';
       }
       
-      if ($this->IsCompressed && $num != 0)
+      if ($this->IsCompressed)
          return $this->CompressedData[$num];
 	 
       return $this->Records[$num];
@@ -385,6 +389,107 @@ class PalmDoc extends PalmDB {
       }
       $this->Bookmarks[$Pos] = $Name;
       return false;
+   }
+   
+   
+   function ReadFile($file) {
+      $Ret = PalmDB::ReadFile($file);
+      if ($Ret != false)
+         return $Ret;
+      if (! isset($this->Records[0]))
+         return true;
+      if ($this->ParseRecordZero())
+         return true;
+      if ($this->IsCompressed)
+         $this->DecompressRecords();
+   }
+   
+
+   function ParseRecordZero() {
+      // Int16 = Version
+      // Int16 = reserved
+      // Int32 = uncompressed doc size
+      // Int16 = Number of records
+      // Int16 = Record size
+      // Int32 = reserved (current spot in doc?)
+      
+      // Reads info from the header
+      // Also rips out bookmarks
+      $Version = substr($this->Records[0], 0, 4);
+      $Version = hexdec($Version);
+      if ($Version == 1)
+         $this->IsCompressed = false;
+      elseif ($Version == 2)
+         $this->IsCompressed = true;
+      else
+         return true;
+
+      // Rip out bookmarks
+      $RecordNumber = substr($this->Records[0], 16, 4);
+      $RecordNumber = hexdec($Version);
+      foreach ($this->Records as $index => $data) {
+         if ($index >= $RecordNumber) {
+	    // 16 bytes = bookmark name
+	    // Int32 = Spot
+	    $name = substr($data, 0, 32);
+	    $name = pack('H*', $name);
+	    $spot = substr($data, 32, 8);
+	    $spot = hexdec($spot);
+	    $this->Bookmarks[$spot] = $name;
+	    unset($this->Records[$index]);
+	 }
+      }
+      
+      unset($this->Records[0]);
+
+      return false;
+   }
+
+   function DecompressRecords() {
+      foreach ($this->Records as $index => $data) {
+         $this->Records[$index] = $this->DecompressRecord($data);
+      }
+   }
+   
+   
+   function DecompressRecord($data) {
+      $pos = 0;
+      $Out = '';
+      while ($pos < strlen($data)) {
+         $Key = substr($data, $pos, 2);
+	 $KeyVal = hexdec($Key);
+	 
+	 if ($KeyVal == 00 || ($KeyVal >= 0x09 && $KeyVal <= 0x7F)) {
+	    // Represents itself
+	    $pos += 2;
+	    $Out .= $Key;
+	 } elseif ($KeyVal >= 0x01 && $KeyVal <= 0x08) {
+	    // Read next N bytes verbatim
+	    $Out .= substr($data, $pos, $KeyVal * 2);
+	    $pos += $KeyVal * 2;
+	 } elseif ($KeyVal >= 0xC0 && $KeyVal <= 0xFF) {
+	    // Space + 7-bit char
+	    $Out .= '20' . sprintf('%02x', $KeyVal & 0x7F);
+	    $pos += 2;
+	 } else {
+	    // Like LZ77 compression
+	    $BigByte = $KeyVal & 0x3F;
+	    $BigByte = $BigByte << 8;
+	    $BigByte += hexdec(substr($data, $pos + 2, 2));
+	    $pos += 4;
+
+	    $CopyBits = $BigByte & 0x7;
+	    $CopyBits += 3;
+	    
+	    $PosBits = $BigByte >> 3;
+	    $PosBits &= 0x7FF;
+	    $PosBits = strlen($Out) - ($PosBits * 2);
+	    if ($PosBits >= 0)
+	       $Out .= substr($Out, $PosBits, $CopyBits * 2);
+	 }
+      }
+      
+      return $Out;
    }
 }
 

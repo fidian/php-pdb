@@ -53,7 +53,7 @@ support.</li>
 <li>Add <a href="http://pilot-db.sourceforge.net/">Pilot-DB</a>
 support</a></li>
 <li>Add todo support</li>
-<li>Add compression, decompression, and loading to DOC files.
+<li>Add decompression and loading to DOC files, to make them complete.
 [ <a
 href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">AportisDoc</a>
 <a href="http://www.pyrite.org/doc_format.php">Pyrite</a> ]

@@ -546,6 +546,17 @@ class PalmDB {
    /*
     * Database Writing Functions
     */
+   
+   // *NEW*
+   // Takes a hex-encoded string and makes sure that when decoded, the data
+   // lies on a four-byte boundary.  If it doesn't, it pads the string with
+   // NULLs
+   function PadTo4ByteBoundary($string) {
+      while ((strlen($string)/2) % 4) {
+         $string .= '00';
+      }
+      return $string;
+   }
     
    // Returns the hex encoded header of the pdb file
    // Header = name, attributes, version, creation/modification/backup 
@@ -627,6 +638,10 @@ class PalmDB {
 	    $header .= $this->Int24($index);
 	    
 	    $Offset += $this->GetRecordSize($index);
+	    // *new* method 3
+	    $Mod4 = $Offset % 4;
+	    if ($Mod4)
+	       $Offset += 4 - $Mod4;
 	 }
       }
       
@@ -635,11 +650,15 @@ class PalmDB {
       
       // AppInfo and SortInfo blocks go here
       if ($AppInfo_Size > 0)
-         $header .= $this->GetAppInfo();
+         // *new* method 1
+         //$header .= $this->GetAppInfo();
+         $header .= $this->PadTo4ByteBoundary($this->GetAppInfo());
       
       if ($SortInfo_Size > 0)
-         $header .= $this->GetSortInfo();
-      
+         // *new* method 2
+         //$header .= $this->GetSortInfo();
+         $header .= $this->PadTo4ByteBoundary($this->GetSortInfo());
+
       return $header;
    }
    
@@ -660,7 +679,7 @@ class PalmDB {
       $keys = $this->GetRecordIDs();
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
-         $data = $this->GetRecord($index);
+         $data = $this->PadTo4ByteBoundary($this->GetRecord($index));
 	 fwrite($file, pack('H*', $data), strlen($data) / 2);
       }
       fflush($file);
@@ -682,7 +701,9 @@ class PalmDB {
       $keys = $this->GetRecordIDs();
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
-         $data = $this->GetRecord($index);
+         // *new* method 3
+	 //$data = $this->GetRecord($index);
+         $data = $this->PadTo4ByteBoundary($this->GetRecord($index));
 	 echo pack("H*", $data);
       }
    }

@@ -52,7 +52,8 @@ if ($Stored) {
 $pdb->AddDocText("This is a test file to see if $ThisTest " .
 "bookmarks are recognized by a document reader.  To determine if " .
 "$OtherTest bookmarks are supported, you'll need to use the " .
-"other bookmark test that you got from $PHP_SELF\n\n" .
+"other bookmark test, which is available from " .
+"http://php-pdb.sourceforge.net/ (in the examples)." .
 "To figure out if it worked, look for the bookmark list in this " .
 "document reader.  If it has a bookmark named \"$UcFirst " .
 "Bookmark\", then it worked.  If not, then this document reader " .

@@ -48,10 +48,6 @@ class PalmSmallBASIC extends PalmDB {
       
       $Lines = explode("\n", $String);
       $lnx_head = '';
-      if (strncmp($Lines[0], '#!', 2) == 0) {
-         $lnx_head = array_shift($Lines);
-	 $lnx_head = substr($lnx_head, 2) . "\n";
-      }
 
       $RecordNames = array();
       $RecordCode = array();
@@ -59,13 +55,15 @@ class PalmSmallBASIC extends PalmDB {
       $ThisCode = '';
       while (count($Lines)) {
          if (strncmp($Lines[0], '#sec:', 5) == 0) {
-	    if ($ThisCode != '' || $ThisName != 'Main') {
-	       $RecordNames[] = $ThisName;
-	       $RecordCode[] = $ThisCode;
+	    if ($ThisName != 'Main' || substr($Lines[0], 5) != 'Main') {
+  	       if ($ThisCode != '' || $ThisName != 'Main') {
+	          $RecordNames[] = $ThisName;
+	          $RecordCode[] = $ThisCode;
+	       }
+	       $ThisName = array_shift($Lines);
+	       $ThisName = substr($ThisName, 5);
+	       $ThisCode = '';
 	    }
-	    $ThisName = array_shift($Lines);
-	    $ThisName = substr($ThisName, 5);
-	    $ThisCode = '';
 	 } else {
 	    if ($ThisCode != '')
 	       $ThisCode .= "\n";
