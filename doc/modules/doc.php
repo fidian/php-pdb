@@ -1,4 +1,11 @@
 <?PHP
+/* Documentation for PHP-PDB library -- DOC module
+ *
+ * Copyright (C) 2001 - PHP-PDB development team
+ * Licensed under the GNU LGPL software license.
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
+ */
 
 include("../functions.inc");
 
@@ -15,7 +22,7 @@ worked on, you can still create and write uncompressed doc files.</p>
 
 ShowExample('
 include \'php-pdb.inc\';
-include \'php-pdb-doc.inc\';
+include \'modules/doc.inc\';
 ');
 
 ?>
@@ -42,7 +49,7 @@ $pdb = new PalmDoc();
 
 <h3>Writing the database</h3>
 
-<p>This is the same as the base class.  See <a href="example.php">Basic
+<p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
 <h3>Loading the database</h3>
@@ -69,7 +76,7 @@ length for embedded bookmarks could vary.</p>
 <?PHP ShowExampleFile('../samples/bookmark_test.php'); ?>
 
 <p>The example will create a test DOC (also availale <a
-href="programs/bookmark_test.php">here</a>) that has both kinds of bookmarks.
+href="../programs/bookmark_test.php">here</a>) that has both kinds of bookmarks.
 Below is a table showing various doc readers and what type of bookmarks they
 support.  If you wish to add to this file, just mail me (link at bottom of
 page) or the php-pdb-general mailing list.</p>

@@ -1,4 +1,11 @@
 <?PHP
+/* Documentation for PHP-PDB library
+ *
+ * Copyright (C) 2001 - PHP-PDB development team
+ * Licensed under the GNU LGPL software license.
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
+ */
 
 function StandardHeader($title = '', $curdir = '') {
    $newTitle = "PHP-PDB";
@@ -29,6 +36,8 @@ function StandardHeader($title = '', $curdir = '') {
     <td><a href="<?PHP echo $modulePath ?>datebook.php">Datebook</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
     <td><a href="<?PHP echo $modulePath ?>doc.php">DOC</a></td>
+    <td>&nbsp;&nbsp;&nbsp;</td>
+    <td><a href="<?PHP echo $modulePath ?>mobiledb.php">MobileDB</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
     <td><a href="<?PHP echo $rootPath ?>extra.php">Extra Info</a></td>
     <td>&nbsp;</td>

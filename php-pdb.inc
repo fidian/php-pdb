@@ -1,9 +1,10 @@
 <?PHP
 /* PHP-PDB -- PHP class to write PalmOS databases.
  *
- * Copyright (C) 2001 - Tyler Akins
+ * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
- * See the LEGAL file for more information
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
  *
  *
  * As a note, storing all of the information as hexadecimal kinda sucks,
@@ -105,7 +106,7 @@ class PalmDB {
    // Loads a single byte as a number from the file
    // Use if you want to make your own ReadFile function
    function LoadInt8($file) {
-      if (gettype($file) == 'resource')
+      if (is_resource($file))
          $string = fread($file, 1);
       else
          $string = $file;
@@ -123,7 +124,7 @@ class PalmDB {
    // Loads two bytes as a number from the file
    // Use if you want to make your own ReadFile function
    function LoadInt16($file) {
-      if (gettype($file) == 'resource')
+      if (is_resource($file))
          $string = fread($file, 2);
       else
          $string = $file;
@@ -142,7 +143,7 @@ class PalmDB {
    // Loads three bytes as a number from the file
    // Use if you want to make your own ReadFile function
    function LoadInt24($file) {
-      if (gettype($file) == 'resource')
+      if (is_resource($file))
          $string = fread($file, 3);
       else
 	 $string = $file;
@@ -152,9 +153,12 @@ class PalmDB {
       
       
    // Converts an integer (four bytes) and returns the value
-   // Uncertain if this works
+   // 32-bit integers have problems with PHP when they are bigger than
+   // 0x80000000 (about 2 billion) and that's why I don't use pack() here
    function Int32($value) {
-      $value = bin2hex(pack('N', $value));
+      $big = $value / 65536;
+      settype($big, 'integer');
+      $value = $this->Int16($big) . $this->Int16($value - ($big * 65536));
       return $value;
    }
    
@@ -162,7 +166,7 @@ class PalmDB {
    // Loads a four-byte string from a file into a number
    // Use if you want to make your own ReadFile function
    function LoadInt32($file) {
-      if (gettype($file) == 'resource')
+      if (is_resource($file))
          $string = fread($file, 4);
       else
          $string = $file;
@@ -193,7 +197,7 @@ class PalmDB {
    // The reverse?  Not coded yet.
    // Use if you want to make your own ReadFile function
    function LoadDouble($file) {
-      if (gettype($file) == 'resource')
+      if (is_resource($file))
          $string = fread($file, 8);
       else
          $string = $file;
@@ -448,7 +452,7 @@ class PalmDB {
    // Categories 128-255 are used for desktop ID numbers
    // Do not let category numbers be created larger than 255
    function CreateCategoryData($CategoryArray) {
-      $CategoryArray[0] = array('name' => 'Unfiled', 'renamed' => 0);
+      $CategoryArray[0] = array('Name' => 'Unfiled', 'Renamed' => false);
       $CatsWritten = 0;
       $LastIdWritten = 0;
       $RenamedFlags = 0;
@@ -462,13 +466,13 @@ class PalmDB {
 	    $LastIdWritten = $id;
 	    $RenamedFlags *= 2;
 	    if (is_array($CategoryArray[$id]) && 
-	        isset($CategoryArray[$id]['renamed']) &&
-		$CategoryArray[$id]['renamed'])
+	        isset($CategoryArray[$id]['Renamed']) &&
+		$CategoryArray[$id]['Renamed'])
 	       $RenamedFlags += 1;
 	    $name = '';
 	    if (is_array($CategoryArray[$id])) {
-	       if (isset($CategoryArray[$id]['name']))
-	          $name = $CategoryArray[$id]['name'];
+	       if (isset($CategoryArray[$id]['Name']))
+	          $name = $CategoryArray[$id]['Name'];
 	    } else
 	       $name = $CategoryArray[$id];
 	    $name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
@@ -486,7 +490,7 @@ class PalmDB {
 	 $IdStr .= $this->Int8($LastIdWritten);
       }
       
-      $TrailingBytes = $this->Int8($LastIdWritten + 1);
+      $TrailingBytes = $this->Int8($LastIdWritten);
       $TrailingBytes .= $this->Int8(0);
 	 
       // Error checking
@@ -652,12 +656,12 @@ class PalmDB {
    //   fclose($file);
    function WriteToFile($file) {
       $header = $this->MakeHeader();
-      fwrite($file, pack("H*", $header), strlen($header) / 2);
+      fwrite($file, pack('H*', $header), strlen($header) / 2);
       $keys = $this->GetRecordIDs();
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
          $data = $this->GetRecord($index);
-	 fwrite($file, pack("H*", $data), strlen($data) / 2);
+	 fwrite($file, pack('H*', $data), strlen($data) / 2);
       }
       fflush($file);
    }

@@ -1,4 +1,11 @@
 <?PHP
+/* Documentation for PHP-PDB library -- Datebook module
+ *
+ * Copyright (C) 2001 - PHP-PDB development team
+ * Licensed under the GNU LGPL software license.
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
+ */
 
 include("../functions.inc");
 
@@ -16,7 +23,7 @@ learn at first.</p>
 
 ShowExample('
 include \'php-pdb.inc\';
-include \'php-pdb-datebook.inc\';
+include \'modules/datebook.inc\';
 ');
 
 ?>
@@ -36,12 +43,12 @@ $DB = new PalmDatebook();
 
 <h3>Writing the database</h3>
 
-<p>This is the same as the base class.  See <a href="example.php">Basic
+<p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
 <h3>Loading the database</h3>
 
-<p>This is the same as the base class.  See <a href="example.php">Basic
+<p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
 <h3>Other functions</h3>
@@ -50,7 +57,7 @@ Use</a> for more information.</p>
 
 <dt><b>GetRecordRaw()<br>
 SetRecordRaw()</b></dt>
-<dd>Please see <a href="example.php">Basic Use</a> for how to use these
+<dd>Please see <a href="../example.php">Basic Use</a> for how to use these
 functions.  You use both of these to get/set records in the database.</dd>
 
 <dt><b>NewRecord()</b></dt>

@@ -1,4 +1,11 @@
 <?PHP
+/* Documentation for PHP-PDB library
+ *
+ * Copyright (C) 2001 - PHP-PDB development team
+ * Licensed under the GNU LGPL software license.
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
+ */
 
 include("./functions.inc");
 
@@ -22,9 +29,11 @@ Page</a>.</p>
 base class and make life easier for the developer.
 
 <ul>
-<li><b>Datebook</b> - Reading and writing fully supported.
+<li><b>Datebook</b> - Reading and writing fully supported.</li>
 <li><b>DOC</b> - Can write uncompressed doc files but can't yet read or do
-compression. Can use embedded and stored bookmarks.
+compression. Can use embedded and stored bookmarks.</li>
+<li><B>MobileDB</b> - Can read and write databases.  No utility functions
+yet, so using this class is extremely difficult.</li>
 </ul>
 
 <h3>Features</h3>

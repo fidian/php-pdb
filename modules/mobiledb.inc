@@ -1,9 +1,10 @@
 <?PHP
 /* Class extender for Handmark MobileDB databases.
  *
- * Copyright (C) 2001 - Tyler Akins
+ * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
- * See the LEGAL file for more information
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
  *
  *
  * Database format detailed at
@@ -103,9 +104,9 @@ class PalmMobileDB  extends PalmDB {
 
       ksort($this->Records[$Rec]);
       foreach ($this->Records[$Rec] as $id => $data) {
-         settype($id, 'integer');
 	 $RecStr .= $this->Int8($id);
-	 if ($data != 0 && $data != '')
+	 if ((is_string($data) && $data != '') ||
+	     ( ! is_string($data) && $data != 0))
 	    $RecStr .= bin2hex($data);
 	 $RecStr .= $this->Int8(0);
       }
@@ -113,6 +114,64 @@ class PalmMobileDB  extends PalmDB {
 
       return $RecStr;
    }   
+   
+
+   // Returns the size of the AppInfo block
+   function GetAppInfoSize() {
+      // The "+ 2" at the end gets the AppInfo to a 4-byte boundary.
+      return PDB_CATEGORY_SIZE + 6 + (PDB_MOBILEDB_FILTER_LENGTH * 3) +
+         (PDB_MOBILEDB_SORT_LENGTH * 3) + 2;
+   }
+   
+   
+   // Returns the AppInfo block
+   function GetAppInfo() {
+      $AppInfo = $this->CreateCategoryData($this->CategoryData);
+      $AppInfo .= $this->Int16($this->MobileDBVersion);
+      $AppInfo .= $this->Int32($this->MobileDBLock);
+      
+      // Filters
+      for ($i = 0; $i < 3; $i ++) {
+         if (isset($this->MobileDBFilters[$i]) && 
+	     is_array($this->MobileDBFilters[$i]) &&
+	     count($this->MobileDBFilters[$i]) == 3)
+	    $filter = $this->MobileDBFilters[$i];
+	 else
+	    $filter = array('', 0, 0);
+	 // Not sure if they require null termination
+	 $textStr = $this->String($filter[0], 
+	    PDB_MOBILEDB_FILTER_TEXT_LENGTH);
+	 $AppInfo .= $this->PadString($textStr, 
+	    PDB_MOBILEDB_FILTER_TEXT_LENGTH);
+	 $AppInfo .= $this->Int8($filter[1]);
+	 $AppInfo .= $this->Int8($filter[2]);
+	 
+	 // Padding to make the 4-byte boundary
+	 $AppInfo .= $this->Int16(0);
+      }
+
+      // Sort Info
+      for ($i = 0; $i < 3; $i ++) {
+         if (isset($this->MobileDBSort[$i]) &&
+	     is_array($this->MobileDBSort[$i]) &&
+	     count($this->MobileDBSort[$i]) == 3)
+	    $sort = $this->MobileDBSort[$i];
+	 else
+	    $sort = array(0, 0, 0);
+	    
+	 $AppInfo .= $this->Int8($sort[0]);
+	 $AppInfo .= $this->Int8($sort[1]);
+	 $AppInfo .= $this->Int8($sort[2]);
+	 
+	 // Padding to make the 4-byte boundary
+	 $AppInfo .= $this->Int8(0);
+      }
+      
+      // Pad to a 4-byte boundary
+      $AppInfo .= $this->Int16(0);
+      
+      return $AppInfo;
+   }
    
    
    // Generic function to load the AppInfo block into $this->AppInfo
@@ -150,6 +209,7 @@ class PalmMobileDB  extends PalmDB {
    // Loads a single filter from the string passed in
    function LoadAppInfo_Filter($data) {
       $text = false;
+      // I'm not sure if they require null termination
       for ($i = 0; $i < PDB_MOBILEDB_FILTER_TEXT_LENGTH; $i ++) {
          if (bin2hex($data[$i]) == '00') {
 	    $text = substr($data, 0, $i);
@@ -185,6 +245,7 @@ class PalmMobileDB  extends PalmDB {
       if ($recordInfo['Attrs'] & PDB_CATEGORY_MASK == 0)
          return true;
     
+      $d = $this->LoadInt32($fileData);
       // Check the first 6 bytes.  They must always be correct or else the
       // record is invalid
       if ($this->LoadInt32($fileData) != 4294967041)

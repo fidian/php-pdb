@@ -1,11 +1,18 @@
 <?PHP
+/* Testing program to make sure PHP-PDB will work on this system
+ *
+ * Copyright (C) 2001 - PHP-PDB development team
+ * Licensed under the GNU LGPL software license.
+ * See the doc/LEGAL file for more legal information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
+ */
 
 // Turn on all error reporting
 ini_set('error_reporting', E_ALL);
 
 include "./php-pdb.inc";
-include "./php-pdb-datebook.inc";
-include "./php-pdb-doc.inc";
+include "./modules/datebook.inc";
+include "./modules/doc.inc";
 
 $Tests = array();
 $TestType = 'Unknown';

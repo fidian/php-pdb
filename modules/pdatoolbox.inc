@@ -1,10 +1,10 @@
 <?PHP
-
-/* Class extender for PDS Toolbox databases
+/* Class extender for PDA Toolbox databases
  *
- * Copyright (C) 2001 Tyler Akins
+ * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL
- * See the LEGAL file for more information
+ * See the doc/LEGAL file for more information
+ * See http://php-pdb.sourceforge.net/ for more information about the library
  */
 
 /* The data for the GetRecord and SetRecord functions should return/be fed
