@@ -370,6 +370,16 @@ function GetTheFile() {
       return $d;
    }
    if ($Source == 'URL') {
+      $IsGood = false;
+      foreach (array("http://", "ftp://") as $match) {
+         if (strncasecmp($urldata, $match, strlen($match)) == 0)
+	    $IsGood = true;
+      }
+      if (! $IsGood) {
+         ShowError("Unacceptable URL.  It must begin with http:// or " .
+	    "ftp://");
+	 return false;
+      }
       $fp = @fopen($urldata, "r");
       if (! $fp) {
          ShowError("Unable to read from the URL specified:\n" . $urldata);
