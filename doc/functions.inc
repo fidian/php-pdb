@@ -39,8 +39,8 @@ align=right>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">General</th></tr>
     <tr><td><a href="<?PHP echo $rootPath 
       ?>example.php">Basic&nbsp;Use</a><br>
-      <a href="<?PHP echo $rootPath 
-      ?>extra.php">Extra&nbsp;Info</a></td></tr>
+      <a href="<?PHP echo $rootPath ?>extra.php">Extra&nbsp;Info</a><br>
+      <a href="<?PHP echo $rootPath ?>credits.php">Credits</a></td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">Modules</th></tr>
     <tr><td><a href="<?PHP echo $modulePath 
        ?>datebook.php">Datebook</a><br>
