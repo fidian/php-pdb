@@ -14,6 +14,7 @@ include "./php-pdb.inc";
 include "./modules/addrbook.inc";
 include "./modules/datebook.inc";
 include "./modules/doc.inc";
+include "./modules/list.inc";
 include "./modules/smallbasic.inc";
 include "./modules/todo.inc";
 
@@ -62,11 +63,11 @@ ob_start();
 <li>Double (Write) = <?PHP 
   $Fail += PassFail('$dbl = new PalmDB();
                      return $dbl->Double(10.53);', 
-		     '40250f5c28f5c28f') ?></li>
+		    '40250f5c28f5c28f') ?></li>
 <li>Double (Read) = <?PHP 
   $Fail += PassFail('$dbl = new PalmDB();
                      return $dbl->LoadDouble(pack(\'H*\', \'40250f5c28f5c28f\'));', 
-		     10.53);
+		    10.53);
     
   if ($Fail) {
       echo "<br>Don't worry -- this method is not used by anything in " .
@@ -77,9 +78,12 @@ ob_start();
    }
 ?></li>
 <li>String (Write) = <?PHP 
-  // Don't need to test reading -- just use substr() to get the data.
   PassFail('return PalmDB::String(\'abcd\', \'3\');', 
            '616263') ?></li>
+<li>String (Read) = <?PHP
+  PassFail('$p = new PalmDB();
+	    return $p->LoadString(pack(\'H*\', \'6162630000\'), 4);',
+	   'abc'); ?></li>
 </ul>
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
@@ -88,11 +92,13 @@ ob_start();
 <li>Datebook = <?PHP PassFail('return DatebookTest();',
    'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail('return DocTest(false);',
-   'ed869c7a31e720537f759fcc88d8c447') ?></li>
+   '91fa7442b46075d8ff451c58457d7246') ?></li>
 <li>Doc (compressed) = <?PHP PassFail('return DocTest(true);',
-   '26664289f16ba7e0ebbfeb3663babd86') ?></li>
+   'c5d02609dcfd8e565318da246226cd64') ?></li>
+<li>List = <?PHP PassFail('return ListTest();',
+   '1b722455f7d69fee05def79f6ac0b482') ?></li>			  
 <li>SmallBASIC = <?PHP PassFail('return SmallBASICTest();',
-   '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
+   'e680fa5719b5ca1d7408148e2d8c7b43') ?></li>
 <li>Todo = <?PHP PassFail('return TodoTest();', 
    'd009e145a7633a33f1376712e3a6bc12') ?></li>
 </ul>
@@ -309,7 +315,7 @@ school one day.
 It followed her to school one day.
 and I hope this doc text test works well.
 
-(Yeah, I know.  It doesn't rhyme.)
+(Yeah, I know.  It does not rhyme.)
 EOS;
    // Just in case the file is edited and the newlines are changed a bit.
    $text = str_replace("\r\n", "\n", $text);
@@ -328,13 +334,26 @@ EOS;
 
 
 //
+// List
+//
+
+function ListTest() {
+   $d = new PalmListDB('List Test');
+   $d->SetRecordRaw(array('abc', '123', 'Have Lots Of Fun!'));
+
+   return GenerateMd5($d);
+}
+
+
+
+//
 // SmallBASIC
 //
 
 function SmallBASICTest() {
    $d = new PalmSmallBASIC("pen.bas");
    $text = <<< EOS
-' pen
+! pen				     
 
 print "Use /B (Graffiti) to exit"
 
@@ -346,6 +365,7 @@ while 1
 wend
 pen off
 EOS;
+   $text = str_replace("!", "'", $text);
    $text = str_replace("\r\n", "\n", $text);
    $text = str_replace("\r", "\n", $text);
    $d->ConvertFromText($text);

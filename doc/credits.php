@@ -52,6 +52,8 @@ with writing this class.</p>
    for <a href="http://www.handmark.com/products/mobiledb/">MobileDB</a>.
    Cassidy Lackey answered many of my questions.  Thanks for helping to get
    the <a href="modules/mobiledb.php">MobileDB</a> class going!</li>
+<li>Low, Andrew &lt;<?PHP HideEmail('roo', 'magma.ca') ?>&gt; -- Created
+   <a href="http://www.magma.ca/~roo/list/list.html">List</a>.</li>
 <li>Martinez, Eduardo Pascual &lt;<?PHP 
    HideEmail('epascual', 'cie-mexico.com.mx') ?>&gt; -- Created the classes to
    handle <a href="modules/todo.php">Todo</a> and 

@@ -34,6 +34,8 @@ fully supported.</li>
 <li><b><a href="modules/doc.php">DOC</a></b> - Can read and write 
 compressed and uncompressed doc files.  Can use embedded and stored 
 bookmarks.</li>
+<li><b><a href="modules/list.php">List</a></b> - Reading and writing fully
+supported.</li>
 <li><B><a href="modules/mobiledb.php">MobileDB</a></b> - Can read and write
 databases.  No utility functions yet, so this class is difficult to use.</li>
 <li><B><a href="modules/smallbasic.php">SmallBASIC</a></b> - Can read and 

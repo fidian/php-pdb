@@ -355,6 +355,22 @@ class PalmDB {
    }
    
    
+   // Special string loading function
+   // Grabs up to $maxLen characters as part of the string
+   // Will stop at the first NULL character
+   function LoadString($str, $maxLen)
+   {
+      $i = 0;
+      if (strlen($str) < $maxLen)
+         $maxLen = strlen($str);
+      while ($i < $maxLen && $str[$i] != "\0")
+         $i ++;
+      if ($i == 0)
+         return '';
+      return substr($str, 0, $i);
+   }
+
+
    /*
     * Record manipulation functions
     */
@@ -689,7 +705,7 @@ class PalmDB {
    // block if the database supports categories.
    //
    // See SetCategoryList() for the format of $CategoryArray
-   function CreateCategoryData() {
+   function CreateCategoryData($IncludeTrailingByte = true) {
       $UsedIds = array();
       $UsedIdCheck = 0;
       
@@ -739,7 +755,9 @@ class PalmDB {
       // written by the desktop, highest one written, or the ID for number
       // 15.
       $TrailingBytes = $this->Int8($LastID);
-      $TrailingBytes .= $this->Int8(0);
+      
+      if ($IncludeTrailingByte)
+         $TrailingBytes .= $this->Int8(0);
 	 
       return $this->Int16($RenamedFlags) . $CategoryStr . $IdStr . 
          $TrailingBytes;
@@ -758,14 +776,8 @@ class PalmDB {
       $Categories = array();
       while ($StartingFlag > 1) {
          $StartingFlag /= 2;
-	 $Name = substr($fileData, $Offset, PDB_CATEGORY_NAME_LENGTH);
-	 $i = 0;
-	 while ($i < PDB_CATEGORY_NAME_LENGTH && $Name[$i] != "\0")
-	    $i ++;
-	 if ($i == 0)
-	    $Name = '';
-	 elseif ($i < PDB_CATEGORY_NAME_LENGTH)
-	    $Name = substr($Name, 0, $i);
+	 $Name = $this->LoadString(substr($fileData, $Offset,
+	    PDB_CATEGORY_NAME_LENGTH), PDB_CATEGORY_NAME_LENGTH);
 	 if ($RenamedFlags & $StartingFlag)
 	    $RenamedFlag = true;
 	 else

@@ -48,6 +48,7 @@ function StandardHeader($title = '', $curdir = '') {
        <a href="<?PHP echo $modulePath ?>addrbook.php">Address&nbsp;Book</a><br>
        <a href="<?PHP echo $modulePath ?>datebook.php">Datebook</a><br>
        <a href="<?PHP echo $modulePath ?>doc.php">DOC</a><br>
+       <a href="<?PHP echo $modulePath ?>list.php">List</a><br>
        <a href="<?PHP echo $modulePath ?>mobiledb.php">MobileDB</a><br>
        <a href="<?PHP echo $modulePath ?>smallbasic.php">SmallBASIC</a><br>
        <a href="<?PHP echo $modulePath ?>todo.php">Todo</a>
