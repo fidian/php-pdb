@@ -74,6 +74,9 @@ href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
 ebooks for GutenPalm?  It's quite similar to DOC.</li>
 <li>Regex bookmark scanning for Twister!  (Idea from <a
 href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
+<li>Finish adding <a
+href="http://smallbasic.sourceforge.net/">SmallBASIC</a> module to convert
+code to/from PDB format.</li>
 </ul>
 
 <h3>Credits and thanks</h3>
