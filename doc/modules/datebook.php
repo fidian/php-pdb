@@ -206,7 +206,6 @@ $pdb->SetRecordRaw($Record);
 $pdb->GoToRecord("+1");
 ');
 
-
 StandardFooter();
 
 ?>

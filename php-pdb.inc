@@ -360,6 +360,10 @@ class PalmDB {
    
    // Returns the hex-encoded data for the specified record or the current
    // record if not specified
+   // This is nearly identical to GetRecordRaw except that this function
+   // may be overridden by classes (see modules/doc.inc) and that there
+   // should always be a function that will return the raw data of the
+   // Records array.
    function GetRecord($Rec = false) {
       if ($Rec === false)
          $Rec = $this->CurrentRecord;
@@ -372,6 +376,7 @@ class PalmDB {
    // Returns the raw data inside the current/specified record.  Use this
    // for odd record types (like a Datebook record).  Also, use this
    // instead of just using $PDB->Records[] directly.
+   // Please do not override this function.
    function GetRecordRaw($Rec = false) {
       if ($Rec === false)
          $Rec = $this->CurrentRecord;

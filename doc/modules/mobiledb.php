@@ -76,10 +76,10 @@ $pdb = new PalmMobileDB();
 // Create a new record
 $Record = array("one", true, 35);
 
-// Add the record to the datebook
+// Add the record to the database
 $pdb->SetRecordRaw($Record);
 
-// Advance to the next record just in case we want to add more events
+// Advance to the next record just in case we want to add more
 $pdb->GoToRecord("+1");
 ');
 
