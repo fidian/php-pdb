@@ -37,10 +37,40 @@ function StandardFooter() {
 <p><a href="http://sourceforge.net"><img
 src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
-<font size=-2>&copy;opyright 2001, Tyler Akins</font>
+<font size=-2>&copy;opyright 2001, Tyler Akins<br><?PHP
+HideEmail("fidian@tiny.net") ?></font></p>
 </body>
 </html>
 <?PHP
+}
+
+
+function HideEmail($email) {
+   $MailLink = "<a href=\"mailto:$email\">$email</a>";
+   
+   $MailLinkNew = '';
+   for ($i = 0; $i < strlen($MailLink); $i ++) {
+      $MailLinkNew .= '%' . bin2hex($MailLink[$i]);
+   }
+   $MailLink = $MailLinkNew;
+   
+   $MailLinkNew = array();
+   while (strlen($MailLink)) {
+      $MailLinkNew[] = substr($MailLink, 0, 25) . '" + "' .
+         substr($MailLink, 25, 25);
+      $MailLink = substr($MailLink, 50);
+   }
+   
+?><SCRIPT LANGUAGE="javascript">
+MaIlMe=new Array();
+<?PHP foreach ($MailLinkNew as $index =>$data) {
+?>MaIlMe[<?PHP echo $index ?>]="<?PHP echo $data ?>";
+<?PHP } ?>
+OutString="";
+for (j=0;j<MaIlMe.length;j++){
+OutString+=MaIlMe[j];
+}document.write(unescape(OutString));
+</SCRIPT><NOSCRIPT>Sorry, you need javascript to see my email address</noscript><?PHP
 }
 
 

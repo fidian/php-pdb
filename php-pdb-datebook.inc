@@ -389,6 +389,7 @@ class PalmDatebook extends PalmDB {
    // Converts the datebook record data loaded from a file into the internal
    // storage method that is used for the rest of the class and for ease of
    // use.
+   // Return false to signal no error
    function LoadRecord($fileData, $RecordInfo) {
       $this->RecordAttrs[$RecordInfo['UID']] = $RecordInfo['Attrs'];
       
@@ -508,6 +509,7 @@ class PalmDatebook extends PalmDB {
       
       $this->Records[$RecordInfo['UID']] = $NewRec;
    }
+   return false;
 }
 
 ?>

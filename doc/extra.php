@@ -22,8 +22,8 @@ please subscribe to the mailing list and ask your question.  Your answer
 should come to you pretty fast.  If you abhore mailing lists and would
 greatly prefer to not subscribe to a mailing list, just email me directly.
 I'll simply forward your request to the mailing list and then ask that the
-list members reply to you and to the list.  My email address is 
-(fidian at tiny dot net).</p>
+list members reply to you and to the list.  My email address is at the
+bottom of the page.</p>
 
 <h3>Legalese</h3>
 
@@ -37,6 +37,8 @@ free to use for everyone.</p>
 <li>Add <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.  (In progress)</li>
+<li>Add PDAToolbox support (waiting for information about structure -- if
+you have info, please mail me)</li>
 <li>Maybe look closer at <a href="http://mmmm.free.fr/palm/">palmlib</a></li>
 <li>Wouldn't image support from <a
 href="http://palmimage.sourceforge.net/">PalmImage</a> be grand?</li>
@@ -57,6 +59,10 @@ people who wrote other open-source programs that I learned from.</p>
    href="http://depot.free-system.com/index.php3?projectid=2&action=show"
    >ToPTIP</a>) was handy to have around when initially adding DOC support
    to compare output and make sure mine worked.</li>
+<li><a href="http://www.handmark.com">Handmark</a> -- Provided detailed
+   database structure <a
+   href="http://www.handmark.com/products/mobiledb/dbstructure.htm">information</a>
+   for <a href="http://www.handmark.com/products/mobiledb/">MobileDB</a>.</li>
 <li><a href="http://www.palm.com">Palm Computing, Inc.</a> -- Without them,
    there would not be a PalmOS.  Also, they provided <a
    href="http://www.palmos.com/dev/tech/docs/">documentation<a> (especially

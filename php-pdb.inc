@@ -34,6 +34,8 @@ define('PDB_ATTRIB_OPEN', 64);
 define('PDB_ATTRIB_LAUNCHABLE', 512);
 
 // Record Flags
+// The first nibble is reserved for the category number
+// See PDB_CATEGORY_MASK
 define('PDB_RECORD_ATTRIB_PRIVATE', 16);
 define('PDB_RECORD_ATTRIB_DELETED', 32);
 define('PDB_RECORD_ATTRIB_DIRTY', 64);
@@ -43,6 +45,8 @@ define('PDB_RECORD_ATTRIB_EXPUNGED', 128);
 define('PDB_CATEGORY_NUM', 16);  // Number of categories
 define('PDB_CATEGORY_NAME_LENGTH', 16);  // Bytes allocated for name
 define('PDB_CATEGORY_SIZE', 276); // 2 + (num * length) + num + 1 + 1
+define('PDB_CATEGORY_MASK', 15);  // Bitmask -- use with attribute of record
+                                  // to get the category ID
 
 
 /*
@@ -823,6 +827,7 @@ class PalmDB {
   
    // Generic function to load the AppInfo block into $this->AppInfo
    // Should only be called within this class
+   // Return false to signal no error
    function LoadAppInfo($fileData) {
       $this->AppInfo = bin2hex($fileData);
       return false;
@@ -831,6 +836,7 @@ class PalmDB {
    
    // Generic function to load the SortInfo block into $this->SortInfo
    // Should only be called within this class
+   // Return false to signal no error
    function LoadSortInfo($fileData) {
       $this->SortInfo = bin2hex($fileData);
       return false;
@@ -839,6 +845,7 @@ class PalmDB {
    
    // Generic function to load a record
    // Should only be called within this class
+   // Return false to signal no error
    function LoadRecord($fileData, $recordInfo) {
       $this->Record[$recordInfo['UID']] = bin2hex($fileData);
       $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];

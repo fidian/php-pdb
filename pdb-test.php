@@ -99,7 +99,7 @@ EOS;
    $file = ob_get_contents();
    ob_end_clean();
 
-   if (md5($file) == '0896109489fff87ad468cd4f32b8eb0b')
+   if (md5($file) == '56fa283daa40aa6d547cb866b46ef368')
       return true;
    return false;
 }
