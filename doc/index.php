@@ -50,11 +50,14 @@ manners.  If you want your site listed here, I'd love to add it -- tell me
 about it!</p>
 
 <ul>
+<li><a href="http://rumkin.com/projects/marco/">Marco</a> - Data point
+conversion from different formats into the internal format used by Marco.</li>
+<li><a href="http://www.moregroupware.com/">Moregroupware</a> - A custom
+"export to palm datebook" patch was written.  It is being improved and
+should eventually be released from this site.</li>
 <li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
 href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC 
-format.
-<li><a href="http://rumkin.com/projects/marco/">Marco</a> - Data point
-conversion from different formats into the internal format used by Marco.
+format.</li>
 </ul>
 
 <?PHP
