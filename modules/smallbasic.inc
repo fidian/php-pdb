@@ -205,7 +205,7 @@ class PalmSmallBASIC extends PalmDB {
       
       // Take code.
       // Mmmmmmmm.  Code good.
-      $this->Records[$Name] = substr($fileData, 70);
+      $this->Records[$Name] = substr($fileData, 70, strlen($fileData) - 71);
       
       return false;
    }
