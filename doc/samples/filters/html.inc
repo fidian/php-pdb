@@ -20,8 +20,8 @@ function FilterHTML($fileData) {
    $Filters = array(
       "'<script[^>]*>.*</script>'si" => "", // Strip out javascript
                                             // (It's very pesky)
-      "'<pre[^>]*>.*</pre>'sie" => 
-         "nl2br('\\1')",                    // <pre> tags
+      "'<pre[^>]*>(.*)</pre[^>]*>'sie" =>
+         "FilterHTMLPre('\\1')",            // <pre> tags
       "'[\r\n\s]'" => ' ',                  // Newlines are now spaces
       "'<a[^>]*href=[\\'\"]?([^\" >]*)[\\'\"]?[^>]*>'ie" =>
          "FilterHTMLRipLink('\\1')",        // Links
@@ -31,7 +31,9 @@ function FilterHTML($fileData) {
       "'<li[^>]*>'i" => "\n* ",             // li
       "'<dt[^>]*>'i" => "\n",               // dt
       "'<dd[^>]*>'i" => "\n* ",             // dd
-      "'</tr[^>]*>'i" => "\n",              // </tr>
+      "'<th[^>]*>'i" => "\n",               // <th>
+      "'<td[^>]*>'i" => "\n",               // <td>
+      "'<tr[^>]*>'i" => "\n",               // <tr>
       "'<p[^>]*>'i" => "\n\n",              // <p>
       "'<hr[^>]*>'i" =>
          "\n---------------------------------------\n",
@@ -68,6 +70,29 @@ function FilterHTML($fileData) {
    }
 			   
    return $fileData;
+}
+
+
+function FilterHTMLPre($Str) {
+   $tempStr = strtolower($Str);
+   $pos = strpos($tempStr, "</pre");
+   
+   if ($pos === false)
+      return nl2br($Str);
+   
+   $pre = substr($Str, 0, $pos);
+   $pos = strpos($Str, '>', $pos);
+   
+   if ($pos === false)
+      return nl2br($Str);
+      
+   $post = substr($Str, $pos + 1);
+   $pre = nl2br($pre);
+   
+   $post = preg_replace("'<pre[^>]*>(.*)</pre[^>]*>'sie", 
+      "FilterHTMLPre('\\1')", $post . '</pre>');
+   
+   return $pre . $post;
 }
 
 function FilterHTMLEntity($Ent) {

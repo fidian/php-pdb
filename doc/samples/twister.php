@@ -99,14 +99,18 @@ expectations, just contact the <a
 href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
 hopefully the bugs will vanish quickly.</p>
 
-<p>To start the conversion process, just fill in this form:</p>
+<p>To start the conversion process, just fill in the form below.  The file
+will be converted (or an error message will be displayed) and you should see
+links for downloading the converted file.  This requires cookies to run
+properly.</p>
 <?PHP
 }
 
 
 function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
-      $BreakOnChapter, $TargetType, $TitleOfDoc;
+      $BreakOnChapter, $TargetType, $TitleOfDoc, $PHP_SELF, $filedata,
+      $urldata;
    // $UncompressedDoc
    
    ShowDownloadLinks();
@@ -118,10 +122,23 @@ function ShowInitialForm() {
     <td align=right><b>Source:</b></td>
     <td><input type=radio name="Source" value="File"<?PHP
       if (! isset($Source) || $Source != 'URL') echo ' checked'; ?>>
-      File:  <input type=file name=filedata size=45><br>
+      File:  <input type=file name=filedata size=45<?PHP
+      if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
+      . '"'; ?>><br>
+      
+      <?PHP if (stristr($PHP_SELF, ".sourceforge.net/") === false) { ?>
       <input type=radio name="Source" value="URL"<?PHP
       if (isset($Source) && $Source == 'URL') echo ' checked'; ?>> 
-      URL:  <input type=input name=urldata size=60></td>
+      URL:  <input type=input name=urldata size=60<?PHP
+      if (isset($filedata)) echo ' value="' . htmlspecialchars($urldata)
+      . '"'; ?>>
+      <?PHP } else { ?><br>
+      <i>(Twister! supports converting URLs, but Sourceforge can't download
+      from URLs.  Download and install <a
+      href="http://php-pdb.sourceforge.net/">PHP-PDB</a> on your own site
+      and Twister! should work fine.  It'll be included in the "doc/samples"
+      directory.)</i><?PHP
+      } ?></td>
   </tr>
   <tr>
     <td align=right><b>Source Type:</b></td>
@@ -153,7 +170,7 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Convert Into:</b></td>
     <td><input type=radio name="TargetType" value="DOC" checked>
-      DOC<br>
+      DOC (Uncompressed)<br>
       &nbsp; &nbsp; &nbsp;DOC Title:
       <input type=text name="TitleOfDoc" value="<?PHP
       if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
@@ -162,6 +179,9 @@ function ShowInitialForm() {
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file
       -->
+      <br><br>
+      
+      <i>(More will be added later)</i>
       </td>
   </tr>
   <tr>
@@ -338,6 +358,7 @@ function ConvertFromFormat($filedata) {
 
 
 function StoreAsPRC($title, $rawData) {
+   echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
    global $SavedPDB;
    
    if (! isset($SavedPDB) || ! is_array($SavedPDB)) {

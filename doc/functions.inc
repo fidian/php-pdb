@@ -52,7 +52,7 @@ align=right>
     <tr><td><a href="<?PHP echo $samplePath
        ?>bookmark_test.php">Bookmark Test</a><br>
        <a href="<?PHP echo $samplePath
-       ?>twister.php">Twister</a></td></tr>
+       ?>twister.php">Twister!</a></td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">SourceForge</th></tr>
     <tr><td><a href="http://sourceforge.net/project/showfiles.php?group_id=29740">
        Download</a><br>
