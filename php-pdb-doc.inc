@@ -76,12 +76,15 @@ class PalmDoc extends PalmDB {
    }
    
    function GetRecordIDs() {
-      return array_merge(PalmDB::GetRecordIDs(), array(0));
+      $ids = PalmDB::GetRecordIDs();
+      if (! isset($this->Records[0]))
+         array_unshift($ids, 0);
+      return $ids;
    }
    
    function GetRecordCount() {
       $c = count($this->Records);
-      if ($c)
+      if (isset($this->Records[0]) && $c)
          $c ++;
       return $c;
    }

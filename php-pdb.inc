@@ -18,7 +18,7 @@
     * My code was written from scratch, but I compared output to ToPTIP.
     * http://depot.free-system.com/index.php3?projectid=2&action=show
     *
-    * Code from p5-Palm
+    * Code and ideas from p5-Palm (Thanks!)
     * http://www.ooblick.com/software/coldsync/
     *
     * Maybe some code will be palmlib
@@ -28,12 +28,18 @@
     * http://palmimage.sourceforge.net/
     */
 
+   /*
+    * Define global variables
+    */
+
+   // Sizes
    define('PDB_HEADER_SIZE', 72); // Size of the database header
    define('PDB_INDEX_HEADER_SIZE', 6); // Size of the record index header
    define('PDB_RECORD_HEADER_SIZE', 8); // Size of the record index entry
    define('PDB_RESOURCE_SIZE', 10);  // Size of the resource index entry
    define('PDB_EPOCH_1904', 2082844800); // Difference between Palm's time and Unix
    
+   // Attribute Flags
    define('PDB_ATTRIB_RESOURCE', 1);
    define('PDB_ATTRIB_READ_ONLY', 2);
    define('PDB_ATTRIB_APPINFO_DIRTY', 4);
@@ -42,24 +48,35 @@
    define('PDB_ATTRIB_RESET', 32);
    define('PDB_ATTRIB_OPEN', 64);
    
+   // Record Flags
    define('PDB_RECORD_ATTRIB_PRIVATE', 8);
    define('PDB_RECORD_ATTRIB_DELETED', 16);
    define('PDB_RECORD_ATTRIB_DIRTY', 32);
    define('PDB_RECORD_ATTRIB_EXPUNGED', 64);
    
+   
+   /*
+    * PalmDB Class
+    *
+    * Contains all of the required methods and variables to write a pdb file.
+    * Extend this class to provide functionality for memos, addresses, etc.
+    */
    class PalmDB {
-      var $Records = array(); // All of the data from the records is here
+      var $Records = array();     // All of the data from the records is here
+                                  // Key = record ID
       var $RecordAttrs = array(); // And their attributes are here
-      var $CurrentRecord = 0; // Which record we are currently editing
-      var $Name = ''; // Title of the document / name of the PDB file
-      var $TypeID = '';
-      var $CreatorID = '';
-      var $Attributes = 0;
-      var $Version = 0;
-      var $CreationTime = 0; // Stored in unix time (Jan 1, 1970)
-      var $ModificationTime = 0; // Stored in unix time (Jan 1, 1970)
-      var $BackupTime = 0; // Stored in unix time (Jan 1, 1970)
-      
+      var $CurrentRecord = 0;     // Which record we are currently editing
+      var $Name = '';             // Name of the PDB file
+      var $TypeID = '';           // The 'Type' of the file (4 chars)
+      var $CreatorID = '';        // The 'Creator' of the file (4 chars)
+      var $Attributes = 0;        // Attributes (bitmask)
+      var $Version = 0;           // Version of the file
+      var $CreationTime = 0;      // Stored in unix time (Jan 1, 1970)
+      var $ModificationTime = 0;  // Stored in unix time (Jan 1, 1970)
+      var $BackupTime = 0;        // Stored in unix time (Jan 1, 1970)
+      var $AppInfo = '';          // Basic AppInfo block
+      var $SortInfo = '';         // Basic SortInfo block
+
 
       // Creates a new database class
       function PalmDB($Type, $Creator, $Name = '')
@@ -72,18 +89,28 @@
       }
 
 
+      /*
+       * Data manipulation functions
+       *
+       * These convert various numbers and strings into the hexadecimal
+       * format that is used internally to construct the file.  We use hex
+       * encoded strings since that is a lot easier to work with than binary
+       * data in strings, and we can easily tell how big the true value is.
+       * B64 encoding does some odd stuff, so we just make the memory
+       * consumption grow tremendously and the complexity level drops
+       * considerably.
+       */
+       
       // Converts a byte and returns the value
       function Int8($value) {
          $value &= 0xFF;
-         //echo "Int8(" . sprintf("%02x", $value) . ")<br>\n";
          return sprintf("%02x", $value);
       }
       
-      
+
       // Converts an integer (two bytes) and returns the value
       function Int16($value) {
          $value &= 0xFFFF;
-         //echo "Int16(" . sprintf("%02x%02x", $value / 256, $value % 256) . ")<br>\n";
          return sprintf("%02x%02x", $value / 256, $value % 256);
       }
 
@@ -92,14 +119,14 @@
       // Uncertain if this works
       function Int32($value) {
          $value = bin2hex(pack('N', $value));
-         //echo "Int32(" . $value . ")<br>\n";
 	 return $value;
       }
       
+      
       // Converts the number into a double and returns the encoded value
+      // Not sure if this will work on all platforms.
       // 10.53 as a double should be 4025 0f5c 28f5 c28f
       function Double($value) {
-         // May not work on every machine (or at least may require tweaks)
 	 $value = bin2hex(pack('d', $value));
 	 $value = substr($value, 14, 2) . substr($value, 12, 2) . 
 	    substr($value, 10, 2) . substr($value, 8, 2) . 
@@ -109,31 +136,43 @@
       }
 
 
+      // Converts a string into hexadecimal.
+      // If $maxLen is specified and is greater than zero, the string is 
+      // trimmed and will contain up to $maxLen characters.
+      // String("abcd", 2) will return "ab" hex encoded (a total of 4
+      // resulting bytes, but 2 encoded characters).
+      // Returned string is *not* NULL-terminated.
       function String($value, $maxLen = false) {
          $value = bin2hex($value);
-	 if ($maxLen !== false)
+	 if ($maxLen !== false && $maxLen > 0)
 	    $value = substr($value, 0, $maxLen * 2);
-	    
-	 //echo "String(" . $value . ")<br>\n";
          return $value;
       }
 
 
+      /*
+       * Record manipulation functions
+       */
+      
+      // Returns the current record number
+      // Sets the current record pointer to the new record number if an
+      // argument is passed in.
+      // Does basic record initialization if we are going to a new record.
       function GoToRecord($num = false) {
          if ($num === false)
 	    return $this->CurrentRecord;
          $this->CurrentRecord = $num;
-	 if (! isset($this->Records[$this->CurrentRecord]))
+	 if (! isset($this->Records[$this->CurrentRecord])) {
 	    $this->Records[$this->CurrentRecord] = '';
+	    $this->RecordAttrs[$this->CurrentRecord] = 0;
+	 }
 	 return $num;
       }
       
-      
-      function GetRecordSize_Class($num) {
-         return strlen($this->Records[$num]) / 2;
-      }
-      
-      
+
+      // Returns the size of the current record if no arguments.
+      // Returns the size of the specified record if arguments.
+      // Do not override this function -- override GetRecordSize_Class
       function GetRecordSize($num = false) {
          if ($num === false)
 	    $num = $this->CurrentRecord;
@@ -141,7 +180,17 @@
       }
       
       
-      // Adds to the current record.  The input data must be hex.
+      // Returns the size of the record index passed in
+      // Override this function instead of GetRecordSize
+      function GetRecordSize_Class($num) {
+         if (! isset($this->Records[$num]))
+	    return 0;
+         return strlen($this->Records[$num]) / 2;
+      }
+      
+      
+      // Adds to the current record.  The input data must be already
+      // hex encoded.
       function AppendCurrent($value) {
          if (! isset($this->Records[$this->CurrentRecord]))
 	    $this->Records[$this->CurrentRecord] = '';
@@ -149,31 +198,37 @@
       }
       
       
+      // Adds a byte to the current record
       function AppendInt8($value) {
          $this->AppendCurrent($this->Int8($value));
       }
       
       
+      // Adds an integer (2 bytes) to the current record
       function AppendInt16($value) {
          $this->AppendCurrent($this->Int16($value));
       }
       
       
+      // Adds an integer (4 bytes) to the current record
       function AppendInt32($value) {
          $this->AppendCurrent($this->Int32($value));
       }
       
       
+      // Adds a double to the current record
       function AppendDouble($value) {
          $this->AppendCurrent($this->Double($value));
       }
 
-
+ 
+      // Adds a string (not NULL-terminated)
       function AppendString($value, $maxLen = false) {
          $this->AppendCurrent($this->String($value));
       }
       
 
+      // Returns the hex-encoded data for the specified record
       function GetRecord($Rec) {
          if (isset($this->Records[$Rec]))
             return $this->Records[$Rec];
@@ -181,26 +236,86 @@
       }
       
       
+      // Erases all data for the current record
       function ClearCurrentRecord() {
          $this->Records[$this->CurrentRecord] = '';
       }
+      
+      
+      // Deletes the current record
+      // You are urged to use GoToRecord() and jump to an existing record
+      // after this function call so that the deleted record doesn't
+      // get accidentally recreated/used -- all append functions will
+      // create a new, empty record if the current record doesn't exist.
+      function DeleteCurrentRecord() {
+         if (isset($this->Records[$this->CurrentRecord]))
+	    unset($this->Records[$this->CurrentRecord]);
+      }
 
 
+      // Returns an array of available record IDs in the order they should
+      // be written.
       function GetRecordIDs() {
-	 return array_keys($this->Records);
+         $keys = array_keys($this->Records);
+	 if (! is_array($keys) || count($keys) < 1)
+	    return array();
+	 sort($keys);
+	 return $keys;
       }
       
+      
+      // Returns the number of records.  This should match the number of
+      // keys returned by GetRecordIDs().
       function GetRecordCount() {
          return count($this->Records);
       }
       
       
-      // Returns the hexadecimal header of the pdb file
+      // Returns the size of the AppInfo block.
+      function GetAppInfoSize() {
+         if (! isset($this->AppInfo))
+	    return 0;
+         return strlen($this->AppInfo) / 2;
+      }
+      
+      
+      // Returns the AppInfo block (hex encoded)
+      function GetAppInfo() {
+         if (! isset($this->AppInfo))
+	    return 0;
+	 return $this->AppInfo;
+      }
+
+      
+      // Returns the size of the SortInfo block
+      function GetSortInfoSize() {
+         if (! isset($this->SortInfo))
+	    return 0;
+         return strlen($this->SortInfo) / 2;
+      }
+      
+      
+      // Returns the SortInfo block (hex encoded)
+      function GetSortInfo() {
+         if (! isset($this->SortInfo))
+	    return 0;
+	 return $this->SortInfo;
+      }
+
+
+      /*
+       * Database Writing Functions
+       */
+      
+      // Returns the hex encoded header of the pdb file
+      // Header = name, attributes, version, creation/modification/backup 
+      //          dates, modification number, some offsets, record offsets,
+      //          record attributes, appinfo block, sortinfo block
       function MakeHeader() {
          // 32 bytes = name, but only 31 available (one for null)
 	 $header = $this->String($this->Name, 31);
 	 $header .= 
-	    '0000000000000000000000000000000000000000000000000000000000000000';
+	   '0000000000000000000000000000000000000000000000000000000000000000';
 	 $header = substr($header, 0, 64);
 	 
 	 // Attributes & version fields
@@ -220,11 +335,27 @@
   	    $header .= $this->Int32($this->BackupTime + PDB_EPOCH_1904);
 	 else
 	    $header .= $this->Int32(0);
+
+         // Calculate the initial offset
+	 $Offset = PDB_HEADER_SIZE + PDB_INDEX_HEADER_SIZE;
+	 $Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 	 
 	 // Modification number, app information id, sort information id
 	 $header .= $this->Int32(0);
-	 $header .= $this->Int32(0);
-	 $header .= $this->Int32(0);
+
+         $AppInfo_Size = $this->GetAppInfoSize();
+	 if ($AppInfo_Size > 0) {
+	    $header .= $this->Int32($Offset);
+	    $Offset += $AppInfo_Size;
+	 } else
+  	    $header .= $this->Int32(0);
+	    
+	 $SortInfo_Size = $this->GetSortInfoSize();
+	 if ($SortInfo_Size > 0) {
+	    $header .= $this->Int32($Offset);
+	    $Offset += $SortInfo_Size;
+	 } else
+	    $header .= $this->Int32(0);
 	 
 	 // Type, creator
 	 $header .= $this->String($this->TypeID, 4);
@@ -241,8 +372,6 @@
 	 
 	 // Dump each record
 	 if ($this->GetRecordCount() != 0) {
-	    $Offset = PDB_HEADER_SIZE + PDB_INDEX_HEADER_SIZE;
-	    $Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 	    $keys = $this->GetRecordIDs();
 	    sort($keys, SORT_NUMERIC);
   	    foreach ($keys as $index) {
@@ -262,12 +391,26 @@
 	 }
 
          // AppInfo and SortInfo blocks go here
-	 // It's a shame that we don't support them yet
+	 if ($AppInfo_Size > 0)
+	    $header .= $this->GetAppInfo();
+	    
+	 if ($SortInfo_Size > 0)
+	    $header .= $this->GetSortInfo();
 	 
 	 return $header;
       }
       
 
+      // Writes the database to the file handle specified.
+      // Use this function like this:
+      //   $file = fopen("output.pdb", "wb"); 
+      //   // "wb" = write binary for non-Unix systems
+      //   if (! $file) {
+      //      echo "big problem -- can't open file";
+      //      exit;
+      //   }
+      //   $pdb->WriteToFile($file);
+      //   fclose($file);
       function WriteToFile($file) {
          $header = $this->MakeHeader();
          fwrite($file, pack("H*", $header), 
@@ -283,11 +426,16 @@
 	 fflush($file);
       }
       
+      
+      // Writes the database to the standard output (like echo).
+      // Can be trapped with output buffering
       function WriteToStdout() {
-         // You'd think these three lines would work!
-//         $fp = fopen('php://stdout', 'wb');
-//	 $this->WriteToFile($fp);
-//	 fclose($fp);
+         // You'd think these three lines would work.
+	 // If someone can figure out why they don't, please tell me.
+	 //
+         // $fp = fopen('php://stdout', 'wb');
+         // $this->WriteToFile($fp);
+         // fclose($fp);
 	 
          $header = $this->MakeHeader();
          echo pack("H*", $header);
@@ -295,26 +443,40 @@
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
 	    $data = $this->GetRecord($index);
-	    //echo "Stdout Record $index -> $data<br>\n";
 	    echo pack("H*", $data);
 	 }
       }
       
+      
+      // Writes the database to the standard output (like echo) but also
+      // writes some headers so that the browser should prompt to save the
+      // file properly.
+      //
+      // Use this only if you didn't send any content and you only want the
+      // PHP script to output the PDB file and nothing else.  An example
+      // would be if you wanted to have 'download' link so the user can
+      // stick the information they are currently viewing and transfer
+      // it easily into their handheld.
+      //
+      // $filename is the desired filename to download the database as.
+      // For example, DownloadPDB('memos.pdb');
       function DownloadPDB($filename) {
          global $HTTP_USER_AGENT;
 	 
-	 $isIE = 0;
+	 // Alter the filename to only allow certain characters.
+	 // Some platforms and some browsers don't respond well if
+	 // there are illegal characters (such as spaces) in the name of
+	 // the file being downloaded.
+	 $filename = ereg_replace('[^-a-zA-Z0-9\\.]', '_', $filename);
+	 
 	 if (strstr($HTTP_USER_AGENT, 'compatible; MSIE ') !== false &&
 	     strstr($HTTP_USER_AGENT, 'Opera') === false) {
-	    $isIE = 1;
-	 }
-	 
-	 $filename = ereg_replace('[^-a-zA-Z0-9\.]', '_', $filename);
-	 
-	 if ($isIE) {
+	    // IE doesn't properly download attachments.  This should work
+	    // pretty well for IE 5.5 SP 1
             header("Content-Disposition: inline; filename=$filename");
             header("Content-Type: application/download; name=\"$filename\"");
 	 } else {
+	    // Use standard headers for Netscape, Opera, etc.
             header("Content-Disposition: attachment; filename=\"$filename\"");
             header("Content-Type: application/x-pilot; name=\"$filename\"");
 	 }
