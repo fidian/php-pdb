@@ -65,6 +65,9 @@ if it merged with GD.</li>
 <li>Take an in-depth look <a
 href="http://zurk.sourceforge.net/zdoc.html">here</a> for DOC files and for
 PeanutPress files.</li>
+<li>How about adding <a
+href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
+ebooks for GutenPalm?</li>
 </ul>
 
 <h3>Credits and thanks</h3>
