@@ -128,8 +128,8 @@ class PalmTodoList extends PalmDB {
      if (isset($data['due_date'])) {
        list($Y,$M,$D) = split('-',$data['due_date']);
        $rawDate = ($D & 0x001f) |
-	  (($M & 0x000f) << 5) |
-	  ((($Y - 1904) & 0x007f) << 9);
+          (($M & 0x000f) << 5) |
+          ((($Y - 1904) & 0x007f) << 9);
      } else {
        $rawDate = 0xffff;
      }
@@ -163,23 +163,23 @@ class PalmTodoList extends PalmDB {
      if (isset($B['attributes'])) {
        $atts = 0;
        if ($B['attributes']['expunged'] || $B['attributes']['deleted']) {
-	 if ($B['attributes']['archive']) {
-	   $atts |= 0x08;
-	 }
+         if ($B['attributes']['archive']) {
+           $atts |= 0x08;
+         }
        } else {
-	 $atts = $B['category'] & 0x0f;
+         $atts = $B['category'] & 0x0f;
        }
        if ($B['attributes']['expunged']) {
-	 $atts |= 0x80;
+         $atts |= 0x80;
        }
        if ($B['attributes']['dirty']) {
-	 $atts |= 0x40;
+         $atts |= 0x40;
        }
        if ($B['attributes']['deleted']) {
-	 $atts |= 0x20;
+         $atts |= 0x20;
        }
        if ($B['attributes']['private']) {
-	 $atts |= 0x10;
+         $atts |= 0x10;
        }
 
        $this->RecordAttrs[$A] = $atts;
@@ -302,19 +302,19 @@ $todo = new PalmTodoList();
 $categorias = array('Visita','Fax','Correo');
 $todo->SetCategoryList($categorias);
 $record = array('description' => 'Enviar Fax',
-		'note' => "25\nProbar palm",
-		'priority' => 2,
-		'completed' => 0,
-		'category' => 2,
-		'due_date' => '');
+                'note' => "25\nProbar palm",
+                'priority' => 2,
+                'completed' => 0,
+                'category' => 2,
+                'due_date' => '');
 $todo->SetRecordRaw($record);
 $todo->GoToRecord('+1');
 $record = array('description' => 'Llamar a juan',
-		'note' => '35',
-		'category' => 0,
-		'due_date' => '2002-5-31',
-		'attributes' => array('private' => 1,
-				      'dirty' => 1));
+                'note' => '35',
+                'category' => 0,
+                'due_date' => '2002-5-31',
+                'attributes' => array('private' => 1,
+                                      'dirty' => 1));
 $todo->SetRecordRaw($record);
 $fp = fopen('./pdbs/todo.pdb','wb');
 $todo->WriteToFile($fp);
@@ -354,4 +354,5 @@ while (list($k,$v) = each($categorias)) {
 }
  *
  */
-?>
+?o
+[5~[5~[5~
