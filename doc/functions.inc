@@ -102,7 +102,7 @@ function StandardFooter() {
 
 function HideEmail($user, $pass) {
    $MailLink = '<a href="mailto:' . $user . '@' . $pass . '">' . $user .
-      . '@' . $pass . '</a>';
+      '@' . $pass . '</a>';
    
    $MailLinkNew = '';
    for ($i = 0; $i < strlen($MailLink); $i ++) {
