@@ -114,6 +114,13 @@ it is too long.</dd>
 use "\n".  This function can add single words, entire lines, paragraphs, or
 all of the text at once.  There is no size nor line limit.</dd>
 
+<dt><b>EraseDocText()</b></dt>
+<dd>Erases all text from the document being generated.</dd>
+
+<dt><b>GetDocText()</b></dt>
+<dd>Returns a single string (potentially very large) that contains the entire
+document's text.</dd>
+
 </dl>
 
 <h3>Example</h3>

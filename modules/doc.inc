@@ -16,12 +16,31 @@ class PalmDoc extends PalmDB {
    
    function PalmDoc ($Title = '') {
       PalmDB::PalmDB('TEXt', 'REAd', $Title);
-      
-      // Record 0 is reserved for header information
-      $this->GoToRecord(1);
+
+      $this->EraseDocText();
    }
 
 
+   // Gets all of the document's text and returns it as a string
+   function GetDocText () {
+      $String = '';
+      $i = 1;
+      while (isset($Records[$i])) {
+         $String .= pack('H*', $Records[$i]);
+	 $i ++;
+      }
+      return $String;
+   }
+   
+   
+   // Erases all text in the document
+   function EraseDocText () {
+      $this->Records = array();
+      // Record 0 is reserved for header information
+      $this->GoToRecord(1);
+   }
+   
+   
    // Appends $String to the end of the document
    function AddDocText ($String) {
       $SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
