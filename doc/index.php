@@ -22,9 +22,9 @@ Page</a>.</p>
 base class and make life easier for the developer.
 
 <ul>
-<li><b>Datebook</b> - Fully supported.
+<li><b>Datebook</b> - Reading and writing fully supported.
 <li><b>DOC</b> - Can write uncompressed doc files but can't yet read or do
-compression.
+compression. Can use embedded and stored bookmarks.
 </ul>
 
 <h3>Features</h3>

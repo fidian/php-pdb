@@ -10,6 +10,10 @@
 define('PDB_DOC_RECORD_SIZE', 4096);
  
 class PalmDoc extends PalmDB {
+   var $Bookmarks = array();  // Bookmarks stored in the doc file
+                              // $Bookmarks[position] = "name"
+   
+   
    function PalmDoc ($Title = '') {
       PalmDB::PalmDB('TEXt', 'REAd', $Title);
       
@@ -45,19 +49,18 @@ class PalmDoc extends PalmDB {
       
       $Content_Length = 0;
       $MaxIndex = 0;
-      foreach ($this->Records as $index => $recInfo) {
-         // Just because we're going through the array doesn't mean that
-	 // we are going to get the indexes in order.
-	 // Pity.
-         if ($index != 0)
-	    $Content_Length += $this->GetRecordSize($index);
-	 if ($index > $MaxIndex)
-	    $MaxIndex = $index;
+      ksort($this->Records, SORT_NUMERIC);
+      $keys = array_keys($this->Records);
+      array_shift($keys);
+      $MaxIndex = array_pop($keys);
+      $keys[] = $MaxIndex;
+      foreach ($keys as $index) {
+         $Content_Length += $this->GetRecordSize($index);
 	 $this->RecordAttrs[$index] = 0x40;  // dirty + private
       }
       $this->AppendInt32($Content_Length);       // Doc Size
       $this->AppendInt16($MaxIndex);             // Number of Records
-      $this->AppendInt16(PDB_DOC_RECORD_SIZE);  // Record size
+      $this->AppendInt16(PDB_DOC_RECORD_SIZE);   // Record size
       $this->AppendInt32(0);                     // Reserved
 
       $this->GoToRecord($oldRec);
@@ -71,6 +74,15 @@ class PalmDoc extends PalmDB {
          $num = $this->CurrentRecord;
       if ($num == 0)
          return 16;
+      if (! isset($this->Records[$num])) {
+         $bookmark = -1;
+	 while (! isset($this->Records[$num]) && $num > 0) {
+	    $bookmark ++;
+	    $num --;
+	 }
+	 if ($bookmark < count($this->Bookmarks))
+	    return 20;
+      }
       return PalmDB::GetRecordSize($num);
    }
    
@@ -82,8 +94,24 @@ class PalmDoc extends PalmDB {
          $num = $this->CurrentRecord;
       if ($num == 0)
          $this->MakeDocRecordZero();
-      if (! isset($this->Records[$num]))
+      if (! isset($this->Records[$num])) {
+         $bookmark = -1;
+	 while (! isset($this->Records[$num]) && $num > 0) {
+	    $bookmark ++;
+	    $num --;
+	 }
+	 // Sort bookmarks in order of appearance
+	 ksort($this->Bookmarks);
+	 if ($bookmark < count($this->Bookmarks)) {
+  	    $Positions = array_keys($this->Bookmarks);
+	    $Desired = $this->Bookmarks[$Positions[$bookmark]];
+	    $str = $this->String($Desired, 15);
+	    $str = $this->PadString($str, 16);
+	    $str .= $this->Int32($Positions[$bookmark]);
+	    return $str;
+	 }
          return '';
+      }
       return $this->Records[$num];
    }
    
@@ -93,6 +121,14 @@ class PalmDoc extends PalmDB {
       $ids = PalmDB::GetRecordIDs();
       if (! isset($this->Records[0]))
          array_unshift($ids, 0);
+      $Max = 0;
+      foreach ($ids as $val) {
+         if ($Max <= $val)
+	    $Max = $val + 1;
+      }
+      foreach ($this->Bookmarks as $val) {
+         $ids[] = $Max ++;
+      }
       return $ids;
    }
    
@@ -102,7 +138,31 @@ class PalmDoc extends PalmDB {
       $c = count($this->Records);
       if (! isset($this->Records[0]) && $c)
          $c ++;
+      $c += count($this->Bookmarks);
       return $c;
+   }
+   
+   
+   // Adds a bookmark.
+   // $Name must be 15 chars or less (automatically trimmed)
+   // $Pos is the position to add the bookmark at, or the current position if
+   // not specified
+   // Returns true on error
+   // If $Pos already has a bookmark defined, this will blindly overwrite that
+   // bookmark.
+   function AddBookmark($Name, $Pos = false) {
+      if ($Name == '')
+         return true;
+      if ($Pos === false) {
+         $Pos = 0;
+         foreach ($this->Records as $id => $data) {
+	    if ($id != 0) {
+	       $Pos += $this->GetRecordSize($id);
+	    }
+	 }
+      }
+      $this->Bookmarks[$Pos] = $Name;
+      return false;
    }
 }
 

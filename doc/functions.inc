@@ -37,8 +37,9 @@ function StandardFooter() {
 <p><a href="http://sourceforge.net"><img
 src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
-<font size=-2>&copy;opyright 2001, Tyler Akins<br><?PHP
-HideEmail("fidian@tiny.net") ?></font></p>
+<font size=-2>&copy;opyright 2001, Tyler Akins (<?PHP
+HideEmail("fidian@tiny.net") ?>)<br><br>
+All names, trademarks, etc. are property of their respective owners.</font></p>
 </body>
 </html>
 <?PHP

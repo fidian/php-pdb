@@ -38,7 +38,13 @@ free to use for everyone.</p>
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.  (In progress -- Thanks Cassidy Lackey!)</li>
 <li>Add todo format</li>
-<li>Add compression, decompression, and loading to DOC files.</li>
+<li>Add compression, decompression, and loading to DOC files.
+[ <a
+href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">A</a>
+<a href="http://www.pyrite.org/doc_format.php">Pyrite</a>
+</li>
+<li>Add example program <!-- twister! --> that converts HTML/text on the web
+to DOC format.</li>
 <li>Add phonebook format</li>
 <li>Add memo format</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
@@ -78,6 +84,9 @@ people who wrote other open-source programs that I learned from.</p>
    detailing the <a
    href="http://www.palmos.com/dev/tech/docs/FileFormats/FileFormatsTOC.html">file
    formats</a>) that made my life significantly easier.</li>
+<li><a href="http://www.pyrite.org/">Pyrite</a> -- They provided a great
+   <a href="http://www.pyrite.org/doc_format.php">description</a> about the 
+   compression format and stored bookmarks.</li>
 </ul>
 
 <?PHP
