@@ -16,7 +16,7 @@
  * Define constants
  */
 
-define('PDB_MOBILEDB_DBVERSION', 1);
+define('PDB_MOBILEDB_DBVERSION', 3);  // As of Nov 22, 2001, the docs lie.
 define('PDB_MOBILEDB_FILTER_TEXT_LENGTH', 40);
 define('PDB_MOBILEDB_FILTER_LENGTH', 44);
 define('PDB_MOBILEDB_SORT_LENGTH', 4);
@@ -38,6 +38,10 @@ class PalmMobileDB  extends PalmDB {
    var $MobileDBReserved = array();  // Reserved bytes
    var $MobileDBFilters = array();  // The user's filters
    var $MobileDBSort = array();  // The user's sort criteria
+   var $FieldLabels = -1;  // Labels for the fields
+   var $Preferences = -1;  // "Dynamic info"
+   var $DataType = -1;  // Data types for the fields
+   var $FieldLengths = -1;  // Visible field lengths for fields
 
    // Creates a new database class
    function PalmMobileDB($Name = '') {
@@ -76,14 +80,39 @@ class PalmMobileDB  extends PalmDB {
    }
    
 
-   // Override the built-in ReadFile function to allow for post-processing
-   function ReadFile($file) {
-      $res = PalmDB::ReadFile($file);
-      if ($res)
-         return $res;
-      // add post-processing here
-      return false;
+   // Returns the size of the current record if no arguments.
+   // Returns the size of the specified record if arguments.
+   function GetRecordSize($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
+      if (! isset($this->Records[$num]))
+         return 0;
+      return strlen($this->GetRecord($num)) / 2;
    }
+   
+   
+   // Returns the hex-encoded data for the specified record or the current
+   // record if not specified
+   function GetRecord($Rec = false) {
+      if ($Rec === false)
+         $Rec = $this->CurrentRecord;
+      if (! isset($this->Records[$Rec]))
+         return '';
+      $RecStr = $this->Int32(4294967041) . $this->Int16(65280) .
+         $this->Int8(0);
+
+      ksort($this->Records[$Rec]);
+      foreach ($this->Records[$Rec] as $id => $data) {
+         settype($id, 'integer');
+	 $RecStr .= $this->Int8($id);
+	 if ($data != 0 && $data != '')
+	    $RecStr .= bin2hex($data);
+	 $RecStr .= $this->Int8(0);
+      }
+      $RecStr .= $this->Int8(255);
+
+      return $RecStr;
+   }   
    
    
    // Generic function to load the AppInfo block into $this->AppInfo
@@ -94,14 +123,13 @@ class PalmMobileDB  extends PalmDB {
       $fileData = substr($fileData, PDB_CATEGORY_SIZE);
       $this->MobileDBVersion = $this->LoadInt16($fileData);
       // WARNING -- this is short-circuited
-      if ($this->MobileDBVersion != PDB_MOBILEDB_DBVERSION || 1) {
+      if ($this->MobileDBVersion != PDB_MOBILEDB_DBVERSION) {
          $this->InitializeMobileDB();
 	 return false;
       } 
       $fileData = substr($fileData, 2);
       $this->MobileDBLock = $this->LoadInt32($fileData);
       $fileData = substr($fileData, 4);
-      $this->AppInfo = bin2hex($fileData);
       $this->MobileDBFilters = array();
       $this->MobileDBFilters[] = $this->LoadAppInfo_Filter($fileData);
       $fileData = substr($fileData, PDB_MOBILEDB_FILTER_LENGTH);
@@ -148,13 +176,52 @@ class PalmMobileDB  extends PalmDB {
       return array($fieldNo, $descending, $type);
    }
    
-   
+
    // Generic function to load a record
    // Should only be called within this class
    // Return false to signal no error
    function LoadRecord($fileData, $recordInfo) {
-      $this->Record[$recordInfo['UID']] = bin2hex($fileData);
+      // There should be no 'Unfiled' records
+      if ($recordInfo['Attrs'] & PDB_CATEGORY_MASK == 0)
+         return true;
+    
+      // Check the first 6 bytes.  They must always be correct or else the
+      // record is invalid
+      if ($this->LoadInt32($fileData) != 4294967041)
+         return true;
+      $fileData = substr($fileData, 4);
+      if ($this->LoadInt16($fileData) != 65280)
+         return true;
+      // 3 bytes removed -- it appears that an extra NULL is inserted here
+      $fileData = substr($fileData, 3);
+      
+      // Every record is an array.  Data is separated by NULL characters
+      // Format = [# of field] [field data with no NULLs] [NULL]
+      // End of data = [0xFF]
+      $SaveInfo = array();
+      $Fieldnum = $this->LoadInt8($fileData);
+      $fileData = substr($fileData, 1);
+      while ($Fieldnum != 255 && strlen($fileData) > 1) {
+         $fileData = explode("\x00", $fileData, 2);
+	 $SaveInfo[$Fieldnum] = $fileData[0];
+	 $fileData = $fileData[1];
+	 $Fieldnum = $this->LoadInt8($fileData);
+	 $fileData = substr($fileData, 1);
+      }
+      
+      // Now that we have the data, just put it in the right spot.
+      if (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 1)
+         $this->FieldLabels = $recordInfo['UID'];
+      elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 4)
+         $this->Preferences = $recordInfo['UID'];
+      elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 5)
+         $this->DataType = $recordInfo['UID'];
+      elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 6)
+         $this->FieldLengths = $recordInfo['UID'];
+
+      $this->Records[$recordInfo['UID']] = $SaveInfo;
       $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];
+
       return false;
    }
 }

@@ -37,7 +37,10 @@ free to use for everyone.</p>
 <li>Add <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.  (In progress -- Thanks Cassidy Lackey!)</li>
+<li>Add todo format</li>
 <li>Add compression, decompression, and loading to DOC files.</li>
+<li>Add phonebook format</li>
+<li>Add memo format</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
 you have info, please mail me)</li>
 <li>Maybe look closer at <a href="http://mmmm.free.fr/palm/">palmlib</a></li>

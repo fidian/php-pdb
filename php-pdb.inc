@@ -59,7 +59,7 @@ class PalmDB {
    var $Records = array();     // All of the data from the records is here
                                // Key = record ID
    var $RecordAttrs = array(); // And their attributes are here
-   var $CurrentRecord = 0;     // Which record we are currently editing
+   var $CurrentRecord = 1;     // Which record we are currently editing
    var $Name = '';             // Name of the PDB file
    var $TypeID = '';           // The 'Type' of the file (4 chars)
    var $CreatorID = '';        // The 'Creator' of the file (4 chars)
@@ -849,7 +849,7 @@ class PalmDB {
    // Should only be called within this class
    // Return false to signal no error
    function LoadRecord($fileData, $recordInfo) {
-      $this->Record[$recordInfo['UID']] = bin2hex($fileData);
+      $this->Records[$recordInfo['UID']] = bin2hex($fileData);
       $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];
       return false;
    }

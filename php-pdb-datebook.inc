@@ -43,7 +43,7 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
  * Note          NoteNote         ^ A note for the event
  * Exceptions    ???              ^ Exceptions to the event
  * WhenChanged   ???              ^ True if "when info" for event has changed
- * Flags         3                User flags (highest bit allowed is 512)
+ * Flags         3                ^ User flags (highest bit allowed is 512)
  *
  * EndTime must happen at or after StartTime.  The time the event occurs
  * may not pass midnight (0:00).  If the event doesn't have a time, use '' 
