@@ -181,7 +181,7 @@ $Repeat = array(
 $Record = array(
    "Date" => "2001-11-2",
    "Description" => "Pay Day!",
-   "Repeat" = $Repeat
+   "Repeat" => $Repeat
 );
 
 // Add the record to the datebook
