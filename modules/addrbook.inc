@@ -50,6 +50,43 @@ define('PDB_ADDR_LABEL_MAIN', 5);
 define('PDB_ADDR_LABEL_PAGER', 6);
 define('PDB_ADDR_LABEL_MOBILE', 7);
 
+// Attributes for the record
+define('PDB_ADDR_ATTRIB_EXPUNGED', 0x80);
+define('PDB_ADDR_ATTRIB_DELETED', 0x40);
+define('PDB_ADDR_ATTRIB_ARCHIVE', 0x08);  // Only set if expunged or deleted
+define('PDB_ADDR_ATTRIB_DIRTY', 0x20);
+define('PDB_ADDR_ATTRIB_PRIVATE', x010);
+
+// Easier to use one of these if you need it
+define('PDB_ADDR_ATTRIB_DELE_EXP', 0xC0);  // Deleted and Expunged bits
+define('PDB_ADDR_ATTRIB_HIGH', 0xF0);  // All of above except Archive bit
+
+/* A special note about the attributes:
+ * The lower 4 bits (0x01 through 0x08) are usually reserved for the
+ * category.  Apparently, if the record is expunged or deleted, then
+ * the category is tossed aside and the archive bit can come into play.
+ * This overlap is somewhat bad.  To try to help you out, the category
+ * bits and attribute bits are separated in the class.  Please access
+ * category bits with the record key of 'category' and the attribute
+ * bits are available with the 'attributes' array key.
+ *
+ * Do not set a category and the archive bit at the same time.
+ *
+ * When checking to see if the record has the archive bit enabled, you
+ * would be wise to use code similar to this:
+ *
+ *   if ($record['attributes'] & PDB_ADDR_ATTRIB_DELE_EXP) {
+ *      if ($record['attributes'] & PDB_ADDR_ATTRIB_ARCHIVE) {
+ *         echo "Record deleted/expunged and archive bit set.";
+ *      } else {
+ *         echo "Record deleted/expunged and archive bit not set.";
+ *      }
+ *   } else {
+ *      echo "Record is not deleted/expunged.";
+ *   }
+ */
+
+
 /* The data for SetRecordRaw and from GetRecordRaw should be/return a
  * special array, detailed below.  Optional values can be set to '' or not
  * defined.  If they are anything else (including zero), they are considered
@@ -59,18 +96,9 @@ define('PDB_ADDR_LABEL_MOBILE', 7);
  * fields           ???         Array with the fields of the record.
  * phoneLabel       ???         ^ Array with 5 references to phone labels
  * category         1           ^ 0-15 (default 0)
- * attributes       ???         ^ Array of attributes
+ * attributes       ???         ^ Bitmask of attributes (default 0)
+ *                                See above for the flags
  *
- * The attributes array coud be like this.
- * 
- * Key            Example       Description
- * -----------------------------------------------
- * expunged       1             ^ 1/0/'' (default '' not set)
- * deleted        1             ^ 1/0/'' (default '' not set)
- * archive        1             ^ 1/0/'' (default '' not set)
- * dirty          1             ^ 1/0/'' (default '' not set)
- * private        1             ^ 1/0/'' (default '' not set)
- * 
  * This is the basic structure of the fields array.  It could have 
  * certain customization settings for the labels that will be used for 
  * each field.  See the SetFieldsLabel() method for more info.
@@ -421,30 +449,22 @@ class PalmAddress extends PalmDB {
       $this->Records[$A] = $B;
      
       if (isset($B['attributes'])) {
-         $atts = 0;
-         if ($B['attributes']['expunged'] || $B['attributes']['deleted']) {
-	    if ($B['attributes']['archive']) {
-	       $atts |= 0x08;
+	 // Set the lower 4 bits accordingly
+         if ($B['attributes'] & PDB_ADDR_ATTRIB_DELE_EXP) {
+	    if ($B['attributes'] & PDB_ADDR_ATTRIB_ARCHIVE) {
+	       $atts = PDB_ADDR_ATTRIB_ARCHIVE;
 	    }
          } else {
-	    $atts = $B['category'] & 0x0f;
+	    $atts = $B['category'] & PDB_CATEGORY_MASK;
          }
-         if ($B['attributes']['expunged']) {
-	   $atts |= 0x80;
-         }
-         if ($B['attributes']['dirty']) {
-	   $atts |= 0x40;
-         }
-         if ($B['attributes']['deleted']) {
-	   $atts |= 0x20;
-         }
-         if ($B['attributes']['private']) {
-	   $atts |= 0x10;
-         }
+
+         // Bits 0x10 through 0x80 are the expunged, dirty, deleted and
+	 // private bits.
+	 $atts |= $B['attributes'] & PDB_ADDR_ATTRIB_HIGH;
        
          $this->RecordAttrs[$A] = $atts;
       } else {
-         $this->RecordAttrs[$A] = $B['category'] & 0x0f;
+         $this->RecordAttrs[$A] = $B['category'] & PDB_CATEGORY_MASK;
       }
    }
 
@@ -759,17 +779,13 @@ class PalmAddress extends PalmDB {
          }
       }
       $NewRec['fields'] = $fields;
+      $NewRec['attributes'] = $RecordInfo['Attrs'] & PDB_ADDR_ATTRIB_HIGH;
 
-      $NewRec['attributes']['expunged'] = $RecordInfo['Attrs'] & 0x80 ? 1 : 0;
-      $NewRec['attributes']['dirty'] = $RecordInfo['Attrs'] & 0x40 ? 1 : 0;
-      $NewRec['attributes']['deleted'] = $RecordInfo['Attrs'] & 0x20 ? 1 : 0;
-      $NewRec['attributes']['private'] = $RecordInfo['Attrs'] & 0x10 ? 1 : 0;
-      
-      if (($RecordInfo['Attrs'] & 0xa0) == 0) {
-         $NewRec['category'] = $RecordInfo['Attrs'] & 0x0f;
+      if ($RecordInfo['Attrs'] & PDB_ADDR_ATTRIB_DELE_EXP) {
+         $NewRec['attributes'] |=
+	    $RecordInfo['Attrs'] & PDB_ADDR_ATTRIB_ARCHIVE;
       } else {
-         $NewRec['attributes']['archive'] = 
-	    $RecordInfo['Attrs'] & 0x08 ? 1 : 0;
+         $NewRec['category'] = $RecordInfo['Attrs'] & PDB_CATEGORY_MASK;
       }
 
       $this->Records[$RecordInfo['UID']] = $NewRec;
