@@ -67,8 +67,8 @@ include('./filters/gutenberg.inc');
 
 session_start();
 
-$tiny_self = strtolower($PHP_SELF);
-if (strpos($tiny_self, '.sourceforge.net/') !== false)
+$tiny_self = strtolower($HTTP_HOST);
+if (strpos($tiny_self, '.sourceforge.net') !== false)
    $SourceForge = true;
 else
    $SourceForge = false;

@@ -71,12 +71,12 @@ function StandardHeader($title = '', $curdir = '') {
 
 
 function TinyFooter() {
-   global $PHP_SELF;
-   $small_self = strtolower($PHP_SELF);
+   global $HTTP_HOST;
+   $small_self = strtolower($HTTP_HOST);
 ?>
 <p><hr>
 <font size=-2><?PHP
-if (strpos($small_self, '.sourceforge.net/') !== false) {
+if (strpos($small_self, '.sourceforge.net') !== false) {
 ?><a href="http://sourceforge.net"><img
 src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
