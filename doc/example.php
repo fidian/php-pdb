@@ -15,7 +15,9 @@ StandardHeader('Basic Use');
 
 <P>PHP-PDB can create nearly any type of <a
 href="http://www.palmos.com/">Palm OS</a> database through the most basic
-functions, as illustrated here.
+functions, as illustrated here.  If you want to write a format of database
+that isn't directly supported by a module, I would suggest you check out the
+<a href="custom.php">Custom Formats</a> page.</p>
 
 <h3>Including into your program</h3>
 

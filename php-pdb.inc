@@ -164,9 +164,21 @@ class PalmDB {
    // 32-bit integers have problems with PHP when they are bigger than
    // 0x80000000 (about 2 billion) and that's why I don't use pack() here
    function Int32($value) {
+      $negative = false;
+      if ($value < 0) {
+         $negative = true;
+	 $value = - $value;
+      }
       $big = $value / 65536;
       settype($big, 'integer');
-      $value = PalmDB::Int16($big) . PalmDB::Int16($value - ($big * 65536));
+      $little = $value - ($big * 65536);
+      if ($negative) {
+         // Little must contain a value
+         $little = - $little;
+	 // Big might be zero, and should be 0xFFFF if that is the case.
+	 $big = 0xFFFF - $big;
+      }
+      $value = PalmDB::Int16($big) . PalmDB::Int16($little);
       return $value;
    }
    
