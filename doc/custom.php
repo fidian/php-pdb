@@ -28,7 +28,10 @@ and I'll make sure it gets included in the next release.</p>
 
 <p>Because there is no class to handle your custom format, you are limited
 to creation of the database in memory and saving the database.  You can not
-load the database.</p>
+load the database unless you write a custom load procedure.  Please read the
+code for other database types in order to see how to load data.  Since
+writing a database is a lot easier than reading, this document will only
+cover writing a file.</p>
 
 <p>For help about the syntax and usage of functions listed here, see <a
 href="example.php">Basic Use</a>.</p>
