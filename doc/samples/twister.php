@@ -427,7 +427,7 @@ function ConvertFromFormat($filedata) {
 
 function StoreAsPRC($title, $rawData) {
    // echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
-   global $SavedPDB, $UncompressedDoc, $TargetType;
+   global $SavedPDB, $UncompressedDoc, $TargetType, $CompressWarningDisplayed;
    
    $fileName = preg_replace('/[^-a-zA-Z_0-9]/', '_', $title);
    
@@ -445,7 +445,10 @@ function StoreAsPRC($title, $rawData) {
       else
          $prc = new PalmDoc($title);
       $prc->AddDocText($rawData);
-      ShowStatus("Compressing the DOC.\nThis could take a very long time.");
+      if (!isset($CompressWarningDisplayed)) {
+         ShowStatus("Compressing the DOC.\nThis could take a very long time.");
+	 $CompressWarningDisplayed;
+      }
    } elseif ($TargetType == 'SmallBASIC') {
       $prc = new PalmSmallBASIC($title);
       $result = $prc->ConvertFromText($rawData);
