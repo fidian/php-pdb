@@ -59,6 +59,9 @@
       var $CreationTime = 0; // Stored in unix time (Jan 1, 1970)
       var $ModificationTime = 0; // Stored in unix time (Jan 1, 1970)
       var $BackupTime = 0; // Stored in unix time (Jan 1, 1970)
+      
+      var $RecordGetFunc = ''; // If you need to specify a new function
+      var $RecordSizeFunc = ''; // See the DumpRecord and GetRecordSize
 
 
       // Creates a new database class
@@ -129,10 +132,17 @@
       }
       
       
+      function GetRecordSize_Normal($num) {
+         return strlen($this->Records[$num]) / 2;
+      }
+      
+      
       function GetRecordSize($num = false) {
          if ($num === false)
 	    $num = $this->CurrentRecord;
-         return strlen($this->Records[$num]) / 2;
+	 if ($RecordSizeFunc != '')
+	    return $this->RecordSizeFunc($num);
+	 return $this->GetRecordSize_Normal($num);
       }
       
       
@@ -170,6 +180,8 @@
       
       
       function DumpRecord($Rec) {
+         if ($RecordGetFunc != '')
+	    return $RecordGetFunc($Rec);
          if (isset($this->Records[$Rec]))
             return $this->Records[$Rec];
 	 return '';

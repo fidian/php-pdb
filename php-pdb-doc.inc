@@ -15,8 +15,10 @@ class PalmDoc extends PalmDB {
       $this->Type = 'TEXt';
       $this->Creator = 'REAd';
       
-      // Record 0 is reserved
+      // Record 0 is reserved for header information
       $this->GoToRecord(1);
+      $this->RecordGetFunc = 'PalmDocRecordGet';
+      $this->RecordSizeFunc = 'PalmDocRecordSize';
    }
    
    function AddDocText ($String) {
@@ -36,11 +38,10 @@ class PalmDoc extends PalmDB {
       }
    }
    
-   function PrepareDocToWrite () {
+   function MakeDocRecordZero () {
       global $PDB_DOC_RECORD_SIZE;
 
-      $oldRec = $this->GoToRecord();
-      $this->GoToRecord(0);
+      $oldRec = $this->GoToRecord(0);
       $this->ClearCurrentRecord();
       $this->AppendInt16(1);  // Version
       $this->AppendInt16(0);  // Reserved
@@ -50,17 +51,32 @@ class PalmDoc extends PalmDB {
       foreach ($this->Records as $index => $recInfo) {
          // Just because we're going through the array doesn't mean that
 	 // we are going to get the indexes in order.
+	 // Pity.
          if ($index != 0)
 	    $Content_Length += $this->GetRecordSize($index);
 	 if ($index > $MaxIndex)
 	    $MaxIndex = $index;
-	 $this->RecordAttrs[$index] = 0x40;
+	 $this->RecordAttrs[$index] = 0x40;  // dirty + private
       }
       $this->AppendInt32($Content_Length);       // Doc Size
       $this->AppendInt16($MaxIndex);             // Number of Records
       $this->AppendInt16($PDB_DOC_RECORD_SIZE);  // Record size
       $this->AppendInt32(0);                     // Reserved
       $this->GoToRecord($oldRec);
+   }
+   
+   function PalmDocRecordSize($num) {
+      if ($num == 0)
+         return 16;
+      return $this->GetRecordSize_Normal($num);
+   }
+   
+   function PalmDocRecordGet($num) {
+      if ($num == 0)
+         $this->MakeDocRecordZero();
+      if (! isset($this->Records[$num]))
+         return '';
+      return $this->Records[$num];
    }
 }
 
