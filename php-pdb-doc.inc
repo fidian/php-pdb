@@ -16,7 +16,9 @@ class PalmDoc extends PalmDB {
       // Record 0 is reserved for header information
       $this->GoToRecord(1);
    }
-   
+
+
+   // Appends $String to the end of the document
    function AddDocText ($String) {
       $SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
       while ($String) {
@@ -31,9 +33,12 @@ class PalmDoc extends PalmDB {
       }
    }
    
+   
+   // Creates the informational record (record 0)
+   // Used only for writing the file
    function MakeDocRecordZero () {
       $oldRec = $this->GoToRecord(0);
-      $this->ClearCurrentRecord();
+      $this->DeleteCurrentRecord();
       $this->AppendInt16(1);  // Version
         // 1 = uncompressed, 2 = compressed
       $this->AppendInt16(0);  // Reserved
@@ -57,14 +62,24 @@ class PalmDoc extends PalmDB {
 
       $this->GoToRecord($oldRec);
    }
-   
-   function GetRecordSize_Class($num) {
+
+
+   // Returns the size of the record specified, or the current record if
+   // no record is specified
+   function GetRecordSize_Class($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
       if ($num == 0)
          return 16;
       return PalmDB::GetRecordSize_Class($num);
    }
    
-   function GetRecord($num) {
+   
+   // Returns the data of the specified record, or the current record if no
+   // record is specified.  If the record doesn't exist, returns ''.
+   function GetRecord($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
       if ($num == 0)
          $this->MakeDocRecordZero();
       if (! isset($this->Records[$num]))
@@ -72,6 +87,8 @@ class PalmDoc extends PalmDB {
       return $this->Records[$num];
    }
    
+   
+   // Returns a list of records to write to a file in the order specified.
    function GetRecordIDs() {
       $ids = PalmDB::GetRecordIDs();
       if (! isset($this->Records[0]))
@@ -79,6 +96,8 @@ class PalmDoc extends PalmDB {
       return $ids;
    }
    
+   
+   // Returns the number of records to write
    function GetRecordCount() {
       $c = count($this->Records);
       if (isset($this->Records[0]) && $c)

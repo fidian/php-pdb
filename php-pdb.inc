@@ -86,7 +86,7 @@
 
 
       // Creates a new database class
-      function PalmDB($Type, $Creator, $Name = '')
+      function PalmDB($Type = '', $Creator = '', $Name = '')
       {
          $this->TypeID = $Type;
 	 $this->CreatorID = $Creator;
@@ -116,6 +116,7 @@
       
       
       // Loads a single byte as a number from the file
+      // Use if you want to make your own ReadFile function
       function LoadInt8($file) {
          if (gettype($file) == 'resource')
             $string = fread($file, 1);
@@ -133,6 +134,7 @@
 
 
       // Loads two bytes as a number from the file
+      // Use if you want to make your own ReadFile function
       function LoadInt16($file) {
          if (gettype($file) == 'resource')
             $string = fread($file, 2);
@@ -151,6 +153,7 @@
 
 
       // Loads three bytes as a number from the file
+      // Use if you want to make your own ReadFile function
       function LoadInt24($file) {
          if (gettype($file) == 'resource')
             $string = fread($file, 3);
@@ -170,6 +173,7 @@
       
       
       // Loads a four-byte string from a file into a number
+      // Use if you want to make your own ReadFile function
       function LoadInt32($file) {
          if (gettype($file) == 'resource')
 	    $string = fread($file, 4);
@@ -200,6 +204,7 @@
 
 
       // The reverse?  Not coded yet.
+      // Use if you want to make your own ReadFile function
       function LoadDouble($file) {
          if (gettype($file) == 'resource')
             $string = fread($file, 8);
@@ -364,12 +369,6 @@
       }
       
       
-      // Erases all data for the current record
-      function ClearCurrentRecord() {
-         unset($this->Records[$this->CurrentRecord]);
-      }
-      
-      
       // Deletes the current record
       // You are urged to use GoToRecord() and jump to an existing record
       // after this function call so that the deleted record doesn't
@@ -383,6 +382,7 @@
 
       // Returns an array of available record IDs in the order they should
       // be written.
+      // Probably should only be called within the class.
       function GetRecordIDs() {
          $keys = array_keys($this->Records);
 	 if (! is_array($keys) || count($keys) < 1)
@@ -400,6 +400,7 @@
       
       
       // Returns the size of the AppInfo block.
+      // Used only for writing
       function GetAppInfoSize() {
          if (! isset($this->AppInfo))
 	    return 0;
@@ -408,6 +409,7 @@
       
       
       // Returns the AppInfo block (hex encoded)
+      // Used only for writing
       function GetAppInfo() {
          if (! isset($this->AppInfo))
 	    return 0;
@@ -416,6 +418,7 @@
 
       
       // Returns the size of the SortInfo block
+      // Used only for writing
       function GetSortInfoSize() {
          if (! isset($this->SortInfo))
 	    return 0;
@@ -424,6 +427,7 @@
       
       
       // Returns the SortInfo block (hex encoded)
+      // Used only for writing
       function GetSortInfo() {
          if (! isset($this->SortInfo))
 	    return 0;
@@ -554,6 +558,7 @@
       // Header = name, attributes, version, creation/modification/backup 
       //          dates, modification number, some offsets, record offsets,
       //          record attributes, appinfo block, sortinfo block
+      // Shouldn't be called from outside the class
       function MakeHeader() {
          // 32 bytes = name, but only 31 available (one for null)
 	 $header = $this->String($this->Name, 31);
@@ -837,6 +842,7 @@
 
   
       // Generic function to load the AppInfo block into $this->AppInfo
+      // Should only be called within this class
       function LoadAppInfo($fileData) {
          $this->AppInfo = bin2hex($fileData);
 	 return false;
@@ -844,6 +850,7 @@
       
       
       // Generic function to load the SortInfo block into $this->SortInfo
+      // Should only be called within this class
       function LoadSortInfo($fileData) {
          $this->SortInfo = bin2hex($fileData);
 	 return false;
@@ -851,6 +858,7 @@
       
       
       // Generic function to load a record
+      // Should only be called within this class
       function LoadRecord($fileData, $recordInfo) {
          $this->Record[$recordInfo['UID']] = bin2hex($fileData);
 	 $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];

@@ -27,10 +27,10 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
                                          // (Internal use only?)
 
 
-/* The data for the GetRecord function should return an array and the data
- * inserted into $this->Records should be fed an array.  Optional values can
- * be set to '' or not defined.  If they are anything else (including zero), 
- * they are considered to be 'set'.  Optional values are marked with a ^.
+/* The data for SetRecordRaw and from GetRecordRaw should be/return a
+ * special array, detailed below.  Optional values can be set to '' or not
+ * defined.  If they are anything else (including zero), they are considered
+ * to be 'set'.  Optional values are marked with a ^.
  *
  * Key           Example          Description
  * ------------------------------------------
@@ -43,7 +43,7 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
  * Note          NoteNote         ^ A note for the event
  * Exceptions    ???              ^ Exceptions to the event
  * WhenChanged   ???              ^ True if "when info" for event has changed
- * Flags                          User flags (highest bit allowed is 512)
+ * Flags         3                User flags (highest bit allowed is 512)
  *
  * EndTime must happen at or after StartTime.  The time the event occurs
  * may not pass midnight (0:00).  If the event doesn't have a time, use '' 
@@ -91,8 +91,9 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
  *           to happen every other day, set Frequency to 2.  This will default
  *           to 1 if not specified.
  *    END_DATE = The last day, month, and year on which the event occurs.
- *               Format is YYYY-MM-DD
- *    DAYS = What days during the week the moth occurs.  This is a string of
+ *               Format is YYYY-MM-DD.  If not specified, no end date will
+ *               be set.
+ *    DAYS = What days during the week the event occurs.  This is a string of
  *           numbers from 0 - 6.  I'm not sure if 0 = Sunday or if 0 = 
  *           start of week from the preferences.
  *    SOW = As quoted from P5-Palm:  "I'm not sure what this is, but the
@@ -135,6 +136,7 @@ class PalmDatebook extends PalmDB {
    
    // Converts a date string ( YYYY-MM-DD )( "2001-10-31" )
    // into bitwise ( YYYY YYYM MMMD DDDD )
+   // Should only be used when saving
    function DateToInt16($date) {
       $YMD = explode('-', $date);
       return ($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2];
@@ -143,6 +145,7 @@ class PalmDatebook extends PalmDB {
    
    // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
    // Into the human readable date string ( YYYY-MM-DD )( "2001-10-31" )
+   // Should only be used when loading
    function Int16ToDate($number) {
       $year = $number / 512;
       settype($year, "integer");
@@ -156,6 +159,7 @@ class PalmDatebook extends PalmDB {
 
 
    // Prepares the record flags for the specified record;
+   // Should only be used when saving
    function GetRecordFlags(& $data) {
       if (! isset($data['Flags']))
          $data['Flags'] = 0;
@@ -182,6 +186,7 @@ class PalmDatebook extends PalmDB {
    
    
    // Overrides the GetRecordSize method.
+   // Probably should only be used when saving
    function GetRecordSize($num = false) {
       if ($num === false)
          $num = $this->CurrentRecord;
