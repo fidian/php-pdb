@@ -551,12 +551,19 @@ class PalmDB {
    // Takes a hex-encoded string and makes sure that when decoded, the data
    // lies on a four-byte boundary.  If it doesn't, it pads the string with
    // NULLs
+   /*
+    * Commented out because we don't use this function currently.
+    * It is part of a test to see what is needed to get files to sync
+    * properly with Desktop 4.0
+    *
    function PadTo4ByteBoundary($string) {
       while ((strlen($string)/2) % 4) {
          $string .= '00';
       }
       return $string;
    }
+    *
+    */
     
    // Returns the hex encoded header of the pdb file
    // Header = name, attributes, version, creation/modification/backup 
