@@ -311,7 +311,7 @@ class PalmDatebook extends PalmDB {
 	    while ($i < strlen($days)) {
 	       $num = $days[$i];
 	       settype($num, 'integer');
-	       $flags = $flags & $QuickLookup[$num];
+	       $flags = $flags | $QuickLookup[$num];
 	       $i ++;
 	    }
 	    $RecordString .= $this->Int8($flags);
