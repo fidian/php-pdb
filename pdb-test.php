@@ -1,6 +1,7 @@
 <?PHP
 
 include "php-pdb.inc";
+include "php-pdb-datebook.inc";
 include "php-pdb-doc.inc";
 
 ?>
@@ -16,9 +17,49 @@ include "php-pdb-doc.inc";
 </ul>
 <h1>Modules</h1>
 <ul>
+<li>Datebook = <?PHP PassFail(DatebookTest()) ?></li>
 <li>Doc = <?PHP PassFail(DocTest()) ?></li>
+</ul>
 </body></html>
 <?PHP
+
+
+function DatebookTest() {
+   $d = new PalmDatebook();
+
+   // Create a repeating event that happens every other Friday.
+   // I want it to be an all-day event that says "Pay Day!"
+   $Repeat = array(
+      "Type" => PDB_DATEBOOK_REPEAT_WEEKLY,
+      "Frequency" => 2,
+      "Days" => "5",
+      "StartOfWeek" => 0
+   );
+   $Record = array(
+      "Date" => "2001-11-2",
+      "Description" => "Pay Day!",
+      "Repeat" => $Repeat
+   );
+		     
+   // Add the record to the datebook
+   $d->SetRecordRaw($Record);
+   
+   // Change the dates so the header looks the same no matter when we
+   // generate the file
+   $d->CreationTime = 0;
+   $d->ModificationTime = 0;
+   $d->BackupTime = 0;
+   
+   ob_start();
+   $d->WriteToStdout();
+   $file = ob_get_contents();
+   ob_end_clean();
+
+   if (md5($file) == 'b2b9ff7287dfc1e2a15a86a41a0291f3')
+      return true;
+   return false;
+}
+
 
 function DocTest() {
    $d = new PalmDoc("Title Goes Here");
@@ -46,15 +87,23 @@ EOS;
       $newText .= $t . "\n";
    }
    $d->AddDocText($newText);
+   
+   // Change the dates so the header looks the same no matter when we
+   // generate the file
+   $d->CreationTime = 0;
+   $d->ModificationTime = 0;
+   $d->BackupTime = 0;
+   
    ob_start();
    $d->WriteToStdout();
    $file = ob_get_contents();
    ob_end_clean();
-   
-   if (md5($file) == '9a4383eff4c8857f6577ccc7ee714a44')
+
+   if (md5($file) == '0896109489fff87ad468cd4f32b8eb0b')
       return true;
    return false;
 }
+
 
 function PassFail($test, $want = false) {
    if (($want === false && $test) ||
