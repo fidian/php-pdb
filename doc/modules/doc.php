@@ -251,17 +251,17 @@ I strongly recommend using this form.</dd>
 <dd>$name is limited to 15 characters and will automatically be trimmed if
 it is too long.</dd>
 
-<dt><b>AddDocText($string)</b></dt>
+<dt><b>AddText($string)</b></dt>
 <dd>Adds the specified text to the end of the doc file.  To get newlines,
 use "\n".  This function can add single words, entire lines, paragraphs, or
 all of the text at once.  There is no size nor line limit.  It would be wise
 to have less than a few hundred kilobytes of total text, but that's at your
 discretion.</dd>
 
-<dt><b>EraseDocText()</b></dt>
+<dt><b>EraseText()</b></dt>
 <dd>Erases all text from the document being generated.</dd>
 
-<dt><b>GetDocText()</b></dt>
+<dt><b>GetText()</b></dt>
 <dd>Returns a single string (potentially very large) that contains the entire
 document's text.</dd>
 
@@ -273,10 +273,10 @@ document's text.</dd>
 
 ShowExample('
 $pdb = new PalmDoc("Doc Test");
-$pdb->AddDocText("This is a test.
+$pdb->AddText("This is a test.
 This is a test of the PHP-PDB DOC class.\\n");
-$pdb->AddDocText("This is only a test.\\n");
-$pdb->AddDocText("This DOC will be automatically compressed.");
+$pdb->AddText("This is only a test.\\n");
+$pdb->AddText("This DOC will be automatically compressed.");
 $pdb->DownloadPDB("doc_test.pdb");
 ');
 

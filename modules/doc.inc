@@ -19,13 +19,13 @@ class PalmDoc extends PalmDB {
    function PalmDoc ($Title = '', $Compressed = true) {
       PalmDB::PalmDB('TEXt', 'REAd', $Title);
 
-      $this->EraseDocText();
+      $this->EraseText();
       $this->IsCompressed = $Compressed;
    }
 
 
    // Gets all of the document's text and returns it as a string
-   function GetDocText () {
+   function GetText () {
       $String = '';
       $i = 1;
       while (isset($this->Records[$i])) {
@@ -37,15 +37,16 @@ class PalmDoc extends PalmDB {
    
    
    // Erases all text in the document
-   function EraseDocText () {
+   function EraseText () {
       $this->Records = array();
+      $this->CompressedData = array();
       // Record 0 is reserved for header information
       $this->GoToRecord(1);
    }
    
    
    // Appends $String to the end of the document
-   function AddDocText ($String) {
+   function AddText ($String) {
       // Temporarily say the DOC is not compressed so that we get the
       // real size of the record
       $isCompressed = $this->IsCompressed;
@@ -70,7 +71,7 @@ class PalmDoc extends PalmDB {
    
    // Creates the informational record (record 0)
    // Used only for writing the file
-   function MakeDocRecordZero () {
+   function MakeRecordZero () {
       $oldRec = $this->GoToRecord(0);
       $this->DeleteRecord();
       if ($this->IsCompressed)
@@ -159,7 +160,7 @@ class PalmDoc extends PalmDB {
          $num = $this->CurrentRecord;
 	 
       if ($num == 0) {
-         $this->MakeDocRecordZero();
+         $this->MakeRecordZero();
 	 return $this->Records[0];
       }
       

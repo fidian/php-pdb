@@ -36,14 +36,14 @@ class PalmListDB  extends PalmDB {
    var $WriteProtect;  // Write protect the database?
 
    // Creates a new database class
-   function PalmMobileDB($Name = '') {
+   function PalmListDB($Name = '') {
       PalmDB::PalmDB('DATA', 'LSdb', $Name);
       $this->InitializeListDB();
    }
 
 
    // Sets all of the variables to a good default value
-   function InitializeMobileDB() {
+   function InitializeListDB() {
       $this->SetCategoryList(array('Unfiled'));
       $this->Field1 = 'Field1';
       $this->Field2 = 'Field2';
@@ -143,10 +143,12 @@ class PalmListDB  extends PalmDB {
          $AppInfo .= $this->Int8(0);
       $AppInfo .= $this->Int8(0xff);
       
-      $AppInfo .= $this->PadString(substr($this->Field1, 0,
-         PDB_LIST_FIELD_NAME_MAXCHARS), PDB_LIST_FIELD_NAME_MAXCHARS);
-      $AppInfo .= $this->PadString(substr($this->Field2, 0,
-         PDB_LIST_FIELD_NAME_MAXCHARS), PDB_LIST_FIELD_NAME_MAXCHARS);
+      $s = $this->String(substr($this->Field1, 0,
+         PDB_LIST_FIELD_NAME_MAXCHARS));
+      $AppInfo .= $this->PadString($s, PDB_LIST_FIELD_NAME_MAXCHARS);
+      $s = $this->String(substr($this->Field2, 0,
+         PDB_LIST_FIELD_NAME_MAXCHARS));
+      $AppInfo .= $this->PadString($s, PDB_LIST_FIELD_NAME_MAXCHARS);
       
       $AppInfo .= $this->PadString('', 202);
       

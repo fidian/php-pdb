@@ -87,6 +87,7 @@ class PalmDB {
    var $Records = array();     // All of the data from the records is here
                                // Key = record ID
    var $RecordAttrs = array(); // And their attributes are here
+   var $RecordSizes = array(); // Used to check record sizes -- don't use!
    var $CurrentRecord = 1;     // Which record we are currently editing
    var $Name = '';             // Name of the PDB file
    var $TypeID = '';           // The 'Type' of the file (4 chars)
@@ -889,7 +890,8 @@ class PalmDB {
       // Compensate for the extra 2 NULL characters in the $Offset
       $Offset += 2;
       
-      // Dump each record
+      // Dump each record's header information
+      $this->RecordSizes = array();
       if ($this->GetRecordCount() != 0) {
          $keys = $this->GetRecordIDs();
 	 sort($keys, SORT_NUMERIC);
@@ -900,7 +902,8 @@ class PalmDB {
 	    // The unique id is just going to be the record number
 	    $header .= $this->Int24($index);
 	    
-	    $Offset += $this->GetRecordSize($index);
+	    $this->RecordSizes[$index] = $this->GetRecordSize($index);
+	    $Offset += $this->RecordSizes[$index];
 	    // *new* method 3
 	    //$Mod4 = $Offset % 4;
 	    //if ($Mod4)
@@ -945,6 +948,13 @@ class PalmDB {
          // *new* method 3
          //$data = $this->PadTo4ByteBoundary($this->GetRecord($index));
          $data = $this->GetRecord($index);
+	 if (strlen($data) / 2 != $this->RecordSizes[$index])
+	 {
+	    echo 'Error with class:  Record ' . $index . 
+	       ' header size (' . $this->RecordSizes[$index] .
+	       ') does not match real size (' . (strlen($data) / 2) .
+	       ")\n";
+	 }
 	 fwrite($file, pack('H*', $data), strlen($data) / 2);
       }
       fflush($file);
@@ -962,13 +972,20 @@ class PalmDB {
       // fclose($fp);
       
       $header = $this->MakeHeader();
-      echo pack("H*", $header);
+      echo pack('H*', $header);
       $keys = $this->GetRecordIDs();
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
          // *new* method 3
-	 $data = $this->GetRecord($index);
          //$data = $this->PadTo4ByteBoundary($this->GetRecord($index));
+	 $data = $this->GetRecord($index);
+	 if (strlen($data) / 2 != $this->RecordSizes[$index])
+	 {
+	    echo 'Error with class:  Record ' . $index . 
+	       ' header size (' . $this->RecordSizes[$index] .
+	       ') does not match real size (' . (strlen($data) / 2) .
+	       ")\n";
+	 }
 	 echo pack("H*", $data);
       }
    }

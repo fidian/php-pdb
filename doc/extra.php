@@ -83,8 +83,8 @@ main class.</li>
 support</a></li>
 <li>How about adding <a
 href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
-ebooks for GutenPalm?  It's quite similar to DOC.</li>
-<li>Add memo support</li>
+ebooks for GutenPalm?  It's quite similar to DOC.  (Started working on it,
+but didn't get anywhere yet.)</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
 you have info, please mail me)</li>
 <li>Wouldn't image support from <a

@@ -116,7 +116,7 @@ class PalmSmallBASIC extends PalmDB {
       if (! isset($keys[$num]))
          return 0;
 	 
-      return strlen($this->Records[$keys[$num]]) + 70;
+      return strlen($this->Records[$keys[$num]]) + 71;
    }
    
    

@@ -194,7 +194,8 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Convert Into:</b></td>
     <td><input type=radio name="TargetType" value="DOC"<?PHP
-      if (! isset($TargetType) || $TargetType != 'SmallBASIC')
+      if (! isset($TargetType) || 
+	  ($TargetType != 'SmallBASIC' && $TargetType != 'zTXT'))
          echo ' checked'; ?>> DOC<br>
       &nbsp; &nbsp; &nbsp;DOC Title:
       <input type=text name="TitleOfDoc" value="<?PHP
@@ -203,6 +204,16 @@ function ShowInitialForm() {
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file (faster to convert, larger file)
       <br><br>
+	
+	
+      <input type=radio name="TargetType" value="zTXT"<?PHP
+	if (isset($TargetType) && $TargetType == 'zTXT')
+	   echo ' checked'; ?>> zTXT (Weasel Reader)<br>
+      &nbsp; &nbsp; &nbsp;zTXT Title:
+      <input type=text name="TitleOfzTXT" value="<?PHP
+      if (isset($TitleOfzTXT)) echo htmlspecialchars($TitleOfzTXT); ?>">
+      <br><br>
+      
 
       <input type=radio name="TargetType" value="SmallBASIC"<?PHP
       if (isset($TargetType) && $TargetType == 'SmallBASIC')
@@ -247,6 +258,8 @@ function ConvertFile() {
       $DaTitle = $TitleOfBasicFile;
    if ($TargetType == 'DOC')
       $DaTitle = $TitleOfDoc;
+   if ($TargetType == 'zTXT')
+      $DaTitle = $TitleOfzTXT;
    
    if (is_array($rawData)) {
       foreach ($rawData as $index => $d) {
@@ -269,13 +282,18 @@ function ConversionSanityChecks() {
       $SourceType, $TitleOfBasicFile;
 
    if (! isset($TargetType) || ($TargetType != 'DOC' && $TargetType !=
-       'SmallBASIC')) { 
+       'SmallBASIC' && $TargetType != 'zTXT')) { 
        ShowError('Invalid target type.'); 
        return true;
    } 
    
    if ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == '')) { 
       ShowError('You must specify a title for the DOC file.'); 
+      return true; 
+   } 
+   
+   if ($TargetType == 'zTXT' && (! isset($TitleOfzTXT) || $TitleOfzTXT == '')) { 
+      ShowError('You must specify a title for the zTXT file.'); 
       return true; 
    } 
    
@@ -445,7 +463,7 @@ function StoreAsPRC($title, $rawData) {
          $prc = new PalmDoc($title, false);
       else
          $prc = new PalmDoc($title);
-      $prc->AddDocText($rawData);
+      $prc->AddText($rawData);
       if (!isset($CompressWarningDisplayed)) {
          $WarningTime = '';
 	 if (count($prc->Records) > 5)
@@ -468,6 +486,9 @@ function StoreAsPRC($title, $rawData) {
 	       $WarningTime . '.');
 	 $CompressWarningDisplayed = true;
       }
+   } elseif ($TargetType == 'zTXT') {
+      $prc = new PalmzTXT($title);
+      $prc->AddText($rawData);
    } elseif ($TargetType == 'SmallBASIC') {
       $prc = new PalmSmallBASIC($title);
       $result = $prc->ConvertFromText($rawData);

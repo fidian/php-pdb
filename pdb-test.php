@@ -15,6 +15,7 @@ include "./modules/addrbook.inc";
 include "./modules/datebook.inc";
 include "./modules/doc.inc";
 include "./modules/list.inc";
+include "./modules/memo.inc";
 include "./modules/smallbasic.inc";
 include "./modules/todo.inc";
 
@@ -96,7 +97,9 @@ ob_start();
 <li>Doc (compressed) = <?PHP PassFail('return DocTest(true);',
    'c5d02609dcfd8e565318da246226cd64') ?></li>
 <li>List = <?PHP PassFail('return ListTest();',
-   '1b722455f7d69fee05def79f6ac0b482') ?></li>			  
+   'dfcb278a4508f33a3e6a0ba288d5d49e') ?></li>
+<li>Memo = <?PHP PassFail('return MemoTest();',
+   '3066a78037a2c7394605d9a6b2af4e48') ?></li>
 <li>SmallBASIC = <?PHP PassFail('return SmallBASICTest();',
    'e680fa5719b5ca1d7408148e2d8c7b43') ?></li>
 <li>Todo = <?PHP PassFail('return TodoTest();', 
@@ -326,7 +329,7 @@ EOS;
       trim($t);
       $newText .= $t . "\n";
    }
-   $d->AddDocText($newText);
+   $d->AddText($newText);
  
    return GenerateMd5($d);
 }
@@ -341,6 +344,18 @@ function ListTest() {
    $d = new PalmListDB('List Test');
    $d->SetRecordRaw(array('abc', '123', 'Have Lots Of Fun!'));
 
+   return GenerateMd5($d);
+}
+
+
+
+//
+// Memo
+//
+
+function MemoTest() {
+   $d = new PalmMemo();
+   $d->SetText("Rolling along with the wind is no place to be.");
    return GenerateMd5($d);
 }
 

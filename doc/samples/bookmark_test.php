@@ -64,7 +64,7 @@ if ($Stored) {
    $UcFirst = "Embedded";
 }
 
-$pdb->AddDocText("This is a test file to see if $ThisTest " .
+$pdb->AddText("This is a test file to see if $ThisTest " .
 "bookmarks are recognized by a document reader.  To determine if " .
 "$OtherTest bookmarks are supported, you'll need to use the " .
 "other bookmark test, which is available from " .
@@ -82,18 +82,18 @@ $pdb->AddDocText("This is a test file to see if $ThisTest " .
 if ($Stored)
    $pdb->AddBookmark("Stored Bookmark");
 else
-   $pdb->AddDocText("*Embedded Bookmark\n");
+   $pdb->AddText("*Embedded Bookmark\n");
    
-$pdb->AddDocText("This is where \"$UcFirst Bookmark\" should " .
+$pdb->AddText("This is where \"$UcFirst Bookmark\" should " .
 "take you, if this document reader properly supports $ThisTest " .
 "bookmarks.\n\n" .
 "Don't forget to see if your document reader supports $OtherTest " .
 "style bookmarks!\n\n");
 
-$pdb->AddDocText("Have a GREAT day!\n\n");
+$pdb->AddText("Have a GREAT day!\n\n");
 
 if (! $Stored)
-   $pdb->AddDocText("This next part is needed by the document " .
+   $pdb->AddText("This next part is needed by the document " .
    "reader to detect where embedded bookmarks are located.  If " .
    "you plan on generating documents with embedded bookmarks, " .
    "you just need to add the special character (I'm using an " .
@@ -109,7 +109,7 @@ if (! $Stored)
    "file:\n\n" .
    "<*>");
 else
-   $pdb->AddDocText("This is just some garbage that should fill " .
+   $pdb->AddText("This is just some garbage that should fill " .
    "the screen so that when you jump to the stored bookmark, the " .
    "message saying that you are in the right spot should be " .
    "immediately at the top.  If this text is not there, and if " .
