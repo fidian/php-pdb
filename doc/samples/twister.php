@@ -40,7 +40,7 @@ include('../functions.inc');
 
 // START HERE
 
-set_time_limit(0);
+set_time_limit(30);
 
 // The viewSource.php file will not let you view the filter
 // files.  If you want to see them, you can use the web-based
@@ -69,6 +69,10 @@ $MyFilename = substr($MyFilename, $pos + 1);
 
 if (isset($action) && $action == "download") {
    DownloadPDB();
+} elseif (isset($action) && $action == 'erase') {
+   StartHTML('File Erased');
+   ErasePDB();
+   ShowInitialForm();
 } elseif (isset($action) && $action == "convert") {
    ConvertFile();
 } else {
@@ -125,8 +129,7 @@ properly.</p>
 function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
       $BreakOnChapter, $TargetType, $TitleOfDoc, $SourceForge, $filedata,
-      $urldata;
-   // $UncompressedDoc
+      $urldata, $UncompressedDoc;
    
    ShowDownloadLinks();
    
@@ -185,15 +188,13 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Convert Into:</b></td>
     <td><input type=radio name="TargetType" value="DOC" checked>
-      DOC (Uncompressed)<br>
+      DOC<br>
       &nbsp; &nbsp; &nbsp;DOC Title:
       <input type=text name="TitleOfDoc" value="<?PHP
       if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
-      <!--
       <br>
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file
-      -->
       <br><br>
       
       <i>(More will be added later)</i>
@@ -374,7 +375,9 @@ function ConvertFromFormat($filedata) {
 
 function StoreAsPRC($title, $rawData) {
    //echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
-   global $SavedPDB;
+   global $SavedPDB, $UncompressedDoc;
+   
+   $fileName = preg_replace('/[^-a-zA-Z_0-9]/', '_', $title);
    
    if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
       $SavedPDB = array();
@@ -384,17 +387,23 @@ function StoreAsPRC($title, $rawData) {
    $SavedInfo['Title'] = $title;
    $SavedInfo['Type'] = 'DOC';
    $SavedInfo['Time'] = time();
-   $prc = new PalmDoc($title);
+   if (isset($UncompressedDoc) && $UncompressedDoc)
+      $prc = new PalmDoc($title, false);
+   else
+      $prc = new PalmDoc($title);
    $prc->AddDocText($rawData);
+   ShowStatus("Compressing the DOC.\nThis could take a very long time.");
    ob_start();
    $prc->WriteToStdout();
    $prc = ob_get_contents();
    ob_end_clean();
    $SavedInfo['Data'] = $prc;
    
-   $key = time();
+   $key = $fileName;
+   $num = 1;
    while (isset($SavedPDB[$key])) {
-      $key ++;
+      $num ++;
+      $key = $fileName . '-' . $num;
    }
    $SavedPDB[$key] = $SavedInfo;
 }
@@ -418,6 +427,7 @@ function ShowDownloadLinks() {
     <th>Size</th>
     <th>When Created</th>
     <th>&nbsp;</th>
+    <th>&nbsp;</th>
   </tr>
 <?PHP
       foreach ($SavedPDB as $key => $SavedInfo) {
@@ -428,12 +438,22 @@ function ShowDownloadLinks() {
     <td><?PHP echo date("g:i:s a", $SavedInfo['Time']) ?></td>
     <td><a href="<?PHP echo $MyFilename
        ?>?action=download&file=<?PHP echo $key ?>">Download</a></td>
+    <td><a href="<?PHP echo $MyFilename
+       ?>?action=erase&file=<?PHP echo $key ?>">Erase</a></td>
   </tr>
 <?PHP
       }
    
       echo "</table>\n";
    }
+}
+
+
+function ErasePDB() {
+   global $file, $SavedPDB;
+   
+   if (isset($SavedPDB) && is_array($SavedPDB) && isset($SavedPDB[$file]))
+      unset($SavedPDB[$file]);
 }
 
 
@@ -449,8 +469,8 @@ function DownloadPDB() {
       return;
    }
 
-   $filename = preg_replace('/[^-a-zA-Z0-9\\.]/', '_', $file . '.pdb');
-      
+   $filename = $file . '.pdb';
+   
    if (strstr($HTTP_USER_AGENT, 'compatible; MSIE ') !== false &&
        strstr($HTTP_USER_AGENT, 'Opera') === false) {
       // IE doesn't properly download attachments.  This should work

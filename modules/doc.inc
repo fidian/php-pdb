@@ -12,12 +12,15 @@ define('PDB_DOC_RECORD_SIZE', 4096);
 class PalmDoc extends PalmDB {
    var $Bookmarks = array();  // Bookmarks stored in the doc file
                               // $Bookmarks[position] = "name"
+   var $IsCompressed = false;
+   var $CompressedData = array();  // Filled when saving DOC file
+
    
-   
-   function PalmDoc ($Title = '') {
+   function PalmDoc ($Title = '', $Compressed = true) {
       PalmDB::PalmDB('TEXt', 'REAd', $Title);
 
       $this->EraseDocText();
+      $this->IsCompressed = $Compressed;
    }
 
 
@@ -43,6 +46,11 @@ class PalmDoc extends PalmDB {
    
    // Appends $String to the end of the document
    function AddDocText ($String) {
+      // Temporarily say the DOC is not compressed so that we get the
+      // real size of the record
+      $isCompressed = $this->IsCompressed;
+      $this->IsCompressed = false;
+      
       $SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
       while ($String) {
          if ($SpaceLeft > 0) {
@@ -54,6 +62,9 @@ class PalmDoc extends PalmDB {
 	    $SpaceLeft = PDB_DOC_RECORD_SIZE;
 	 }
       }
+      
+      // Return to the correct IsCompressed true/false state
+      $this->IsCompressed = $isCompressed;
    }
    
    
@@ -62,8 +73,10 @@ class PalmDoc extends PalmDB {
    function MakeDocRecordZero () {
       $oldRec = $this->GoToRecord(0);
       $this->DeleteCurrentRecord();
-      $this->AppendInt16(1);  // Version
-        // 1 = uncompressed, 2 = compressed
+      if ($this->IsCompressed)
+         $this->AppendInt16(2);  // "Version"   2 = compressed
+      else
+         $this->AppendInt16(1);  // "Version"   1 = uncompressed
       $this->AppendInt16(0);  // Reserved
       
       $Content_Length = 0;
@@ -73,19 +86,47 @@ class PalmDoc extends PalmDB {
       array_shift($keys);
       $MaxIndex = array_pop($keys);
       $keys[] = $MaxIndex;
+      
+      // Temporarily say the doc is uncompressed so that we get
+      // the real length of the uncompressed record
+      $isCompressed = $this->IsCompressed;
+      $this->IsCompressed = false;
+      
       foreach ($keys as $index) {
          $Content_Length += $this->GetRecordSize($index);
 	 $this->RecordAttrs[$index] = 0x40;  // dirty + private
       }
+      
+      // Return to the correct state of IsCompressed
+      $this->IsCompressed = $isCompressed;
+      
       $this->AppendInt32($Content_Length);       // Doc Size
       $this->AppendInt16($MaxIndex);             // Number of Records
       $this->AppendInt16(PDB_DOC_RECORD_SIZE);   // Record size
       $this->AppendInt32(0);                     // Reserved
+         // possibly used for position in doc?
+	 // Don't care -- we are merely creating the doc file
 
       $this->GoToRecord($oldRec);
    }
 
 
+   // Overrides the output function
+   function WriteToStdout() {
+      if ($this->IsCompressed)
+         $this->CompressData();
+      PalmDB::WriteToStdout();
+   }
+   
+   
+   // Overrides the save function
+   function WriteToFile($file) {
+      if ($this->IsCompressed)
+         $this->CompressData();
+      PalmDB::WriteToFile($file);
+   }
+   
+   
    // Returns the size of the record specified, or the current record if
    // no record is specified
    function GetRecordSize($num = false) {
@@ -102,6 +143,11 @@ class PalmDoc extends PalmDB {
 	 if ($bookmark < count($this->Bookmarks))
 	    return 20;
       }
+      // If it is compressed, GetRecord() will compress the record before
+      // returning the data.  Since the data is hex encoded, divide the
+      // size of the resulting string by 2.
+      if ($this->IsCompressed)
+         return strlen($this->CompressedData[$num]) / 2;
       return PalmDB::GetRecordSize($num);
    }
    
@@ -131,7 +177,156 @@ class PalmDoc extends PalmDB {
 	 }
          return '';
       }
+      
+      if ($this->IsCompressed && $num != 0)
+         return $this->CompressedData[$num];
+	 
       return $this->Records[$num];
+   }
+   
+
+   // Compresses the entire doc file
+   function CompressData() {
+      $this->CompressedData = array();
+      foreach ($this->Records as $index => $str) {
+         $this->CompressedData[$index] = $this->CompressRecord($str);
+      }
+   }
+   
+   
+   // Compresses a single string.  Please note that the string passed in and
+   // the string returned are both hex encoded!
+   //
+   // 0x00 = represents itself
+   // 0x01 - 0x08 = Read next n bytes verbatim
+   // 0x09 - 0x7F = Represents itself
+   // 0x80 - 0xBF = Read next byte to make 16-bit number.  Remove top 2 bits.
+   //               Next 11 bits = how far back to read.  Last 3 bits should
+   //               be (# of bytes to copy - 3), with the last three bits
+   //               never being zero.
+   // 0xC0 - 0xFF = Space + 7-bit char
+   //
+   // If I use *1 or *2 for compress code bytes, I can illustrate a few
+   // problems with this compression code.  I think that every byte counts
+   // on such a limited device, so maybe this compression code could be 
+   // optimized a bit more.  Anyone have a good plan?
+   //
+   //  abcdefghijgabcgabcdefghij
+   // should compress to
+   //  abcdefghijgabcg*1     *1 = abcdefghij
+   // instead of
+   //  abcdefghijgabc*1*2    *1 = gabc   *2 = defghij
+   //
+   // Admittedly, the loss is small, and possibly would take lots of CPU
+   // time to remove a single byte, but maybe there is an efficient
+   // algorithm out there that I'm not finding.
+   //
+   // I've tried thinking of a recusion technique and a looping technique, but
+   // I can't think of anything that will provide the best compression in
+   // every circumstance.  Until then, I'll just keep this semi-fast stuff
+   // here.
+   function CompressRecord($In) {
+      $Out = '';
+      $spots = array();  // Cache to speed up string searching
+      $Literal = '';
+      $pos = 0;
+
+      // Create the cache
+      while ($pos < strlen($In)) {
+         $charCode = substr($In, $pos, 2);
+	 if (! isset($spots[$charCode]))
+	    $spots[$charCode] = array();
+         $spots[$charCode][] = $pos;
+	 $pos += 2;
+      }
+
+      $pos = 0;
+      while ($pos < strlen($In)) {
+         // Search for a string
+	 $lastMatchPos = 0;
+	 $lastMatchSize = 0;
+	 $Key = substr($In, $pos, 2);
+	 
+	 foreach ($spots[$Key] as $potential) {
+	    // Remember -- $pos and $potential are pointing at hex-encoded
+	    // strings!
+	    if ($potential < $pos && $pos - $potential < 4094) {
+	       $size = 2;
+	       while ($size < 21 &&
+	              $size + $potential < $pos &&
+		      $In[$potential + $size] == $In[$pos + $size])
+	          $size ++;
+	       if ($size % 2)
+	          $size --;
+	       if ($size / 2 > $lastMatchSize) {
+	          $lastMatchPos = ($pos - $potential) / 2;
+		  $lastMatchSize = $size / 2;
+	       }
+	    }
+	 }
+	 
+	 // Done searching.  If we found a match that works ...
+	 if ($lastMatchSize > 2) {
+	    // Use a simple form of LZ77
+	    $pos += $lastMatchSize * 2;
+	    $lastMatchSize -= 3;
+	    $lastMatchSize = $lastMatchSize & 0x07;
+	    $lastMatchPos = $lastMatchPos << 3;
+	    $lastMatchPos = $lastMatchPos & 0x3FF8;
+	    $Command = 0x8000 + $lastMatchPos + $lastMatchSize;
+	    if ($Literal != '') {
+	       $Out .= $this->EncodeLiteral($Literal);
+	       $Literal = '';
+	    }
+	    $Out .= $this->Int16($Command);
+	 } else {
+  	    $KeyVal = hexdec($Key);
+	    if ($Literal != '' && substr($Literal, -2) == '20' &&
+	        $KeyVal >= 0x40 && $KeyVal <= 0x7F) {
+	       // Space encoding of a normal character
+	       $Literal = substr($Literal, 0, strlen($Literal) - 2);
+	       if ($Literal != '') {
+	          $Out .= $this->EncodeLiteral($Literal);
+		  $Literal = '';
+	       }
+	       $KeyVal += 0x80;
+	       $Out .= sprintf('%02x', $KeyVal & 0xFF);
+	       $pos += 2;
+	    } else {
+	       // Literal encoding of char
+	       $Literal .= $Key;
+	       $pos += 2;
+	    }
+	 }
+      }
+      
+      if ($Literal != '')
+         $Out .= $this->EncodeLiteral($Literal);
+	 
+      return $Out;
+   }
+   
+   
+   // Encodes the literal string for the CompressRecord() function
+   function EncodeLiteral($Literal) {
+      $pos = 0;
+      $Out = '';
+      while ($pos < strlen($Literal)) {
+         $Key = substr($Literal, $pos, 2);
+	 $KeyValue = hexdec($Key);
+	 if ($KeyValue == 0 || ($KeyValue >= 0x09 && $KeyValue <= 0x7f)) {
+	    $Out .= $Key;
+	    $pos += 2;
+	 } else {
+	    $L = strlen($Literal) - $pos;
+	    if ($L > 16)
+	       $L = 16;
+	    $Out .= '0' . ($L / 2) . substr($Literal, $pos, $L);
+	    $pos += $L;
+	 }
+      }
+      
+      return $Out;
    }
    
    
@@ -174,11 +369,19 @@ class PalmDoc extends PalmDB {
          return true;
       if ($Pos === false) {
          $Pos = 0;
+	 // Temporarily set the IsCompressed to false so that we get an
+	 // accurate reading of the # of uncompressed bytes
+	 $isCompressed = $this->IsCompressed;
+	 $this->IsCompressed = false;
+	 
          foreach ($this->Records as $id => $data) {
 	    if ($id != 0) {
 	       $Pos += $this->GetRecordSize($id);
 	    }
 	 }
+	 
+	 // Set the IsCompressed back to what it was originally
+	 $this->IsCompressed = $isCompressed;
       }
       $this->Bookmarks[$Pos] = $Name;
       return false;
