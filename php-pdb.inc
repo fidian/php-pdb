@@ -364,6 +364,8 @@ class PalmDB {
    function DeleteCurrentRecord() {
       if (isset($this->Records[$this->CurrentRecord]))
          unset($this->Records[$this->CurrentRecord]);
+      if (isset($this->RecordAttrs[$this->CurrentRecord]))
+         unset($this->RecordAttrs[$this->CurrentRecord]);
    }
    
    
