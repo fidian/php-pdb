@@ -57,6 +57,8 @@ with writing this class.</p>
    detailing the <a
    href="http://www.palmos.com/dev/tech/docs/FileFormats/FileFormatsTOC.html">file
    formats</a>) that made my life significantly easier.</li>
+<li>Pereira, Jaime &lt;<?PHP HideEmail('jaime.pereira', 'iguana-farm.com') 
+  ?>&gt; -- Gave me the code to LoadDouble().
 <li><a href="http://www.pyrite.org/">Pyrite</a> -- They provided a great
    <a href="http://www.pyrite.org/doc_format.php">description</a> about the 
    compression format and stored bookmarks which helped a lot for the
