@@ -147,7 +147,7 @@ function FilterGutenbergText($text, $BreakOnChapter) {
       // 2)  If the last line was not wrapped
       // 3)  If the next line starts with a space
       
-      if ($Line[0] == ' ' &&
+      if (strlen($Line) && $Line[0] == ' ' &&
           (substr($Line, 0, 4) == '    ' ||
 	   $WrappedLastLine == false ||
 	   (isset($Lines[0]) && $Lines[0] != '' && $Lines[0][0] == ' '))) {

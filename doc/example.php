@@ -177,11 +177,11 @@ ShowExample('
 $attrib = $pdb->GetRecordAttrib();
 
 // Show which attributes are there
-if ($attrib & PDB_ADDR_ATTRIB_EXPUNGED) echo "Record is expunged.<br>\n";
-if ($attrib & PDB_ADDR_ATTRIB_DELETED) echo "Record is deleted.<br>\n";
-if ($attrib & PDB_ADDR_ATTRIB_DIRTY) echo "Record is dirty.<br>\n";
-if ($attrib & PDB_ADDR_ATTRIB_PRIVATE) echo "Record is private.<br>\n";
-if ($attrib & PDB_ADDR_ATTRIB_DEL_EXP) {
+if ($attrib & PDB_RECORD_ATTRIB_EXPUNGED) echo "Record is expunged.<br>\n";
+if ($attrib & PDB_RECORD_ATTRIB_DELETED) echo "Record is deleted.<br>\n";
+if ($attrib & PDB_RECORD_ATTRIB_DIRTY) echo "Record is dirty.<br>\n";
+if ($attrib & PDB_RECORD_ATTRIB_PRIVATE) echo "Record is private.<br>\n";
+if ($attrib & PDB_RECORD_ATTRIB_DEL_EXP) {
    // The archive bit is only set if the record is deleted or expunged.
    // Otherwise, the lower bits specify the category.
    if ($attrib & PDB_ADDR_ATTRIB_ARCHIVE) 
@@ -388,6 +388,18 @@ written.</dd>
 <dd>Returns the number of records.  This should match the number of keys
 returned by GetRecordIDs().</dd>
 
+<dt><b>GetRecordAttrib($record = false)</b></dt>
+<dd>If $record is specified, this returns the attributes bitmask for the
+specified record if it exists.  Otherwise, it returns 0.</dd>
+<dd>If $record is not specified, this returns the attributes bitmask for the
+current record.</dd>
+
+<dt><b>SetRecordAttrib($attr)</b></dt>
+<dd>Sets the current record's attributes to $attr.</dd>
+
+<dt><b>SetRecordAttrib($record, $attr)</b></dt>
+<dd>Sets the specified record's attributes to $attr.</dd>
+
 <dt><b>GetCategoryList()</b></dt>
 <dd>Returns an array containing the different categories.  See
 SetCategoryList() for the format of the array.</dd>
@@ -429,7 +441,7 @@ arbitrarily assigned a new number.</li>
 </ul>
 <li>If you just want to set the categories quickly, you can use code like
 this:<br><tt>$pdb->SetCategoryList(array(1 => 'Category1', 'Category2',
-'Etc.'))</dd>
+'Etc.'))</tt></dd>
 
 <dt><b>CreateCategoryData()</b></dt>
 <dd>Looks at the category information stored in the class and creates the

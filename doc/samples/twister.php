@@ -50,7 +50,7 @@ include('../functions.inc');
 // If nothing else, it should stop the server from being
 // brought to its knees by a snippet of bad code.
 // (Speaking from experience.)
-set_time_limit(120);
+set_time_limit(1200);
 
 // The viewSource.php file will not let you view the filter
 // files.  If you want to see them, you can use the web-based
@@ -68,10 +68,6 @@ include('./filters/gutenberg.inc');
 session_start();
 
 $tiny_self = strtolower($HTTP_HOST);
-if (strpos($tiny_self, '.sourceforge.net') !== false)
-   $SourceForge = true;
-else
-   $SourceForge = false;
 
 $MyFilename = $PHP_SELF;
 $pos = strrpos($MyFilename, '/');
@@ -107,8 +103,6 @@ Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
 
 
 function ShowInitialHelp() {
-   global $SourceForge;
-   
    StartHTML();
 ?><p>Twister is a conversion tool to convert web pages, and text files into
 Palm DOC format.  SmallBASIC .BAS files can be converted to SmallBASIC for
@@ -123,9 +117,9 @@ goofy when converted to text), the just contact the <a
 href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
 we will see what we can do.</p>
 
-<?PHP if ($SourceForge) { ?>
-<P><b>The URL converter doesn't work on <a
-href="http://sourceforge.net">SourceForge</a>,</b> but it will if you
+<?PHP if (! ini_get('allow_url_fopen')) { ?>
+<P><b>The URL converter doesn't work on sites with "allow_url_fopen" turned
+off (like SourceForge), but it should work for you if you
 download <a href="http://php-pdb.sourceforge.net/download.php">PHP-PDB</a>
 and have it running on your own site.  <font size="-1">(Sorry.)</font></p>
 
@@ -149,7 +143,7 @@ function ShowInitialForm() {
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
     <td align=right><b>Source:</b></td>
-    <td><?PHP if (! $SourceForge) { ?>
+    <td><?PHP if (ini_get('allow_url_fopen')) { ?>
       <input type=radio name="Source" value="URL"<?PHP
       if (! isset($Source) || $Source != 'File') echo ' checked'; ?>>
       URL:  <input type=input name=urldata size=60<?PHP
@@ -158,17 +152,12 @@ function ShowInitialForm() {
       <?PHP } ?>
       
       <input type=radio name="Source" value="File"<?PHP
-      if ((isset($Source) && $Source == 'File') || $SourceForge) 
+      if ((isset($Source) && $Source == 'File') || 
+	  ! ini_get('allow_url_fopen)')
          echo ' checked'; ?>>
       File:  <input type=file name=filedata size=45<?PHP
       if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
       . '"'; ?>>
-      
-      <?PHP if ($SourceForge) { ?>
-      <br>
-      <i>(Sourceforge does not allow downloading from URLs, but Twister
-      does support it.)</i><?PHP
-      } ?></td>
   </tr>
   <tr>
     <td align=right><b>Source Type:</b></td>

@@ -148,7 +148,9 @@ happen every other day, set Frequency to 2.  This will default to 1 if not
 specified.</dd>
 <dt>END_DATE</dt>
 <dd>The last day, month, and year on which the event occurs.  Format is
-<tt>YYYY-MM-DD</tt>.  If not specified, no end date will be set.</dd>
+<tt>YYYY-MM-DD</tt>.  If not specified, no end date will be set.  If the
+record was loaded from a file and there was no end date for a repeating
+event, this array element will not be set.</dd>
 <dt>DAYS</dt>
 <dd>What days during the week the event occurs.  This is a string of numbers
 from 0 to 6.  I'm not sure if 0 is Sunday or if 0 is the start of the week

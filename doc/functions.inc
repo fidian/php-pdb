@@ -141,6 +141,7 @@ bgcolor=#DFFFDF>
 <td><font face='courier' size='-1'><?PHP
 
    $text = trim($text);
+   $text = str_replace("\t", '        ', $text);
    $text = htmlspecialchars($text);
    $text = nl2br($text);
    $text = explode("\n", $text);
