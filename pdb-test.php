@@ -37,13 +37,29 @@ ob_start();
 ?>
 <h1><a name="Data"></a>Data conversion testing</h1><?PHP $TestType = 'Data' ?>
 <ul>
-<li>Int8 = <?PHP PassFail(PalmDB::Int8(40), '28') ?></li>
-<li>Int16 = <?PHP PassFail(PalmDB::Int16(1796), '0704') ?></li>
-<li>Int32 = <?PHP PassFail(PalmDB::Int32(40195090), '02655412') ?></li>
-<li>Double = <?PHP
-   // Doouble() refers to $this, so it must be in an instantiated class
-   $pdb = new PalmDB();
-   if (PassFail($pdb->Double(10.53), '40250f5c28f5c28f')) {
+<li>Int8 (Write) = <?PHP 
+  PassFail(PalmDB::Int8(40), '28') ?></li>
+<li>Int8 (Read) = <?PHP 
+  PassFail(PalmDB::LoadInt8(pack('H*', '28')), 40) ?></li>
+<li>Int16 (Write) = <?PHP 
+  PassFail(PalmDB::Int16(1796), '0704') ?></li>
+<li>Int16 (Read) = <?PHP 
+  PassFail(PalmDB::LoadInt16(pack('H*', '0704')), 1796) ?></li>
+<li>Int32 (Write) = <?PHP 
+  PassFail(PalmDB::Int32(40195090), '02655412') ?></li>
+<li>Int32 (Read) = <?PHP 
+  PassFail(PalmDB::LoadInt32(pack('H*', '02655412')), 40195090) ?></li>
+<?PHP
+   // Double() refers to $this, so it must be in an instantiated class
+   $dbl = new PalmDB();
+   $Fail = 0;
+?>
+<li>Double (Write) = <?PHP 
+  $Fail += PassFail($dbl->Double(10.53), '40250f5c28f5c28f') ?></li>
+<li>Double (Read) = <?PHP 
+  $Fail += PassFail($dbl->LoadDouble(pack('H*', '40250f5c28f5c28f')), 10.53);
+    
+  if ($Fail) {
       echo "<br>Don't worry -- this method is not used by anything in " .
          "the PHP-PDB library yet.  It is a utility function that is " .
 	 "added for completeness.  If you absolutely do need this " .
@@ -51,12 +67,14 @@ ob_start();
 	 "a bug report.\n";
    }
 ?></li>
-<li>String = <?PHP PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
+<li>String (Write) = <?PHP 
+  // Don't need to test reading -- just use substr() to get the data.
+  PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
 </ul>
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
 <li>Addresses = <?PHP PassFail(AddressbookTest(),
-                              '5c74028c4ca08d92ff104ff65d3cc4f8') ?></li>
+                              '94ea5f32f16799ae7fab0efedab39e15') ?></li>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
                               'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail(DocTest(false),
@@ -66,7 +84,7 @@ ob_start();
 <li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
                          '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
 <li>Todo = <?PHP PassFail(TodoTest(), 
-                              '14b7a8ea0ea1e885ce358f80a7aec81e') ?></li>
+                              'cb0369cf094c88bd411325e55b2d202d') ?></li>
 </ul>
 <?PHP
 
