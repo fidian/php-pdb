@@ -36,6 +36,8 @@ if (file_exists('../../php-pdb.inc')) {
    include('./modules/doc.inc');
 }
 
+include('../functions.inc');
+
 // START HERE
 
 set_time_limit(0);
@@ -168,6 +170,7 @@ function ShowInitialForm() {
 </table>
 </form>
 <?PHP
+   TinyFooter();
 }
 
 

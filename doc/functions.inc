@@ -69,16 +69,23 @@ align=right>
 }
 
 
-function StandardFooter() {
+function TinyFooter() {
 ?>
-<hr>
-<p><a href="http://sourceforge.net"><img
+<p><hr>
+<font size=-2><a href="http://sourceforge.net"><img
 src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
-<font size=-2>&copy;opyright 2001, Tyler Akins (<?PHP
-HideEmail("fidian@tiny.net") ?>)<br><br>
+&copy;opyright 2001, Tyler Akins (<?PHP
+HideEmail("fidian@tiny.net") ?>)<br>
 All names, trademarks, etc. are property of their respective
-owners.</font></p>
+owners.</font>&nbsp;</p>
+<?PHP
+}
+
+
+function StandardFooter() {
+   TinyFooter();
+?>
 </td></tr>
 </table>
 </body>

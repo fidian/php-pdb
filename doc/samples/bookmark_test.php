@@ -15,6 +15,7 @@ if (file_exists('../../php-pdb.inc')) {
    include('./modules/doc.inc');
 }
 
+include('../functions.inc');
 // START HERE
 
 if (! isset($Stored)) {
@@ -27,6 +28,7 @@ Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
 <h3 align=center>What kind of bookmarks do you want generated?</h2>
 <h3 align=center><a href="bookmark_test.php?Stored=1">Stored</a> - 
 <a href="bookmark_test.php?Stored=0">Embedded</a></h3>
+<?PHP TinyFooter(); ?>
 </body></html>
 <?PHP
    exit();
