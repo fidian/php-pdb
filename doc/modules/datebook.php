@@ -81,12 +81,12 @@ zero), it is considered to be set.</p>
 </tr>
 <tr><td>StartTime</td><td>2:00</td><td>Starting time of the event, 24 hour
 format</td></tr>
-<tr><td>Endtime</td><td>13:00</td><td>Ending time of the event, 24 hour
-format</td></tr>
 <tr><td>Date</td><td>2001-01-23</td><td>Year, month, and day of the
 event</td></tr>
 <tr><td>Description</td><td>Eat At Joe's</td><td>The title or the name of 
 the event</td></tr>
+<tr><td>EndTime</td><td>13:00</td><td>[Optional] Ending time of the event, 24 hour
+format.</td></tr>
 <tr><td>Alarm</td><td>5d</td><td>[Optional] A number of units before the
 event to sound an alarm (m = minutes, h = hours, d = days)</td></tr>
 <tr><td>Repeat</td><td><i>Special</i></td><td>[Optional] An array detailing
