@@ -44,7 +44,7 @@ with writing this class.</p>
    for <a href="http://www.handmark.com/products/mobiledb/">MobileDB</a>.
    Cassidy Lackey answered many of my questions.  Thanks!</li>
 <li><a href="http://www.palm.com">Palm Computing, Inc.</a> -- Without them,
-   there would not be a PalmOS.  Also, they provided <a
+   there would not be a Palm OS.  Also, they provided <a
    href="http://www.palmos.com/dev/tech/docs/">documentation<a> (especially
    detailing the <a
    href="http://www.palmos.com/dev/tech/docs/FileFormats/FileFormatsTOC.html">file

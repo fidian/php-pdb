@@ -14,14 +14,17 @@ StandardHeader('Main');
 ?>
 
 <P>PHP-PDB is a set of <a href="http://www.php.net">PHP</a> classes that 
-manipulate <a href="http://www.palmos.com">PalmOS</a> databases.  It lets
+manipulate <a href="http://www.palmos.com">Palm OS</a> databases.  It lets
 you read, write, alter, and easily use data that is meant to be sent to or 
-retrieved from a handheld.  It requires PHP 4.0.1 or later.</p>
+retrieved from a handheld.  It requires PHP 4.0.1 or later, but due to
+security problems with PHP, I'd suggest you have version 4.1.2 or a patched
+earlier version (4.0.1 is the minimum).</p>
 
 <h3>Directly supported databases</h3>
 
 <p>These types of databases have had separate classes written to extend the
-base class and make life easier for the developer.
+base class and make life easier for the developer.  PHP-PDB can be used with
+your own <a href="custom.php">custom</a> database type as well.</p>
 
 <ul>
 <li><b>Datebook</b> - Reading and writing fully supported.</li>
@@ -39,9 +42,9 @@ from/to this format.</li>
 <li>The base class can be extended to provide easy support for specific
 types of databases.</li>
 <li>The class supports reading databases as well as writing databases.</li>
-<li>Easily be able to pipe a PalmOS database to the browser or out to a
+<li>Easily be able to pipe a Palm OS database to the browser or out to a
 file.</li>
-<li>Limited category support.</li>
+<li>Category support, but it is somewhat limited.</li>
 <li>Very limited appinfo and sortinfo support.</li>
 </ul>
 

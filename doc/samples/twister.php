@@ -112,7 +112,7 @@ function ShowInitialHelp() {
    StartHTML();
 ?><p>Twister is a conversion tool to convert web pages, and text files into
 Palm DOC format.  SmallBASIC .BAS files can be converted to SmallBASIC for
-PalmOS format.  It can be later be easily extended to write to zTXT and other
+Palm OS format.  It can be later be easily extended to write to zTXT and other
 formats, once PHP-PDB has classes for accessing them.  To start the
 conversion process, just fill out the form below.  The file will be
 converted and you will see links to download the converted file.</p>

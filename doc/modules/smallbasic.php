@@ -74,10 +74,10 @@ href="../example.php">Basic Use</a> for further information.</p>
 <dt><b>ConvertToText()</b></dt>
 <dd>Returns the code as a giant string, which can be saved to a regular
 file.  This also adds the <tt>#sec:</tt> tags to allow simple conversion
-back to PalmOS format.</dd>
+back to Palm OS format.</dd>
 
 <dt><b>ConvertFromText($String)</b></dt>
-<dd>Takes the .BAS file and converts it to the internal PalmOS format.  It
+<dd>Takes the .BAS file and converts it to the internal Palm OS format.  It
 also splits apart the <tt>#sec:</tt> sections into separate records.</dd>
 <dd>$String = The entire contents of the file that you need converted.</dd>
 <dd>Returns false on success.</dd>
