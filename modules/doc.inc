@@ -12,15 +12,12 @@ define('PDB_DOC_RECORD_SIZE', 4096);
 class PalmDoc extends PalmDB {
    var $Bookmarks = array();  // Bookmarks stored in the doc file
                               // $Bookmarks[position] = "name"
-   var $IsCompressed = true;
    
    
    function PalmDoc ($Title = '') {
       PalmDB::PalmDB('TEXt', 'REAd', $Title);
 
       $this->EraseDocText();
-      $this->IsCompressed = true;
-      $this->IsCompressed = false;
    }
 
 
@@ -65,10 +62,7 @@ class PalmDoc extends PalmDB {
    function MakeDocRecordZero () {
       $oldRec = $this->GoToRecord(0);
       $this->DeleteCurrentRecord();
-      if ($this->IsCompressed)
-         $this->AppendInt16(2);  // "Version"
-      else
-         $this->AppendInt16(1);  // "Version"
+      $this->AppendInt16(1);  // Version
         // 1 = uncompressed, 2 = compressed
       $this->AppendInt16(0);  // Reserved
       
@@ -87,7 +81,6 @@ class PalmDoc extends PalmDB {
       $this->AppendInt16($MaxIndex);             // Number of Records
       $this->AppendInt16(PDB_DOC_RECORD_SIZE);   // Record size
       $this->AppendInt32(0);                     // Reserved
-         // possibly used for position in doc?
 
       $this->GoToRecord($oldRec);
    }
@@ -109,11 +102,6 @@ class PalmDoc extends PalmDB {
 	 if ($bookmark < count($this->Bookmarks))
 	    return 20;
       }
-      // If it is compressed, GetRecord() will compress the record before
-      // returning the data.  Since the data is hex encoded, divide the
-      // size of the resulting string by 2.
-      if ($this->IsCompressed)
-         return strlen($this->GetRecord($num)) / 2;
       return PalmDB::GetRecordSize($num);
    }
    
@@ -143,101 +131,7 @@ class PalmDoc extends PalmDB {
 	 }
          return '';
       }
-      
-      if ($this->IsCompressed)
-         return $this->CompressRecord($this->Records[$num]);
-	 
       return $this->Records[$num];
-   }
-   
-   
-   // Compresses a single string.  Please note that the string passed in and
-   // the string returned are both hex encoded!
-   //
-   // 0x00 = represents itself
-   // 0x01 - 0x08 = Read next n bytes verbatim
-   // 0x09 - 0x7F = Represents itself
-   // 0x80 - 0xBF = Read next byte to make 16-bit number.  Remove top 2 bits.
-   //               Next 11 bits = how far back to read.  Last 3 bits should
-   //               be (# of bytes to copy - 3), with the last three bits
-   //               never being zero.
-   // 0xC0 - 0xFF = Space + 7-bit char
-   //
-   // If I use *1 or *2 for compress code bytes, I can illustrate a few
-   // problems with this compression code.  I think that every byte counts
-   // on such a limited device, so maybe this compression code could be 
-   // optimized a bit more.  Anyone have a good plan?
-   //
-   //  abcdefghijgabcgabcdefghij
-   // should compress to
-   //  abcdefghijgabcg*1     *1 = abcdefghij
-   // instead of
-   //  abcdefghijgabc*1*2    *1 = gabc   *2 = defghij
-   //
-   //  aaaaaaaabaaaaaaaaabaababaaaaaaaaaaaaaaaaab
-   // should compress to
-   //  aaaa*1ba*2aba*3*4
-   //  *1 = aaaa    *2 = aaaaaaaaba    *3 = baaaaaaaaa    *4 = aaaaaaaab
-   //
-   // I've tried thinking of a recusion technique and a looping technique, but
-   // I can't think of anything that will provide the best compression in
-   // every circumstance.  Until then, I'll just keep this semi-fast stuff
-   // here.
-   function CompressRecord($In) {
-      // We are not ready yet
-      return $In;
-      
-      
-      $Out = '';
-      $spots = array();
-      
-      $pos = 0;
-      while ($pos < strlen($In)) {
-         // Search for a string
-	 $lastMatchPos = 0;
-	 $lastMatchSize = 0;
-	 $Key = substr($In, $pos, 2);
-	 if (isset($spots[$Key]) && is_array($spots[$Key]) && 
-	     count($spot[$Key]))
-	    foreach ($spots[$Key] as $potential) {
-	       // Remember -- $pos and $potential are pointing at hex-encoded
-	       // strings!
-	       if ($pos - $potential < 4094) {
-  	          for ($size = 0; $size < 22 && $size + $potential < $pos &&
-	               $In[$potential + $size] == $In[$pos + $size] &&
-		       $In[$potential + $size + 1] == $In[$pos + $size + 1];
-		       $size += 2) {
-	             if ($size / 2 > $lastMatchSize) {
-		        $lastMatchPos = ($pos - $potential) / 2;
-			$lastMatchSize = $size / 2;
-		     }
-		  }
-	       }
-	 }
-	 if ($lastMatchSize > 2) {
-	    $size = $lastMatchSize;
-	    $lastMatchSize -= 3;
-	    $lastMatchSize = $lastMatchSize & 0x07;
-	    $lastMatchPos = $lastMatchPos & 0x3FF8;
-	    $lastMatchPos = $lastMatchPos << 3;
-	    $Command = 0x8000 + $lastMatchPos + $lastMatchSize;
-	    $Out .= $this->Int16($Command);
-	    while ($size --) {
-	       $Key = substr($In, $pos, 2);
-	       if (! isset($spots[$Key]))
-	          $spots[$Key] = array();
-	       $spots[$Key][] = $pos;
-	       $pos += 2;
-	    }
-	 } else {
-	    // Check for space encoding
-//	    if (substr($Out, -2) == '20' && ) {
-//	       $Out = substr($Out...
-	    // Do literal encoding
-	 }
-      }
-      
-      return $Out;
    }
    
    
