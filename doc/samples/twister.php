@@ -44,6 +44,8 @@ include('./filters/text.inc');
 include('./filters/html.inc');
 include('./filters/gutenberg.inc');
 
+session_start();
+
 $MyFilename = $PHP_SELF;
 $pos = strrpos($MyFilename, '/');
 $MyFilename = substr($MyFilename, $pos + 1);
@@ -87,6 +89,8 @@ function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
       $BreakOnChapter, $TargetType, $TitleOfDoc;
    // $UncompressedDoc
+   
+   ShowDownloadLinks();
    
 ?><form action="<?PHP echo $MyFilename ?>" method="post">
 <input type=hidden name=action value="convert">
@@ -146,8 +150,6 @@ function ShowInitialForm() {
 </table>
 </form>
 <?PHP
-
-   ShowDownloadLinks();
 }
 
 
@@ -179,7 +181,9 @@ function ConvertFile() {
       StoreAsPRC($TitleOfDoc, $rawData);
    }
    
-   ShowDownloadLinks();
+   ShowStatus("Conversion complete!");
+   
+   ShowInitialForm();
 }
 
 
@@ -313,10 +317,94 @@ function ConvertFromFormat($filedata) {
 
 
 function StoreAsPRC($title, $rawData) {
-   ShowStatus("StoreAsPRC:  $title");
-   echo "<pre>" . htmlspecialchars($rawData) . "\n</pre>\n";
+   global $SavedPDB;
+   
+   if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
+      $SavedPDB = array();
+      session_register('SavedPDB');
+   }
+   
+   $SavedInfo['Title'] = $title;
+   $SavedInfo['Type'] = 'DOC';
+   $SavedInfo['Time'] = time();
+   $prc = new PalmDoc($title);
+   $prc->AddDocText($rawData);
+   ob_start();
+   $prc->WriteToStdout();
+   $prc = ob_get_contents();
+   ob_end_clean();
+   $SavedInfo['Data'] = $prc;
+   
+   $key = time();
+   while (isset($SavedPDB[$key])) {
+      $key ++;
+   }
+   $SavedPDB[$key] = $SavedInfo;
 }
 
 
 function ShowDownloadLinks() {
+   global $SavedPDB, $MyFilename;
+   
+   if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
+      $SavedPDB = array();
+      session_register('SavedPDB');
+   }
+
+   krsort($SavedPDB);
+   if (count($SavedPDB)) {
+?>
+<table align=center border=1 cellpadding=5 cellspacing=0>
+  <tr bgcolor="#FFD0D0">
+    <th>Title</th>
+    <th>Type</th>
+    <th>Size</th>
+    <th>When Created</th>
+    <th>&nbsp;</th>
+  </tr>
+<?PHP
+      foreach ($SavedPDB as $key => $SavedInfo) {
+?>  <tr>
+    <td><?PHP echo $SavedInfo['Title'] ?></td>
+    <td><?PHP echo $SavedInfo['Type'] ?></td>
+    <td><?PHP echo ShowSize(strlen($SavedInfo['Data'])) ?></td>
+    <td><?PHP echo date("g:i:s a", $SavedInfo['Time']) ?></td>
+    <td><a href="<?PHP echo $MyFilename
+       ?>?action=download&file=<?PHP echo $key ?>">Download</a></td>
+  </tr>
+<?PHP
+      }
+   
+      echo "</table>\n";
+   }
+}
+
+
+function DownloadPDB() {
+   global $file, $SavedPDB, $HTTP_USER_AGENT;
+   
+   if (! isset($SavedPDB) || ! is_array($SavedPDB) || 
+       ! isset($SavedPDB[$file])) {
+      StartHTML('Error Downloading File');
+      ShowError('The specified file no longer is saved.  It most ' .
+         'likely expired.');
+      ShowInitialForm();
+      return;
+   }
+
+   $filename = preg_replace('/[^-a-zA-Z0-9\\.]/', '_', $file . '.pdb');
+      
+   if (strstr($HTTP_USER_AGENT, 'compatible; MSIE ') !== false &&
+       strstr($HTTP_USER_AGENT, 'Opera') === false) {
+      // IE doesn't properly download attachments.  This should work
+      // pretty well for IE 5.5 SP 1
+      header("Content-Disposition: inline; filename=$filename");
+      header("Content-Type: application/download; name=\"$filename\"");
+   } else {
+      // Use standard headers for Netscape, Opera, etc.
+      header("Content-Disposition: attachment; filename=\"$filename\"");
+      header("Content-Type: application/x-pilot; name=\"$filename\"");
+   }
+
+   echo $SavedPDB[$file]['Data'];
 }
