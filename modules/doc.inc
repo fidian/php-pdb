@@ -14,7 +14,6 @@ class PalmDoc extends PalmDB {
                               // $Bookmarks[position] = "name"
    var $IsCompressed = false;
    var $CompressedData = array();  // Filled when saving DOC file
-   var $CompressedDataOrig = array();
 
    
    function PalmDoc ($Title = '', $Compressed = true) {
@@ -195,18 +194,8 @@ class PalmDoc extends PalmDB {
    // successive writes
    function CompressData() {
       $this->CompressedData = array();
-      foreach ($this->CompressedData as $index => $data) {
-         if (! isset($this->Records[$index])) {
-	    unset($this->CompressedDataOrig[$index]);
-	    unset($this->CompressedData[$index]);
-	 }
-      }
       foreach ($this->Records as $index => $str) {
-         if (! isset($this->CompressedDataOrig[$index]) ||
-	     $this->CompressedDataOrig[$index] != $str) {
-	    $this->CompressedDataOrig[$index] = $str;
-            $this->CompressedData[$index] = $this->CompressRecord($str);
-	 }
+	 $this->CompressedData[$index] = $this->CompressRecord($str);
       }
    }
    
@@ -244,51 +233,49 @@ class PalmDoc extends PalmDB {
    // here.
    function CompressRecord($In) {
       $Out = '';
-      $spots = array();  // Cache to speed up string searching
       $Literal = '';
       $pos = 0;
-
-      // Create the cache
-      while ($pos < strlen($In)) {
-         $charCode = substr($In, $pos, 2);
-	 if (! isset($spots[$charCode]))
-	    $spots[$charCode] = array();
-         $spots[$charCode][] = $pos;
-	 $pos += 2;
-      }
 
       $pos = 0;
       while ($pos < strlen($In)) {
          // Search for a string
 	 $lastMatchPos = 0;
-	 $lastMatchSize = 0;
+	 $lastMatchSize = 2;
 	 $Key = substr($In, $pos, 2);
 
-         while (isset($spots[$Key][0]) && $pos - $spots[$Key][0] >= 4094) {
-	    // Expire elements that we don't need
-	    array_shift($spots[$Key]);
-	 }
+         // Start one character before what we want.
+         $StartingPos = $pos - 4094;
+	 if ($StartingPos < 0)
+	    $StartingPos = -2;
 	 
-	 $index = 0;
-	 while (isset($spots[$Key][$index]) && $spots[$Key][$index] < $pos) {
-	    $potential = $spots[$Key][$index];
-	    $index ++;
-
+	 // Moves a minimum of 1 character
+	 $StartingPos = $this->FindNextStartingPos($In, $pos, $lastMatchSize,
+	    $StartingPos);
+	    
+	 while ($StartingPos != $pos) {
+	    // Attempt the matching
 	    // Remember -- $pos and $potential are pointing at hex-encoded
 	    // strings!
-	    $size = 2;
+	    $size = ($lastMatchSize + 1) * 2;
+	 
+	    if ($size > 20)
+	       $size = 21;
 	    while ($size < 21 &&
-	           $size + $potential < $pos &&
-		   $In[$potential + $size] == $In[$pos + $size])
+	           $size + $StartingPos < $pos &&
+		   $In[$StartingPos + $size] == $In[$pos + $size])
 	       $size ++;
 	    if ($size % 2)
 	       $size --;
 	    if ($size / 2 > $lastMatchSize) {
-	       $lastMatchPos = ($pos - $potential) / 2;
+	       $lastMatchPos = ($pos - $StartingPos) / 2;
 	       $lastMatchSize = $size / 2;
 	    }
+	    
+	    // Move $StartingPos ahead
+	    $StartingPos = $this->FindNextStartingPos($In, $pos, 
+	       $lastMatchSize, $StartingPos);
 	 }
-	 
+
 	 // Done searching.  If we found a match that works ...
 	 if ($lastMatchSize > 2) {
 	    // Use a simple form of LZ77
@@ -328,6 +315,41 @@ class PalmDoc extends PalmDB {
          $Out .= $this->EncodeLiteral($Literal);
 	 
       return $Out;
+   }
+   
+
+   // Finds the next possible spot for compression
+   function FindNextStartingPos($In, $pos, $matchSize, $startingPos) {
+      // If we found a match that consumed the rest of the string, we found
+      // the best match already
+      if (strlen($In) - $pos <= $matchSize * 2)
+         return $pos;
+	 
+      // Step ahead 1 char
+      $startingPos += 2;
+      
+      while (1) {
+         // Look for a match that has one more character
+         $startingPos = strpos($In, substr($In, $pos,
+	    ($matchSize + 1) * 2), $startingPos);
+	 
+	 // If no more matches, return $pos
+	 if ($startingPos === false)
+	    return $pos;
+	 
+	 // Make sure that we don't go too far
+	 if ($startingPos + ($matchSize * 2) >= $pos)
+	    return $pos;
+	    
+	 // If we are on an even char (remember?  we are
+	 // hex encoded)
+	 if ($startingPos % 2 == 0)
+	    return $startingPos;
+	    
+	 // We are not on an even char -- skip ahead 1/2 of a char
+	 // and then search again
+	 $startingPos ++;
+      }
    }
    
    
@@ -426,10 +448,10 @@ class PalmDoc extends PalmDB {
    
 
    function ParseRecordZero() {
-      // Int16 = Version
-      // Int16 = reserved
-      // Int32 = uncompressed doc size
-      // Int16 = Number of records
+      // Int16 = Version  [0-3]
+      // Int16 = reserved  [4-7]
+      // Int32 = uncompressed doc size  [8-15]
+      // Int16 = Number of records  [16-19]
       // Int16 = Record size
       // Int32 = reserved (current spot in doc?)
       
@@ -446,9 +468,9 @@ class PalmDoc extends PalmDB {
 
       // Rip out bookmarks
       $RecordNumber = substr($this->Records[0], 16, 4);
-      $RecordNumber = hexdec($Version);
+      $RecordNumber = hexdec($RecordNumber);
       foreach ($this->Records as $index => $data) {
-         if ($index >= $RecordNumber) {
+         if ($index > $RecordNumber) {
 	    // 16 bytes = bookmark name
 	    // Int32 = Spot
 	    $name = substr($data, 0, 32);
