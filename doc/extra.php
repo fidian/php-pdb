@@ -40,8 +40,8 @@ support.  (In progress -- Thanks Cassidy Lackey!)</li>
 <li>Add todo format</li>
 <li>Add compression, decompression, and loading to DOC files.
 [ <a
-href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">A</a>
-<a href="http://www.pyrite.org/doc_format.php">Pyrite</a>
+href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">AportisDoc</a>
+<a href="http://www.pyrite.org/doc_format.php">Pyrite</a> ]
 </li>
 <li>Add example program <!-- twister! --> that converts HTML/text on the web
 to DOC format.</li>
