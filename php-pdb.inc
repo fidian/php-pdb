@@ -580,15 +580,21 @@ class PalmDB {
    // Sets the categories to what you specified.
    //
    // Data format:  (easy way)
-   //    $categoryArray[id#] = name
+   //    $categoryArray[###] = name
    // Or:  (how it is stored in the class)
-   //    $categoryArray[id#]['Name'] = name
-   //    $categoryArray[id#]['Renamed'] = true / false
+   //    $categoryArray[###]['Name'] = name
+   //    $categoryArray[###]['Renamed'] = true / false
+   //    $categoryArray[###]['ID'] = number from 0 to 255
    //
    // Tips:
+   //  * The number for the key of $categoryArray is from 0-15, specifying
+   //    the order that the category is written in the AppInfo block.
    //  * I'd suggest numbering your categories sequentially
-   //  * Do not have a category 0.  It must always be 'Unfiled'.  This
-   //    function will enforce this rule.
+   //  * ID numbers must be unique.  If they are not, a new arbitrary number
+   //    will be assigned.
+   //  * $categoryArray[0] is reserved for the 'Unfiled' category.  It's
+   //    ID is 0.  Do not use 0 as an index for the array.  Do not use 0 as
+   //    an ID number.  This function will enforce this rule.
    //  * There is a maximum of 16 categories, including 'Unfiled'.  This
    //    means that you only have 15 left to play with.
    //
@@ -597,44 +603,57 @@ class PalmDB {
    // Categories 128-255 are used for desktop ID numbers
    // Do not let category numbers be created larger than 255 -- this function
    // will erase categories with an ID larger than 255
-   //
-   // I would strongly suggest not using a number higher than 200 because 
-   // if there are any blank categories, then they get sequentially larger
-   // IDs from the highest one used.  This means that if you use an ID of 255
-   // and you didn't use up all 15 available categories, then blank ones
-   // are created with ID numbers starting at 256.  This is *bad* and will
-   // cause the category data to not be written when the .pdb file is saved.
    function SetCategoryList($list) {
+      $usedCheck = 0;
+      $usedList = array();
+      
+      // Clear out old category list
+      $this->CategoryList = array();
+      
       // Force category ID 0 to be "Unfiled"
-      $list[0] = array('Name' => 'Unfiled', 'Renamed' => false);
+      $list[0] = array('Name' => 'Unfiled', 'Renamed' => false, 'ID' => 0);
       
       $keys = array_keys($list);
       
       // Loop through the array
       $CatsWritten = 0;
-      foreach ($keys as $id) {
+      foreach ($keys as $key) {
          // If there is room for more categories ...
-         if ($CatsWritten < PDB_CATEGORY_NUM && $id < 256) {
+         if ($CatsWritten < PDB_CATEGORY_NUM && $key <= 15 && $key >= 0) {
+	    if (is_array($list[$key]) && isset($list[$key]['ID']))
+	       $id = $list[$key]['ID'];
+	    else
+	       $id = $key;
+	    
+	    if ($id > 255 || isset($usedList[$id])) {
+	       // Find a new arbitrary number for this category
+	       $usedCheck ++;
+	       while (isset($usedList[$usedCheck]))
+	          $usedCheck ++;
+	       $id = $usedCheck;
+	    }
+	    
 	    $CatsWritten ++;
 	    
 	    // Set the "Renamed" flag if available
 	    // By default, the Renamed flag is false
 	    $RenamedFlag = false;
-	    if (is_array($list[$id]) && isset($list[$id]['Renamed']) &&
-		$list[$id]['Renamed'])
+	    if (is_array($list[$key]) && isset($list[$key]['Renamed']) &&
+		$list[$key]['Renamed'])
 	       $RenamedFlag = true;
 	       
 	    // Set the name of the category
 	    $name = '';
-	    if (is_array($list[$id])) {
-	       if (isset($list[$id]['Name']))
-	          $name = $list[$id]['Name'];
+	    if (is_array($list[$key])) {
+	       if (isset($list[$key]['Name']))
+	          $name = $list[$key]['Name'];
 	    } else {
-	       $name = $list[$id];
+	       $name = $list[$key];
 	    }
 	    
-	    $this->CategoryList[$id] = array('Name' => $name,
-	                                     'Renamed' => $RenamedFlag);
+	    $this->CategoryList[$key] = array('Name' => $name,
+	                                  'Renamed' => $RenamedFlag,
+					  'ID' => $id);
 	 }
       }
    }   
@@ -644,59 +663,56 @@ class PalmDB {
    //
    // See SetCategoryList() for the format of $CategoryArray
    function CreateCategoryData() {
-      // Force category ID 0 to be "Unfiled"
-      $this->CategoryList[0] = array('Name' => 'Unfiled', 'Renamed' => false);
+      $UsedIds = array();
+      $UsedIdCheck = 0;
       
-      $CatsWritten = 0;
+      // Force category data to be valid and in a specific format
+      $this->SetCategoryList($this->CategoryList);
+      
       $RenamedFlags = 0;
       $CategoryStr = '';
       $IdStr = '';
-      $keys = array_keys($this->CategoryList);
+      $LastID = 0;
+      
+      foreach ($this->CategoryList as $key => $data) {
+         $UsedIds[$data['ID']] = true;
+	 if ($data['ID'] > $LastID)
+	    $LastID = $data['ID'];
+      }
       
       // Loop through the array
-      foreach ($keys as $id) {
-         // If there is room for more categories ...
-         if ($CatsWritten < PDB_CATEGORY_NUM && $id < 256) {
-	    $CatsWritten ++;
+      for ($key = 0; $key < 16; $key ++) {
+         if (isset($this->CategoryList[$key])) {
+ 	    $CatsWritten ++;
 	    $RenamedFlags *= 2;
 	    
 	    // Set the "Renamed" flag if available
 	    // By default, the Renamed flag is false
-	    if (is_array($this->CategoryList[$id]) && 
-	        isset($this->CategoryList[$id]['Renamed']) &&
-		$this->CategoryList[$id]['Renamed'])
+	    if ($this->CategoryList[$key]['Renamed'])
 	       $RenamedFlags += 1;
 	       
 	    // Set the name of the category
-	    $name = '';
-	    if (is_array($this->CategoryList[$id])) {
-	       if (isset($this->CategoryList[$id]['Name']))
-	          $name = $this->CategoryList[$id]['Name'];
-	    } else {
-	       $name = $this->CategoryList[$id];
-	    }
+	    $name = $this->CategoryList[$key]['Name'];
 	    $name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
 	    $CategoryStr .= $this->PadString($name,
 	                                     PDB_CATEGORY_NAME_LENGTH);
-	    $IdStr .= $this->Int8($id);
+	    $IdStr .= $this->Int8($this->CategoryList[$key]['ID']);
+	 } else {
+	    // Add blank categories where they are missing
+	    $UsedIdCheck ++;
+	    while (isset($UsedIds[$UsedIdCheck]))
+	       $UsedIdCheck ++;
+	    $RenamedFlags *= 2;
+	    $CategoryStr .= $this->PadString('', PDB_CATEGORY_NAME_LENGTH);
+	    $IdStr .= $this->Int8($UsedIdCheck);
 	 }
       }
       
-      // Add blank categories to the end
-      $id = 0;
-      while ($CatsWritten < PDB_CATEGORY_NUM) {
-         $id ++;
-	 while (isset($this->CategoryList[$id]))
-	    $id ++;
-	 
-         $CatsWritten ++;
-	 $LastIdWritten ++;
-	 $RenamedFlags *= 2;
-	 $CategoryStr .= $this->PadString('', PDB_CATEGORY_NAME_LENGTH);
-	 $IdStr .= $this->Int8($id);
-      }
-      
-      $TrailingBytes = $this->Int8($LastIdWritten);
+      // According to the docs, this is just the last ID written.  It doesn't
+      // say whether this is the last one written by the palm, last one
+      // written by the desktop, highest one written, or the ID for number
+      // 15.
+      $TrailingBytes = $this->Int8($LastId);
       $TrailingBytes .= $this->Int8(0);
 	 
       return $this->Int16($RenamedFlags) . $CategoryStr . $IdStr . 
@@ -709,6 +725,7 @@ class PalmDB {
    // array with the key 'Name' set to the name of the category and 
    // the key 'Renamed' set to the renamed flag for that category.
    function LoadCategoryData($fileData) {
+      $key = 0;
       $RenamedFlags = $this->LoadInt16(substr($fileData, 0, 2));
       $Offset = 2;
       $StartingFlag = 65536;
@@ -727,20 +744,22 @@ class PalmDB {
 	    $RenamedFlag = true;
 	 else
 	    $RenamedFlag = false;
-	 $Categories[] = array('Name' => $Name, 'Renamed' => $RenamedFlag);
+	 $Categories[$key] = array('Name' => $Name, 'Renamed' => $RenamedFlag);
 	 $Offset += PDB_CATEGORY_NAME_LENGTH;
+	 $key ++;
       }
       
       $CategoriesParsed = array();
       
-      foreach ($Categories as $CategoryData) {
+      for ($key = 0; $key < 16; $key ++) {
          $UID = $this->LoadInt8(substr($fileData, $Offset, 1));
 	 $Offset ++;
-	 if ($CategoryData['Name'] != '')
-	    $CategoriesParsed[$UID] = $CategoryData;
+	 $CategoriesParsed[$key] = array('Name' => $Categories[$key]['Name'],
+	                                 'Renamed' => $Categories[$key]['Renamed'],
+					 'ID' => $UID);
       }
       
-      // Ignore the last ID
+      // Ignore the last ID.  Maybe it should be preserved?
       $this->CategoryList = $CategoriesParsed;
    }
    

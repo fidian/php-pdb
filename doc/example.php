@@ -225,6 +225,60 @@ function GetAppInfo() {
 
 ?>
 
+<p>Here is a more thorough example that illustrates how the category 
+numbers, category IDs, records, attributes and various other things
+all work together.  For this to work properly, make sure that there is a
+file called AddressDB.pdb and make sure that it is an address book 
+database.</p>
+
+<?PHP
+
+ShowExample('
+include "php-pdb.inc";            // Load PHP-PDB class
+include "modules/addrbook.inc";   // Load Addressbook module
+
+// Load address book
+$addr = new PalmAddress();
+$fp = fopen("AddressDB.pdb","r");
+$addr->ReadFile($fp);
+fclose($fp);
+
+// Fill the data array with entries from the address book.
+// The key will be the name of the person or company.
+// The value will be the category name and category ID.
+
+$data = array();
+foreach ($addr->RecordAttrs as $key => $val)
+{
+    // Get the category and record arrays to have quicker, cleaner
+    // access to the data
+    $cat = $addr->CategoryList[$val & PDB_CATEGORY_MASK];
+    $rec = $addr->Records[$key];
+
+    // Build the key for the $data array
+    $Index = $rec["LastName"] . ", " . $rec["FirstName"] . " @ " .
+      $rec["Company"];
+    $Index = trim($Index);
+    if ($rec["LastName"] == "")
+      $Index = $rec["FirstName"] . " @ " . $rec["Company"];
+      
+    // Build the value for the $data array
+    $Cate =  $cat["Name"] . "(" . $cat["ID"] . ")";
+    
+    // Add entry
+    $data[$Index] = $Cate;
+}
+
+// Sort alphabetically
+ksort($data);
+
+// Dump the data
+foreach ($data as $key => $val)
+  echo $key . " ---> " . $val . "\n";
+');
+
+?>
+
 <p>Check out the explanations for the SetRecordAttrib(), GetRecordAttrib(),
 GetCategoryList(), SetCategoryList(), CreateCategoryData(), and
 LoadCategoryData() functions below.</p>
