@@ -15,13 +15,15 @@ don't, contact me for help.</p>
 
 <h3>Contact information</h3>
 
-<p>I finally have mailing lists set up.  If you are asking for help, please
-subscribe to the mailing list and ask your question.  Your answer should
-come to you pretty fast.  If you abhore mailing lists and would rather have
-something painful happen to you instead of subscribing to a mailing list,
-just email me directly.  I'll simply forward your request to the mailing
-list and then ask that the list members reply to you and to the list.  My
-email address is (fidian at tiny dot net).</p>
+<p>I finally have mailing lists set up on the <a
+href="http://sourceforge.net/projects/php-pdb/">project page</a> on <a
+href="http://sourceforge.net/">SourceForge</a>.  If you are asking for help,
+please subscribe to the mailing list and ask your question.  Your answer
+should come to you pretty fast.  If you abhore mailing lists and would
+greatly prefer to not subscribe to a mailing list, just email me directly.
+I'll simply forward your request to the mailing list and then ask that the
+list members reply to you and to the list.  My email address is 
+(fidian at tiny dot net).</p>
 
 <h3>Legalese</h3>
 
@@ -34,7 +36,7 @@ free to use for everyone.</p>
 <ul>
 <li>Add <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
-support.</li>
+support.  (In progress)</li>
 <li>Maybe look closer at <a href="http://mmmm.free.fr/palm/">palmlib</a></li>
 <li>Wouldn't image support from <a
 href="http://palmimage.sourceforge.net/">PalmImage</a> be grand?</li>
