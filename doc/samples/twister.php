@@ -150,7 +150,7 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Source:</b></td>
     <td><?PHP if (! $SourceForge) { ?>
-      <input type=radio name="Source value="URL"<?PHP
+      <input type=radio name="Source" value="URL"<?PHP
       if (! isset($Source) || $Source != 'File') echo ' checked'; ?>>
       URL:  <input type=input name=urldata size=60<?PHP
       if (isset($urldata)) echo ' value="' . htmlspecialchars($urldata)
@@ -280,13 +280,21 @@ function ConversionSanityChecks() {
       $SourceType, $TitleOfBasicFile;
 
    if (! isset($TargetType) || ($TargetType != 'DOC' && $TargetType !=
-       'SmallBASIC')) { ShowError('Invalid target type.'); return true; } if
-       ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == ''))
-       { ShowError('You must specify a title for the DOC file.'); return
-       true; } if ($TargetType == 'SmallBASIC' && (!
-       isset($TitleOfBasicFile) || $TitleOfBasicFile == '')) {
-       ShowError('You must specify a file name for the SmallBASIC file.');
-       return true; }
+       'SmallBASIC')) { 
+       ShowError('Invalid target type.'); 
+       return true;
+   } 
+   
+   if ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == '')) { 
+      ShowError('You must specify a title for the DOC file.'); 
+      return true; 
+   } 
+   
+   if ($TargetType == 'SmallBASIC' && (! isset($TitleOfBasicFile) || 
+       $TitleOfBasicFile == '')) {
+      ShowError('You must specify a file name for the SmallBASIC file.');
+      return true; 
+   }
 
    if (! isset($Source) || ($Source != 'File' && $Source != 'URL')) {
       ShowError('Invalid source.');

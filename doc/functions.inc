@@ -82,7 +82,7 @@ src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
 <?PHP } ?>
 &copy;opyright 2001, Tyler Akins (<?PHP
-HideEmail("fidian@tiny.net") ?>)<br>
+HideEmail('fidian', 'tiny.net') ?>)<br>
 All names, trademarks, etc. are property of their respective
 owners.</font>&nbsp;</p>
 <?PHP
@@ -100,8 +100,8 @@ function StandardFooter() {
 }
 
 
-function HideEmail($email) {
-   $MailLink = "<a href=\"mailto:$email\">$email</a>";
+function HideEmail($user, $pass) {
+   $MailLink = '<a href="mailto:' . $user . '@' . $pass . '">$email</a>';
    
    $MailLinkNew = '';
    for ($i = 0; $i < strlen($MailLink); $i ++) {
