@@ -679,7 +679,9 @@ class PalmDB {
       $keys = $this->GetRecordIDs();
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
-         $data = $this->PadTo4ByteBoundary($this->GetRecord($index));
+         // *new* method 3
+         //$data = $this->PadTo4ByteBoundary($this->GetRecord($index));
+         $data = $this->GetRecord($index);
 	 fwrite($file, pack('H*', $data), strlen($data) / 2);
       }
       fflush($file);
@@ -702,8 +704,8 @@ class PalmDB {
       sort($keys, SORT_NUMERIC);
       foreach ($keys as $index) {
          // *new* method 3
-	 //$data = $this->GetRecord($index);
-         $data = $this->PadTo4ByteBoundary($this->GetRecord($index));
+	 $data = $this->GetRecord($index);
+         //$data = $this->PadTo4ByteBoundary($this->GetRecord($index));
 	 echo pack("H*", $data);
       }
    }

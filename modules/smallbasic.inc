@@ -109,7 +109,7 @@ class PalmSmallBASIC extends PalmDB {
          $num = $this->CurrentRecord;
 	 
       if ($num == 0)
-         return 70;
+         return 68;
 	 
       $keys = $this->GetOrderedSectionNames();
       $num --;
