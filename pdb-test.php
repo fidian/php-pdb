@@ -50,7 +50,7 @@ ob_start();
 <li>Doc (compressed) = <?PHP PassFail(DocTest(true),
                          '26664289f16ba7e0ebbfeb3663babd86') ?></li>
 <li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
-                         '8d96040782a8fc085bc7cdddd4bb52ed') ?></li>
+                         '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
 </ul>
 <?PHP
 
