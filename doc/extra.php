@@ -52,14 +52,14 @@ href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.</li>
 <li>Add <a href="http://pilot-db.sourceforge.net/">Pilot-DB</a>
 support</a></li>
-<li>Add todo format</li>
+<li>Add todo support</li>
 <li>Add compression, decompression, and loading to DOC files.
 [ <a
 href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">AportisDoc</a>
 <a href="http://www.pyrite.org/doc_format.php">Pyrite</a> ]
 </li>
-<li>Add phonebook format</li>
-<li>Add memo format</li>
+<li>Add phonebook support</li>
+<li>Add memo support</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
 you have info, please mail me)</li>
 <li>Maybe look closer at <a href="http://mmmm.free.fr/palm/">palmlib</a></li>
@@ -71,7 +71,9 @@ href="http://zurk.sourceforge.net/zdoc.html">here</a> for DOC files and for
 PeanutPress files.</li>
 <li>How about adding <a
 href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
-ebooks for GutenPalm?</li>
+ebooks for GutenPalm?  It's quite similar to DOC.</li>
+<li>Regex bookmark scanning for Twister!  (Idea from <a
+href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
 </ul>
 
 <h3>Credits and thanks</h3>
