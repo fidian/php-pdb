@@ -107,10 +107,10 @@ properly.  Returns false if there is no error.</p>
 
 ShowExample('
 // Create a dummy instance of the class
-$pdb = new PalmDB("test", "test");
+$addr = new PalmDB("test", "test");
 // Load a file
 $fp = fopen("your_file.pdb", "r");
-$pdb->ReadFile($fp);
+$addr->ReadFile($fp);
 fclose($fp);
 
 // Show information about the database
