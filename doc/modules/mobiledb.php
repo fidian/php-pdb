@@ -68,24 +68,94 @@ do not create new MobileDB databases.</p>
 
 <h3>Example</h3>
 
-<p>This example is of poor quality since MobileDB support has just barely
-been added.  It is better to load a MobileDB and then work on it instead of
-trying to make one yourself.</p>
+<p>This great example was submitted by Cristiano Nuernberg 
+<?PHP HideEmail('cnuernberg', 'whdh.com') ?>.  Just as a note, it is
+better to load a MobileDB and then work on it instead of trying to make
+one yourself from scratch.</p>
 
 <?PHP
 
 ShowExample('
-// Create an instance of the class
-$pdb = new PalmMobileDB();
+#########################################################################
+# Base files
+#########################################################################
 
-// Create a new record
-$Record = array("one", true, 35);
+include_once ("php-pdb.inc");
+include_once ("modules/mobiledb.inc"); 
 
-// Add the record to the database
+#########################################################################
+# Output file (generate a unique file name to avoid any type of
+caching)
+# Set appropriate permissions to "./output/"
+#########################################################################
+
+$rand = time().mt_rand(100,999);
+
+$ouput_file = "./output/example-$rand.pdb";
+
+#########################################################################
+# Databse name / create instance of the class
+#########################################################################
+
+$pdb = new PalmMobileDB("New Database");
+
+#########################################################################
+# Headers
+#########################################################################
+
+// For some reason we need this (attrib=68)
+$Record = array("","","");
 $pdb->SetRecordRaw($Record);
-
-// Advance to the next record just in case we want to add more
+$pdb->SetRecordAttrib(68);
 $pdb->GoToRecord("+1");
+
+// Field lengths (attrib=70)
+$Record = array("80","40","40");
+$pdb->SetRecordRaw($Record);
+$pdb->SetRecordAttrib(70);
+$pdb->GoToRecord("+1");
+
+// Field titles (attrib=65)
+$Record = array("Last","First","Time");
+$pdb->SetRecordRaw($Record);
+$pdb->SetRecordAttrib(65);
+$pdb->GoToRecord("+1");
+
+// Data type: T = text, d = time in seconds since midnight (there are
+another 1/2-dozen types)
+// (attrib=69)
+$Record = array("T","T","d");
+$pdb->SetRecordRaw($Record);
+$pdb->SetRecordAttrib(69);
+$pdb->GoToRecord("+1");
+
+#########################################################################
+# Actual data
+#########################################################################
+
+$Record = array("Nuernberg","Cristiano","28800");
+
+$Record = $record_array;
+$pdb->SetRecordRaw($Record);
+$pdb->SetRecordAttrib(66);
+$pdb->GoToRecord("+1");
+
+$Record = array("Smith","Mark","25200");
+
+$Record = $record_array;
+$pdb->SetRecordRaw($Record);
+$pdb->SetRecordAttrib(66);
+$pdb->GoToRecord("+1");
+
+// etc... 
+
+#########################################################################
+# Writing to a file
+#########################################################################
+
+$fp = fopen("$ouput_file", "wb");
+$pdb->WriteToFile($fp);
+fclose($fp);
 ');
 
 
