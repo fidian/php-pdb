@@ -318,7 +318,7 @@ class PalmDatebook extends PalmDB {
 	    if (isset($d['StartOfWeek']) && $d['StartOfWeek'] != '')
  	       $RecordString .= $this->Int8($d['StartOfWeek']);
 	    else
-	       $RecordString .= 0;
+	       $RecordString .= $this->Int8(0);
 	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
 	    if ($d['WeekNum'] > 5)
 	       $d['WeekNum'] = 5;
