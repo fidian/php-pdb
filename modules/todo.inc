@@ -208,5 +208,7 @@ class PalmTodoList extends PalmDB {
       }
       $NewRec['Description'] = $description;
       $NewRec['Note'] = $note;
+      
+      $this->Records[$RecordInfo['UID']] = $NewRec;
    }
 }
