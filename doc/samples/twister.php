@@ -40,7 +40,7 @@ include('../functions.inc');
 
 // START HERE
 
-set_time_limit(30);
+set_time_limit(0);
 
 // The viewSource.php file will not let you view the filter
 // files.  If you want to see them, you can use the web-based
@@ -133,7 +133,8 @@ function ShowInitialForm() {
    
    ShowDownloadLinks();
    
-?><form action="<?PHP echo $MyFilename ?>" method="post">
+?><form action="<?PHP echo $MyFilename 
+?>" method="post" enctype="multipart/form-data">
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
   <tr>
@@ -325,11 +326,22 @@ function ShowSize($bytes) {
 
 
 function GetTheFile() {
-   global $Source, $urldata;
-   
+   global $Source, $urldata, $HTTP_POST_FILES, $filedata;
+
    if ($Source == 'File') {
-      ShowError('I am unable to handle uploaded files at the moment.');
-      return false;
+      $fp = @fopen($HTTP_POST_FILES['filedata']['tmp_name'], 'r');
+      if (! $fp) {
+         ShowError("I am unable to open the uploaded file.  Weird.");
+         return false;
+      }
+      $d = '';
+      while (! feof($fp)) {
+         $d .= fread($fp, 8192);
+      }
+      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) . 
+         ".\nStarting conversion of the file.");
+      fclose($fp);
+      return $d;
    }
    if ($Source == 'URL') {
       $fp = @fopen($urldata, "r");
@@ -337,7 +349,7 @@ function GetTheFile() {
          ShowError("Unable to read from the URL specified:\n" . $urldata);
 	 return false;
       }
-      ShowStatus('Loading file.  Please be patient.');
+      ShowStatus('Downloading file.  Please be patient.');
       $d = '';
       while (! feof($fp)) {
          $d .= fread($fp, 8192);
