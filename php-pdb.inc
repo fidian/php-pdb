@@ -220,7 +220,7 @@
          return $value;
       }
       
-      
+
       // Pads a hex-encoded value (typically a string) to a fixed size.
       // May grow too long if $value starts too long
       // $value = hex encoded value
@@ -458,17 +458,58 @@
 	    $IdStr .= $this->Int8($LastIdWritten);
 	 }
 	 
-	 $TrailingBytes = $this->Int8($LastIdWritten);
+	 $TrailingBytes = $this->Int8($LastIdWritten + 1);
 	 $TrailingBytes .= $this->Int8(0);
 	 
 	 // Error checking
 	 if ($LastIdWritten >= 256)
 	    return $this->PadString('', PDB_CATEGORY_SIZE);
 	 
-	 return $this->Int32($RenamedFlags) . $CategoryStr . $IdStr . 
+	 return $this->Int16($RenamedFlags) . $CategoryStr . $IdStr . 
 	    $TrailingBytes;
       }
-     
+
+
+      // This should be called by other subclasses that use category support
+      // It returns a category array.  Each element in the array is another
+      // array with the key 'name' set to the name of the category and 
+      // the key 'renamed' set to the renamed flag for that category.
+      function LoadCategoryData($fileData) {
+         $RenamedFlags = $this->LoadInt16(substr($fileData, 0, 2));
+	 $Offset = 2;
+	 $StartingFlag = 65536;
+	 $Categories = array();
+	 while ($StartingFlag > 1) {
+	    $StartingFlag /= 2;
+	    $Name = substr($fileData, $Offset, PDB_CATEGORY_NAME_LENGTH);
+	    $i = 0;
+	    while ($i < PDB_CATEGORY_NAME_LENGTH && $Name[$i] != "\0")
+	       $i ++;
+	    if ($i == 0)
+	       $Name = '';
+	    elseif ($i < PDB_CATEGORY_NAME_LENGTH)
+  	       $Name = substr($Name, 0, $i);
+	    if ($RenamedFlags & $StartingFlag)
+	       $RenamedFlag = true;
+	    else
+	       $RenamedFlag = false;
+	    $Categories[] = array('Name' => $Name, 'Renamed' => $RenamedFlag);
+	    $Offset += PDB_CATEGORY_NAME_LENGTH;
+	 }
+	 
+	 $CategoriesParsed = array();
+	 
+	 foreach ($Categories as $CategoryData) {
+	    $UID = $this->LoadInt8(substr($fileData, $Offset, 1));
+	    $Offset ++;
+	    if ($CategoryData['Name'] != '')
+	       $CategoriesParsed[$UID] = $CategoryData;
+	 }
+	 
+	 // Ignore the last ID
+	 return $CategoriesParsed;
+      }
+
      
       /*
        * Database Writing Functions
@@ -659,13 +700,31 @@
          // 32 bytes = name, but only 31 available
 	 $this->Name = fread($file, 32);
 	 
-	 // These values may need to be changed to get the proper
-	 // byte ordering
+	 $i = 0;
+	 while ($i < 32 && $this->Name[$i] != "\0")
+	    $i ++;
+	 $this->Name = substr($this->Name, 0, $i);
+	 
 	 $this->Attributes = $this->LoadInt16($file);
 	 $this->Version = $this->LoadInt16($file);
-	 $this->CreationTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
-	 $this->ModificationTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
-	 $this->BackupTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
+	 
+	 $this->CreationTime = $this->LoadInt32($file);
+	 if ($this->CreationTime != 0)
+	    $this->CreationTime -= PDB_EPOCH_1904;
+	 if ($this->CreationTime < 0)
+	    $this->CreationTime = 0;
+	    
+	 $this->ModificationTime = $this->LoadInt32($file);
+	 if ($this->ModificationTime != 0)
+	    $this->ModificationTime -= PDB_EPOCH_1904;
+	 if ($this->ModificationTime < 0)
+	    $this->ModificationTime = 0;
+	    
+	 $this->BackupTime = $this->LoadInt32($file);
+	 if ($this->BackupTime != 0)
+            $this->BackupTime -= PDB_EPOCH_1904;
+	 if ($this->BackupTime < 0)
+	    $this->BackupTime = 0;
 	 
 	 // Modification number
 	 $this->Version = $this->LoadInt32($file);
@@ -723,11 +782,11 @@
 	       $FuncName .= $OffsetList[$ThisOffset][0];
 	       $extraData = $OffsetList[$ThisOffset][1];
 	    } else {
-	       $FuncName .= $OffsetList[$ThisOffset][0];
+	       $FuncName .= $OffsetList[$ThisOffset];
 	       $extraData = false;
 	    }
 	    fseek($file, $ThisOffset);
-	    $fileData = fgets($file, $NextOffset - $ThisOffset);
+	    $fileData = fread($file, $NextOffset - $ThisOffset);
 	    if ($this->$FuncName($fileData, $extraData))
 	       return -2;
 	    array_shift($Offsets);

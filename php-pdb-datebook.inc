@@ -108,14 +108,14 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated? (hunh?)
  */
  
 class PalmDatebook extends PalmDB {
-   var $DatebookRecords;
    var $FirstDay;
    var $CategoryData;
+   var $DatebookRecords;
    
    function PalmDatebook () {
       $this->Name = 'DatebookDB';
-      $this->Type = 'date';
-      $this->Creator = 'DATA';
+      $this->TypeID = 'DATA';
+      $this->CreatorID = 'date';
       $this->FirstDay = 0;
       $this->CategoryData = array(0 => 'Unfiled');
    }
@@ -157,10 +157,16 @@ class PalmDatebook extends PalmDB {
    }  
 
    function GetRecord($num) {
+      $OldRecord = $this->GoToRecord();
+      $this->GoToRecord($num);
       $this->ClearCurrentRecord();
+      
       $data = $this->DatebookRecords[$this->CurrentRecord];
-      if (! isset($data))
-         return $this->Records[$this->CurrentRecord]);
+      
+      if (! isset($data)) {
+         $this->GoToRecord($OldRecord);
+         return PalmDB::GetRecord($num);
+      }
 	 
       // Start Time and End Time
       // 4 bytes
@@ -178,7 +184,7 @@ class PalmDatebook extends PalmDB {
 	    $this->AppendInt16(65535);
 	    $this->AppendInt16(65535);
 	 } else {
-	    if ($EndH < $StartH || ($EndH == $StartH && $EndM < $StartM) {
+	    if ($EndH < $StartH || ($EndH == $StartH && $EndM < $StartM)) {
 	       $EndM = $StartM;
 	       if ($StartH < 23)
   	          $EndH = $StartH + 1;
@@ -197,6 +203,8 @@ class PalmDatebook extends PalmDB {
       $this->AppendInt16($this->DateToInt16($data['Date']));
       
       // Flags
+      if (! isset($data['Flags']))
+         $data['Flags'] = 0;
       $Flags = $data['Flags'] % 1024;
       if (isset($data['Description']) && $data['Description'] != '')
          $Flags += PDB_DATEBOOK_FLAG_DESCRIPTION;
@@ -229,14 +237,15 @@ class PalmDatebook extends PalmDB {
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
+         $d = $data['Repeat'];
+	 
          $this->AppendInt8($d['Type']);
 	 
 	 if (! isset($d['unknown1']))
 	    $d['unknown1'] = 0;
 	 $this->AppendInt8($d['unknown1']);
       
-         $d = $data['Repeat'];
-	 if (isset($d['End'])
+	 if (isset($d['End']))
 	    $this->AppendInt16($this->DateToInt16($d['End']));
 	 else
 	    $this->AppendInt16(65535);
@@ -294,6 +303,9 @@ class PalmDatebook extends PalmDB {
          $this->AppendString($data['Note']);
 	 $this->AppendInt8(0);
       }
+      
+      $this->GoToRecord($OldRecord);
+      return PalmDB::GetRecord($num);
    }
    
    function SetDatebookRecord($RecordData) {
@@ -307,8 +319,7 @@ class PalmDatebook extends PalmDB {
    }
    
    function GetAppInfoSize() {
-      // FIXME
-      return 0;
+      return PDB_CATEGORY_SIZE + 4;
    }
    
    function GetAppInfo() {
@@ -337,15 +348,28 @@ class PalmDatebook extends PalmDB {
    function LoadRecord($fileData, $RecordInfo) {
       $this->GoToRecord($RecordInfo['UID']);
       $this->RecordAttrs[$RecordInfo['UID']] = $RecordInfo['Attrs'];
+      
       $NewRec = $this->NewRecord();
       $StartH = $this->LoadInt8(substr($fileData, 0, 1));
       $StartM = $this->LoadInt8(substr($fileData, 1, 1));
       $EndH = $this->LoadInt8(substr($fileData, 2, 1));
       $EndM = $this->LoadInt8(substr($fileData, 3, 1));
-      $NewRec['StartTime'] = $StartH . ':' . $StartM;
-      $NewRec['EndTime'] = $EndH . ':' . $EndM;
+      if ($StartH != 255 && $StartM != 255) {
+         $NewRec['StartTime'] = $StartH . ':';
+	 if ($StartM < 10)
+	    $NewRec['StartTime'] .= '0';
+	 $NewRec['StartTime'] .= $StartM;
+      }
+      if ($EndH != 255 && $EndM != 255) {
+         $NewRec['EndTime'] = $EndH . ':';
+	 if ($EndM < 10)
+	    $NewRec['EndTime'] .= '0';
+	 $NewRec['EndTime'] .= $EndM;
+      }
       $NewRec['Date'] = $this->LoadInt16(substr($fileData, 4, 2));
+      $NewRec['Date'] = $this->Int16ToDate($NewRec['Date']);
       $Flags = $this->LoadInt16(substr($fileData, 6, 2));
+      $NewRec['Flags'] = $Flags;
       $fileData = substr($fileData, 8);
       
       if ($Flags & PDB_DATEBOOK_FLAG_WHEN)
@@ -362,7 +386,8 @@ class PalmDatebook extends PalmDB {
 	    $unit = 'd';
 	 $NewRec['Alarm'] = $amount . $unit;
 	 $fileData = substr($fileData, 2);
-      }
+      } else
+         unset($NewRec['Alarm']);
       
       if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
          $Repeat = array();
@@ -375,7 +400,7 @@ class PalmDatebook extends PalmDB {
 	 $Repeat['unknown2'] = $this->LoadInt8(substr($fileData, 7, 1));
 	 $fileData = substr($fileData, 8);
 	 
-	 if ($End != 65535)
+	 if ($End != 65535 && $End <= 0)
   	    $Repeat['End'] = $this->Int16ToDate($End);
       
          if ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
@@ -421,11 +446,11 @@ class PalmDatebook extends PalmDB {
       if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
          $i = 0;
 	 $NewRec['Description'] = '';
-	 while ($fileData[i] != "\0") {
+	 while ($i < strlen($fileData) && $fileData[$i] != "\0") {
 	    $NewRec['Description'] .= $fileData[$i];
 	    $i ++;
 	 }
-	 $fileData = substr($fileData, 0, $i + 1);
+	 $fileData = substr($fileData, $i + 1);
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
