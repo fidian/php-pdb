@@ -194,11 +194,12 @@ function ShowInitialForm() {
       this?</a>)<br>
       &nbsp; &nbsp; &nbsp;Create a new DOC file every 
       <input type=text name="BreakOnChapter" value="<?PHP
-      if (isset($BreakOnChapter) && $BreakOnChapter) {
+      if (isset($BreakOnChapter)) {
          settype($BreakOnChapter, 'integer');
          echo htmlspecialchars($BreakOnChapter);
       } else
-         echo '5'; ?>"> chapters
+         echo '10'; ?>"> chapters<br>
+      <i>(Use 0 to disable)
       
       </td>
   </tr>
@@ -212,7 +213,7 @@ function ShowInitialForm() {
       if (isset($TitleOfDoc)) echo htmlspecialchars($TitleOfDoc); ?>">
       <br>
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
-      Don't compress DOC file
+      Don't compress DOC file (Much faster, but also bigger)
       <br><br>
 
       <input type=radio name="TargetType" value="SmallBASIC"<?PHP
