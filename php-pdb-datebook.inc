@@ -42,13 +42,15 @@
  
 class PalmDatebook extends PalmDB {
    var $DatebookRecords;
+   var $FirstDay;
+   var $CategoryData;
    
    function PalmDatebook () {
       $this->Name = 'DatebookDB';
       $this->Type = 'date';
       $this->Creator = 'DATA';
-      $this->RecordGetFunc = 'PalmDatebookRecordGet';
-      $this->RecordSizeFunc = 'PalmDatebookRecordSize';
+      $this->FirstDay = 0;
+      $this->CategoryData = array();
    }
 
    function GetRecord($num) {
@@ -107,14 +109,25 @@ class PalmDatebook extends PalmDB {
    
    function GetAppInfo() {
       // Category list
-      $this->AppInfo = PalmDB::CreateAppInfoCategories(array());
+      $this->AppInfo = PalmDB::CreateCategoryData($this->CategoryData);
       
       // Unknown thing (first_day_in_week)
       // 00 00 FD 00 == where FD is the first day in week.
-      // I'm using 0 as the value since I don't know what it should be
-      $this->AppInfo .= $this->Int32(0);
+      // I'm using 0 as the default value since I don't know what it should be
+      $this->AppInfo .= $this->Int16(0);
+      $this->AppInfo .= $this->Int8($this->FirstDay);
+      $this->AppInfo .= $this->Int8(0);
       
       return $this->AppInfo;
+   }
+   
+   function LoadAppInfo($fileData) {
+      // Category list
+      $this->CategoryData = PalmDB::LoadCategoryData($fileData);
+      $fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
+      if (strlen($fileData < 1))
+         return;
+      $this->FirstDay = $this->LoadInt8($fileData);
    }
 }
 

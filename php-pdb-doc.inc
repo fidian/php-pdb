@@ -25,7 +25,7 @@ class PalmDoc extends PalmDB {
          if ($SpaceLeft > 0) {
 	    $this->AppendString($String, $SpaceLeft);
 	    $String = substr($String, $SpaceLeft);
-	    $SpaceLeft = 0;
+	    $SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
 	 } else {
 	    $Curr = $this->GoToRecord();
 	    $this->GoToRecord($Curr + 1);

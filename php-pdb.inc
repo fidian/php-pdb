@@ -112,7 +112,17 @@
          return sprintf("%02x", $value);
       }
       
-
+      
+      // Loads a single byte as a number from the file
+      function LoadInt8($file) {
+         if (gettype($file) == 'resource')
+            $string = fread($file, 1);
+	 else
+	    $string = $file;
+         return ord($string[0]);
+      }
+      
+      
       // Converts an integer (two bytes) and returns the value
       function Int16($value) {
          $value &= 0xFFFF;
@@ -120,11 +130,57 @@
       }
 
 
+      // Loads two bytes as a number from the file
+      function LoadInt16($file) {
+         if (gettype($file) == 'resource')
+            $string = fread($file, 2);
+	 else
+	    $string = $file;
+         return ord($string[0]) * 256 + ord($string[1]);
+      }
+      
+      
+      // Converts an integer (three bytes) and returns the value
+      function Int24($value) {
+         $value &= 0xFFFFFF;
+         return sprintf("%02x%02x%02x", $value / 65536, 
+	    ($value / 256) % 256, $value % 256);
+      }
+
+
+      // Loads three bytes as a number from the file
+      function LoadInt24($file) {
+         if (gettype($file) == 'resource')
+            $string = fread($file, 3);
+	 else
+	    $string = $file;
+         return ord($string[0]) * 65536 + ord($string[1]) * 256 +
+            ord($string[2]);
+      }
+      
+      
       // Converts an integer (four bytes) and returns the value
       // Uncertain if this works
       function Int32($value) {
          $value = bin2hex(pack('N', $value));
 	 return $value;
+      }
+      
+      
+      // Loads a four-byte string from a file into a number
+      function LoadInt32($file) {
+         if (gettype($file) == 'resource')
+	    $string = fread($file, 4);
+	 else
+	    $string = $file;
+         $value = 0;
+	 $i = 0;
+	 while ($i < 4) {
+	    $value *= 256;
+	    $value += ord($string[$i]);
+	    $i ++;
+	 }
+         return $value;
       }
       
       
@@ -141,6 +197,16 @@
       }
 
 
+      // The reverse?  Not coded yet.
+      function LoadDouble($file) {
+         if (gettype($file) == 'resource')
+            $string = fread($file, 8);
+	 else
+	    $string = $file;
+         return 0;
+      }
+      
+      
       // Converts a string into hexadecimal.
       // If $maxLen is specified and is greater than zero, the string is 
       // trimmed and will contain up to $maxLen characters.
@@ -251,7 +317,7 @@
  
       // Adds a string (not NULL-terminated)
       function AppendString($value, $maxLen = false) {
-         $this->AppendCurrent($this->String($value));
+         $this->AppendCurrent($this->String($value, $maxLen));
       }
       
 
@@ -354,12 +420,12 @@
       // Categories 128-255 are used for desktop ID numbers
       // Do not let category numbers be created larger than 255
       function CreateCategoryData($CategoryArray) {
-         $CategoryArray[0] = array('name' => 'Unfiled', 'renamed' => 0)
+         $CategoryArray[0] = array('name' => 'Unfiled', 'renamed' => 0);
 	 $CatsWritten = 0;
 	 $LastIdWritten = 0;
 	 $RenamedFlags = 0;
 	 $CategoryStr = '';
-	 $IdStr = ''
+	 $IdStr = '';
 	 $keys = array_keys($CategoryArray);
 	 sort($keys);
 	 foreach ($keys as $id) {
@@ -376,7 +442,7 @@
 	          if (isset($CategoryArray[$id]['name']))
 		     $name = $CategoryArray[$id]['name'];
 	       } else
-	          $name = CategoryArray[$id];
+	          $name = $CategoryArray[$id];
 	       $name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
 	       $CategoryStr .= $this->PadString($name,
 	                                        PDB_CATEGORY_NAME_LENGTH);
@@ -440,7 +506,7 @@
 	 $Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 	 
 	 // Modification number, app information id, sort information id
-	 $header .= $this->Int32(0);
+	 $header .= $this->Int32($this->Version);
 
          $AppInfo_Size = $this->GetAppInfoSize();
 	 if ($AppInfo_Size > 0) {
@@ -481,9 +547,7 @@
 	          $header .= $this->Int8(0);
 		  
 	       // The unique id is just going to be the record number
-	       $UID = $this->Int32($index);
-	       $UID = substr($UID, 2);
-	       $header .= $UID;
+	       $header .= $this->Int24($index);
 
                $Offset += $this->GetRecordSize($index);
 	    }
@@ -581,6 +645,111 @@
 	 }
 
 	 $this->WriteToStdout();
+      }
+      
+      
+      /*
+       * Loading in a database
+       */
+       
+      // Reads data from the file and tries to load it properly
+      // $file is the already-opened file handle.
+      // Returns false if no error
+      function ReadFile($file) {
+         // 32 bytes = name, but only 31 available
+	 $this->Name = fread($file, 32);
+	 
+	 // These values may need to be changed to get the proper
+	 // byte ordering
+	 $this->Attributes = $this->LoadInt16($file);
+	 $this->Version = $this->LoadInt16($file);
+	 $this->CreationTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
+	 $this->ModificationTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
+	 $this->BackupTime = $this->LoadInt32($file) - PDB_EPOCH_1904;
+	 
+	 // Modification number
+	 $this->Version = $this->LoadInt32($file);
+
+         // AppInfo and SortInfo size
+	 $AppInfoOffset = $this->LoadInt32($file);
+	 $SortInfoOffset = $this->LoadInt32($file);
+	 
+	 // Type, creator
+	 $this->TypeID = fread($file, 4);
+	 $this->CreatorID = fread($file, 4);
+	 
+	 // Skip unique ID seed
+	 fread($file, 4);
+	 
+	 // skip next record list (hope that's ok)
+	 fread($file, 4);
+	 
+	 $RecCount = $this->LoadInt16($file);
+	 
+	 $RecordData = array();
+	 
+	 while ($RecCount > 0) {
+	    $RecCount --;
+	    $Offset = $this->LoadInt32($file);
+	    $Attrs = $this->LoadInt8($file);
+	    $UID = $this->LoadInt24($file);
+	    $RecordData[] = array('Offset' => $Offset, 'Attrs' => $Attrs,
+	                          'UID' => $UID);
+	 }
+	 
+	 // Create the offset list
+	 if ($AppInfoOffset != 0)
+	    $OffsetList[$AppInfoOffset] = 'AppInfo';
+	 if ($SortInfoOffset != 0)
+	    $OffsetList[$SortInfoOffset] = 'SortInfo';
+	 foreach ($RecordData as $data) {
+	    $OffsetList[$data['Offset']] = array('Record', $data);
+	 }
+	 fseek($file, 0, SEEK_END);
+	 $OffsetList[ftell($file)] = 'EOF';
+	 
+	 // Parse each chunk
+	 ksort($OffsetList);
+	 $Offsets = array_keys($OffsetList);
+	 while (count($Offsets) > 1) {
+   	    // Don't use the EOF (which should be the last offset)
+	    $ThisOffset = $Offsets[0];
+	    $NextOffset = $Offsets[1];
+	    if ($OffsetList[$ThisOffset] == 'EOF')
+	       // Messed up file.  Stop here.
+	       return true;
+	    $FuncName = 'Load';
+	    if (is_array($OffsetList[$ThisOffset])) {
+	       $FuncName .= $OffsetList[$ThisOffset][0];
+	       $extraData = $OffsetList[$ThisOffset][1];
+	    } else {
+	       $FuncName .= $OffsetList[$ThisOffset][0];
+	       $extraData = false;
+	    }
+	    fseek($file, $ThisOffset);
+	    $fileData = fgets($file, $NextOffset - $ThisOffset);
+	    if ($this->$FuncName($fileData, $extraData))
+	       return -2;
+	    array_shift($Offsets);
+	 }
+	 
+	 return false;
+      }
+      
+      function LoadAppInfo($fileData) {
+         $this->AppInfo = bin2hex($fileData);
+	 return false;
+      }
+      
+      function LoadSortInfo($fileData) {
+         $this->SortInfo = bin2hex($fileData);
+	 return false;
+      }
+      
+      function LoadRecord($fileData, $recordInfo) {
+         $this->Record[$recordInfo['UID']] = bin2hex($fileData);
+	 $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];
+	 return false;
       }
    }
 ?>
