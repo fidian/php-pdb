@@ -29,6 +29,8 @@ base class and make life easier for the developer.
 Can use embedded and stored bookmarks.</li>
 <li><B>MobileDB</b> - Can read and write databases.  No utility functions
 yet, so using this class is extremely difficult.</li>
+<li><B>SmallBASIC</b> - Can read and write databases.  Easily convert
+from/to this format.</li>
 </ul>
 
 <h3>Features</h3>
@@ -56,8 +58,8 @@ conversion from different formats into the internal format used by Marco.</li>
 "export to palm datebook" patch was written.  It is being improved and
 should eventually be released from this site.</li>
 <li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
-href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC 
-format.</li>
+href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC or
+SmallBASIC format.</li>
 </ul>
 
 <?PHP

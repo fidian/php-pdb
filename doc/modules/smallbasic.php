@@ -17,10 +17,10 @@ StandardHeader('SmallBASIC', 'modules');
 programming language that runs on the handheld.  With this class, you can
 convert to/from the .PDB format that the SmallBASIC interpreter uses.</p>
 
-<p><b>Warning:</b>  This class has not yet been tested, and may not work.  I
-don't have SmallBASIC yet installed on my handheld, but I attempted to
-adhere very closely to the information that Nicholas provided me.  I expect
-that the testing should be performed in a week or so.</p>
+<p><b>Warning:</b>  This class has not yet been tested extensively, so don't
+use this for mission-critical applications without further testing.
+However, it does both read and write this format successfully for me, so I
+expect that it will work for you.</p>
 
 <h3>Including into your program</h3>
 
