@@ -215,11 +215,19 @@ class PalmAddress extends PalmDB {
       $Bytes = 9;
 
       $keys = array_keys($this->DataLabels);
+      $numSet = 0;
       foreach($keys as $k) {
-      if (isset($data[$k]) && $data[$k] != '') {
+         if (isset($data[$k]) && $data[$k] != '') {
 	    $Bytes += strlen($data[$k]) + 1; // NULL termination
+	    $numSet ++;
          }
       }
+      
+      if ($numSet == 0) {
+         // We'll add "Empty Record" to the LastName field.
+	 $Bytes += 13;
+      }
+      
       return $Bytes;
    }
 
@@ -262,7 +270,7 @@ class PalmAddress extends PalmDB {
       $companyFieldOff = 0;
       foreach ($this->DataLabels as $k => $v) {
          if (isset($data[$k]) && $data[$k] != '') {
-	    $fieldMap != $v;
+	    $fieldMap |= $v;
             $fields .= $this->String($data[$k]);
             $fields .= $this->Int8(0);
 	    if ($k == 'Company') {
@@ -285,7 +293,7 @@ class PalmAddress extends PalmDB {
       $RecordString .= $this->Int32($fieldMap);
       $RecordString .= $this->Int8($companyFieldOff);
       $RecordString .= $fields;
-     
+
       return $RecordString;
    }
 
@@ -443,10 +451,11 @@ class PalmAddress extends PalmDB {
 
       // Load the fields.
       $i = 0;
+      $max = strlen($fileData);
       foreach ($this->DataLabels as $key => $mask) {
          $NewRec[$key] = '';
          if ($fieldMap & $mask) {
-	    while ($fileData[$i] != "\0") {
+	    while ($fileData[$i] != "\0" && $i < $max) {
 	       $NewRec[$key] .= $fileData[$i];
 	       $i++;
 	    }

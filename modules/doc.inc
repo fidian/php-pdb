@@ -262,6 +262,7 @@ class PalmDoc extends PalmDB {
 	       $size = 21;
 	    while ($size < 21 &&
 	           $size + $StartingPos < $pos &&
+		   $pos + $size < strlen($In) &&
 		   $In[$StartingPos + $size] == $In[$pos + $size])
 	       $size ++;
 	    if ($size % 2)

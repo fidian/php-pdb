@@ -351,7 +351,7 @@ class PalmDB {
    // Returns the size of the current record if no arguments.
    // Returns the size of the specified record if arguments.
    function GetRecordSize($num = false) {
-      if ($num === false)
+     if ($num === false)
          $num = $this->CurrentRecord;
       if (! isset($this->Records[$num]))
          return 0;
