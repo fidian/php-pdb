@@ -15,50 +15,84 @@ if (file_exists('../../php-pdb.inc')) {
    include('./modules/doc.inc');
 }
 
+if (! isset($Stored)) {
+?>
+<html><head><title>Bookmark Test Generator</title>
+</head><body bgcolor=#FFFFFF>
+<h2 align=center>What kind of bookmarks do you want generated?</h2>
+<h3 align=center><a href="bookmark_test.php?Stored=1">Stored</a> - 
+<a href="bookmark_test.php?Stored=0">Embedded</a></h3>
+<h3 align=center><a href="../">Back to PHP-PDB Documentation</a></h3>
+</body></html>
+<?PHP
+   exit();
+}
 
 // START HERE
 
-// This copies a string 16 times.  It puts newlines between the
-// strings and adds another newline at the end for spacing.
-function RepeatString($str) {
-   $str .= "\n" . $str . "\n" . $str . "\n" . $str . "\n";
-   return $str . $str . $str . $str . "\n";
+if ($Stored)
+   $pdb = new PalmDoc("Stored Bookmark Test");
+else
+   $pdb = new PalmDoc("Embedded Bookmark Test");
+
+if ($Stored) {
+   $ThisTest = "stored";
+   $OtherTest = "embedded";
+   $UcFirst = "Stored";
+} else {
+   $ThisTest = "embedded";
+   $OtherTest = "stored";
+   $UcFirst = "Embedded";
 }
 
-$pdb = new PalmDoc("Bookmark Test");
+$pdb->AddDocText("This is a test file to see if $ThisTest bookmarks " .
+"are recognized by a document reader.  To determine if $OtherTest " .
+"bookmarks are supported, you'll need to use the other bookmark test that " .
+"you got from $PHP_SELF\n\n" .
+"To figure out if it worked, look for the bookmark list in this document " .
+"reader.  If it has a bookmark named \"$UcFirst Bookmark\", then it " .
+"worked.  If not, then this document reader doesn't support $ThisTest " .
+"style bookmarks.\n\n" .
+"This document was automatically generated using the PHP-PDB library -- a " .
+"free, GPL'd PHP library that manipulates PDB files.  Feel free to give " .
+"it a look at\nhttp://php-pdb.sourceforge.net\n\n");
 
-// Add some text on top
-$pdb->AddDocText(RepeatString("Top of Document"));
+// Add the bookmark
+if ($Stored)
+   $pdb->AddBookmark("Stored Bookmark");
+else
+   $pdb->AddDocText("*Embedded Bookmark\n");
+   
+$pdb->AddDocText("This is where \"$UcFirst Bookmark\" should take you, if " .
+"this document reader properly supports $ThisTest bookmarks.\n\n" .
+"Don't forget to see if your document reader supports $OtherTest style " .
+"bookmarks!\n\n");
 
-// Add a stored bookmark
-$pdb->AddBookmark("Just Stored");
+$pdb->AddDocText("Have a GREAT day!\n\n");
 
-// Add some text to make it stand apart from the next bookmark
-$pdb->AddDocText(RepeatString("Stored Bookmark"));
+if (! $Stored)
+   $pdb->AddDocText("This next part is needed by the document reader " .
+   "to detect where embedded bookmarks are located.  If you plan on " .
+   "generating documents with embedded bookmarks, you just need to add " .
+   "the special character (I'm using an asterisk -- the star thing) at " .
+   "the beginning of the line and the rest of the line becomes the " .
+   "bookmark.  Then, you just include \"<X>\" at the end of your " .
+   "document (replacing the X with the character you picked) to tell " .
+   "the doc reader which character you used to define bookmarks, like " .
+   "what I have at the end of this one.\n\n" .
+   "Please note:  Aportis will use the special character if it appears " .
+   "anywhere inside the file, so try to pick a character that is not " .
+   "in the text you are converting into a doc file:\n\n" .
+   "<*>");
+else
+   $pdb->AddDocText("This is just some garbage that should fill the " .
+   "screen so that when you jump to the stored bookmark, the message " .
+   "saying that you are in the right spot should be immediately at the " .
+   "top.  If this text is not there, and if you use a small font, you " .
+   "may see it in the middle or closer to the bottom.  This is " .
+   "annoying, and to keep things simple, I just add this filler material " .
+   "at the bottom.");
 
-// Add a stored bookmark
-$pdb->AddBookmark("Both - Stored");
-
-// Add the embedded bookmark.  I am using the * character
-// as my bookmark character.  Note:  You just add * at the
-// beginning of the line and the rest of the line becomes
-// your bookmark.
-$pdb->AddDocText("* Both - Embedded\n");
-
-// Add some text to make it stand apart from the next bookmark
-$pdb->AddDocText(RepeatString("Both types of bookmarks"));
-
-// Add just an embedded bookmark.
-$pdb->AddDocText("* Just Embedded\n");
-
-// Add some text to make it stand apart from the next bookmark
-$pdb->AddDocText(RepeatString("Embedded bookmark"));
-
-// This is how you specify the special character that becomes
-// your bookmark character.  RepeatString() adds two newlines,
-// so this is on its own line
-$pdb->AddDocText("<*>");
-
-$pdb->DownloadPDB("bookmark_test.pdb");
+$pdb->DownloadPDB("bookmark_" . $ThisTest . ".pdb");
 
 // END HERE

@@ -12,15 +12,27 @@ include("../functions.inc");
 StandardHeader('DOC Files', 'modules');
 
 $BookmarkTest = array(
+   'AportisDoc' => array(
+      'Version' => '2.2.3',
+      'URL' => 'http://aportis.com/',
+      'Stored' => true,
+      'Embedded' => true,
+      'Notes' => 'The one that started it all'),
    'CSpotRun' => array(
       'Version' => 1.1,
       'URL' => 'http://32768.com/cspotrun/',
       'Stored' => true,
       'Embedded' => false,
       'Notes' => 'Freeware, open source'),
+   'iSilo' => array(
+      'Version' => 3.05,
+      'URL' => 'http://isilo.com/',
+      'Stored' => true,
+      'Embedded' => false,
+      'Notes' => 'Free version of iSilo.'),
    'iSilo Free' => array(
       'Version' => 1.5,
-      'URL' => 'http://www.palmgear.com/software/showsoftware.cfm?prodID=3914',
+      'URL' => 'http://isilo.com/old/index.htm',
       'Stored' => false,
       'Embedded' => false,
       'Notes' => 'Free version of iSilo.'),
@@ -32,10 +44,40 @@ $BookmarkTest = array(
       'Notes' => 'DOC reader/writer'),
    'QED' => array(
       'Version' => 2.62,
-      'URL' => 'http://www.palmgear.com/software/showsoftware.cfm?prodID=1552',
+      'URL' => 'http://qland.de/qed/',
+      'Stored' => true,
+      'Embedded' => true,
+      'Notes' => 'DOC reader/writer'),
+   'ReadThemAll' => array(
+      'Version' => 1.65,
+      'URL' => 'http://palmgear.com/software/showsoftware.cfm?prodID=14149',
+      'Stored' => false,
+      'Embedded' => false,
+      'Notes' => ''),
+   'RichReader' => array(
+      'Version' => '1.62 Freeware',
+      'URL' => 'http://users.rcn.com/arenamk/',
       'Stored' => true,
       'Embedded' => false,
-      'Notes' => 'DOC reader/writer')
+      'Notes' => 'Free version of RichReader'),
+   'Smoothy' => array(
+      'Version' => '1.5.0',
+      'URL' => 'http://www.handwave.com/handwavesmoothybenefits.html',
+      'Stored' => true,
+      'Embedded' => false,
+      'Notes' => ''),
+   'SuperDoc' => array(
+      'Version' => 1.4,
+      'URL' => 'http://www.codemill.net/products/superdoc/index.html',
+      'Stored' => true,
+      'Embedded' => true,
+      'Notes' => ''),
+   'TealDoc' => array(
+      'Version' => '4.51D',
+      'URL' => 'http://www.tealpoint.com/softdoc.htm',
+      'Stored' => true,
+      'Embedded' => true,
+      'Notes' => '')
 );
 ?>
 
@@ -43,6 +85,7 @@ $BookmarkTest = array(
 will need a DOC reader in order to see any DOC file you have loaded onto
 your device.  There are several ones listed <a 
 href="#DocReaders">below</a>.</p>
+
 <p>Although the compressed form of DOC files and loading DOC files are both
 being worked on, you can still create and write uncompressed doc files quite
 easily.</p>
@@ -98,6 +141,15 @@ character at the beginning of a line to mark that line as a bookmark.  Then,
 to signify which character is the "bookmark" character, you include it at
 the end of the DOC file in angle brackets.</p>
 
+<p>Make sure to not mix types of bookmarks!  In the tests I have performed,
+it appears that if the bookmark reader can handle embedded bookmarks, it
+only searches for embedded bookmarks if there are no stored bookmarks.  If
+you decide to use embedded bookmarks, it would be wise to pick a character
+that does not appear anywhere else in the document, because some doc readers
+don't check to see if that character is at the beginning of a line before
+adding it to the bookmark list.  If you pick a character like an apostrophe
+or a period, then you are potentially in for a huge surprise.</p>
+
 <p><a href="../samples/viewSource.php?file=bookmark_test.php">This sample</a>
 will create a file with both types of bookmarks.  The
 first bookmark will be a stored bookmark, the second will use both types,
@@ -105,8 +157,9 @@ and the third will be just an embedded bookmark.  Please note that the
 maximum length for a stored bookmark name is 15 characters.  The maximum
 length for embedded bookmarks could vary.</p>
 
-<p>The example will create a test DOC (also available <a
-href="../samples/bookmark_test.php">here</a>) that has both kinds of bookmarks.
+<p>The example will create two types of DOC files, one that has embedded
+bookmarks and one that does not.  You can get them from <a
+href="../samples/bookmark_test.php">here</a>.
 Below is a table showing various doc readers and what type of bookmarks they
 support.  Please help me expand this list so that the capabilities of more
 DOC readers can be known.  Just mail me (link at bottom of
@@ -132,8 +185,11 @@ supports. (see above -- the section "Adding Bookmarks")</p>
    $Stored = 0;
    $Embedded = 0;
    
-   ksort($BookmarkTest);
-   foreach ($BookmarkTest as $Name => $Info) {
+   $keys = array_keys($BookmarkTest);
+   natcasesort($keys);
+   foreach ($keys as $Name) {
+      $Info = $BookmarkTest[$Name];
+      
       $Total ++;
       if ($Info['Stored']) {
          $StoredColor = 'green';
@@ -158,7 +214,10 @@ supports. (see above -- the section "Adding Bookmarks")</p>
 echo $StoredString ?></B></font></td>
 <td align=center><font color="<?PHP echo $EmbeddedColor ?>"><B><?PHP
 echo $EmbeddedString ?></B></font></td>
-<td><font size="-1"><?PHP echo $Info['Notes'] ?></font></td></tr>
+<td><font size="-1"><?PHP if ($Info['Notes'] != '') 
+   echo $Info['Notes'];
+else
+   echo '&nbsp;'; ?></font></td></tr>
 <?PHP
 
    }
