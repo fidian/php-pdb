@@ -505,7 +505,7 @@ class PalmDatebook extends PalmDB {
       if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
          $i = 0;
 	 $NewRec['Note'] = '';
-	 while (i < strlen($fileData) && $fileData[i] != "\0") {
+	 while ($i < strlen($fileData) && $fileData[i] != "\0") {
 	    $NewRec['Note'] .= $fileData[$i];
 	    $i ++;
 	 }
