@@ -315,11 +315,36 @@
       }
       
 
-      // Returns the hex-encoded data for the specified record
-      function GetRecord($Rec) {
+      // Returns true if the specified/current record exists and is set
+      function RecordExists($Rec = false) {
+         if ($Rec === false)
+	    $Rec = $this->CurrentRecord;
+	 if (isset($this->Records[$Rec]))
+	    return true;
+	 return false;
+      }
+      
+      
+      // Returns the hex-encoded data for the specified record or the current
+      // record if not specified
+      function GetRecord($Rec = false) {
+         if ($Rec === false)
+	    $Rec = $this->CurrentRecord;
          if (isset($this->Records[$Rec]))
             return $this->Records[$Rec];
 	 return '';
+      }
+      
+      
+      // Returns the raw data inside the current/specified record.  Use this
+      // for odd record types (like a Datebook record).  Also, use this
+      // instead of just using $PDB->Records[] directly.
+      function GetRecordRaw($Rec = false) {
+         if ($Rec === false)
+	    $Rec = $this->CurrentRecord;
+         if (isset($this->Records[$Rec]))
+	    return $this->Records[$Rec];
+	 return false;
       }
       
       
@@ -328,14 +353,14 @@
       // type of record (like a Datebook record).
       // Also, use this instead of just setting $PDB->Records[]
       // directly.
-      function SetRecord($Rec) {
+      function SetRecordRaw($Rec) {
          $this->Records[$this->CurrentRecord] = $Rec;
       }
       
       
       // Erases all data for the current record
       function ClearCurrentRecord() {
-         $this->SetRecord('');
+         unset($this->Records[$this->CurrentRecord]);
       }
       
       
