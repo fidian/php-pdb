@@ -193,12 +193,12 @@ function ShowInitialForm() {
       Project Gutenberg Text (<a href="http://promo.net/pg">What is 
       this?</a>)<br>
       &nbsp; &nbsp; &nbsp;Create a new DOC file every 
-      <input type=text name="BreakOnChapter" value="<?PHP
+      <input type=text name="BreakOnChapter" size=4 value="<?PHP
       if (isset($BreakOnChapter)) {
          settype($BreakOnChapter, 'integer');
          echo htmlspecialchars($BreakOnChapter);
       } else
-         echo '10'; ?>"> chapters<br>
+         echo '0'; ?>"> chapters<br>
       <i>(Use 0 to disable)
       
       </td>
