@@ -25,8 +25,8 @@ base class and make life easier for the developer.
 
 <ul>
 <li><b>Datebook</b> - Reading and writing fully supported.</li>
-<li><b>DOC</b> - Can write compressed and uncompressed doc files but can't 
-yet load them. Can use embedded and stored bookmarks.</li>
+<li><b>DOC</b> - Can read and write compressed and uncompressed doc files.
+Can use embedded and stored bookmarks.</li>
 <li><B>MobileDB</b> - Can read and write databases.  No utility functions
 yet, so using this class is extremely difficult.</li>
 </ul>

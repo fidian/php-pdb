@@ -90,10 +90,6 @@ already out there that will work for you.  Additionally, you can use
 PHP-PDB library to create DOC files from plain text files, web pages, and
 files from <a href="http://promo.net/pg/">Project Gutenberg</a>.</p>
 
-<p>Although the loading DOC files is
-being worked on, you can still create and write compressed and uncompressed 
-doc files quite easily.</p>
-
 <h3>Including into your program</h3>
 
 <?PHP
@@ -123,7 +119,6 @@ $DB = new PalmDoc("Uncompressed DOC", false);
 $pdb = new PalmDoc();
   // Special:  If you want to create an instance of the class
   // and then use ReadFile() to load the database information
-  // Note:  ReadFile() is not supported yet!
 ');
 
 ?>
@@ -133,10 +128,18 @@ $pdb = new PalmDoc();
 <p>This is the same as the base class.  See <a href="../example.php">Basic
 Use</a> for more information.</p>
 
+<p>If the $pdb was set to be a compressed file, the contents will be
+transparently compressed.  Also, you can further manipulate the text
+normally after writing -- it will just be recompressed every time you write 
+the database.  The down side is that it doesn't check if the contents were
+modified before recompressing the document, so try to not output the file
+multiple times or you will be experiencing a lot of time loss due to the
+class not caching yet.</p>
+
 <h3>Loading the database</h3>
 
-<p>Not yet supported.  As soon as I get the decompression code in place,
-loading DOC files will be supported.</p>
+<p>This works just like loading files with the base class.  Please see <a
+href="../example.php">Basic Use</a> for further information.</p>
 
 <h3>Adding Bookmarks</h3>
 
