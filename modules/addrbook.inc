@@ -38,7 +38,7 @@ define('PDB_ADDR_COUNTRY_UNITED_KINDOM', 23);
 define('PDB_ADDR_COUNTRY_UNITED_STATES', 24);
 
 // Change this to match your locale
-define('PDB_ADDR_COUNTRY_DEFAULT', 24);
+define('PDB_ADDR_COUNTRY_DEFAULT', PDB_ADDR_COUNTRY_UNITED_STATES);
 
 // Phone labels index
 define('PDB_ADDR_LABEL_WORK', 0);
@@ -55,7 +55,7 @@ define('PDB_ADDR_ATTRIB_EXPUNGED', 0x80);
 define('PDB_ADDR_ATTRIB_DELETED', 0x40);
 define('PDB_ADDR_ATTRIB_ARCHIVE', 0x08);  // Only set if expunged or deleted
 define('PDB_ADDR_ATTRIB_DIRTY', 0x20);
-define('PDB_ADDR_ATTRIB_PRIVATE', x010);
+define('PDB_ADDR_ATTRIB_PRIVATE', 0x010);
 
 // Easier to use one of these if you need it
 define('PDB_ADDR_ATTRIB_DELE_EXP', 0xC0);  // Deleted and Expunged bits
@@ -105,7 +105,7 @@ define('PDB_ADDR_ATTRIB_HIGH', 0xF0);  // All of above except Archive bit
  *
  * Key           Example         Description
  * ------------------------------------------------
- * name          Duck            The contact's last name
+ * lastName      Duck            The contact's last name
  * firstName     Daffy           The contact's first name
  * company       PHP-PDB Inc.    Name of the company
  * phone1        556-6778        A telephone number, email, or any string
@@ -163,7 +163,7 @@ define('PDB_ADDR_ATTRIB_HIGH', 0xF0);  // All of above except Archive bit
 class PalmAddress extends PalmDB {
    // Default field labels.
    // Can be changed for I18N -- see SetFieldLabels() and GetFieldLabels()
-   var $Labels = array('name'      => 'Name',
+   var $Labels = array('lastName'  => 'Last name',
  		       'firstName' => 'First name',
 		       'company'   => 'Company',
 		       'phone1'    => 'Work',
@@ -218,7 +218,7 @@ class PalmAddress extends PalmDB {
    // This doesn't actually add the record.
    function NewRecord() {
       // Initialize the fields. Empty by default.
-      $Record['fields'] = array('name'      => '',
+      $Record['fields'] = array('lastName'  => '',
 			        'firstName' => '',
 			        'company'   => '',
 			        'phone1'    => '',
@@ -239,12 +239,12 @@ class PalmAddress extends PalmDB {
 			        'note'      => '');
      
       // Initialize the phone labels;
-      $Record['phoneLabel'] = array('phone1' => PDB_WORK,
-				    'phone2' => PDB_HOME,
-				    'phone3' => PDB_FAX,
-				    'phone4' => PDB_OTHER,
-				    'phone5' => PDB_EMAIL,
-				    'display' => PDB_WORK,
+      $Record['phoneLabel'] = array('phone1' => PDB_ADDR_LABEL_WORK,
+				    'phone2' => PDB_ADDR_LABEL_HOME,
+				    'phone3' => PDB_ADDR_LABEL_FAX,
+				    'phone4' => PDB_ADDR_LABEL_OTHER,
+				    'phone5' => PDB_ADDR_LABEL_EMAIL,
+				    'display' => PDB_ADDR_LABEL_WORK,
 				    'reserved' => '');
 
       // Initialize the category.
@@ -313,7 +313,7 @@ class PalmAddress extends PalmDB {
       $RecordString .= $this->Int32($phoneFlags);
 
       $fieldMap = 0;
-      if ($data['fields']['name'] != '')      { $fieldMap |= 0x0001; }
+      if ($data['fields']['lastName'] != '')  { $fieldMap |= 0x0001; }
       if ($data['fields']['firstName'] != '') { $fieldMap |= 0x0002; }
       if ($data['fields']['company'] != '')   { $fieldMap |= 0x0004; }
       if ($data['fields']['phone1'] != '')    { $fieldMap |= 0x0008; }
@@ -338,8 +338,8 @@ class PalmAddress extends PalmDB {
       $fields = '';
       $companyFieldOff = 0;
 
-      if ($data['fields']['name'] != '') {
-         $fields .= $this->String($data['fields']['name']);
+      if ($data['fields']['lastName'] != '') {
+         $fields .= $this->String($data['fields']['lastName']);
          $fields .= $this->Int8(0);
       }
       if ($data['fields']['firstName'] != '') {
@@ -438,12 +438,12 @@ class PalmAddress extends PalmDB {
          $B['category'] = 0;
       }
       if (!isset($B['phoneLabel'])) {
-         $B['phoneLabel'] = array('phone1' => PDB_WORK,
-				  'phone2' => PDB_HOME,
-				  'phone3' => PDB_FAX,
-				  'phone4' => PDB_OTHER,
-				  'phone5' => PDB_EMAIL,
-				  'display' => PDB_WORK,
+         $B['phoneLabel'] = array('phone1' => PDB_ADDR_LABEL_WORK,
+				  'phone2' => PDB_ADDR_LABEL_HOME,
+				  'phone3' => PDB_ADDR_LABEL_FAX,
+				  'phone4' => PDB_ADDR_LABEL_OTHER,
+				  'phone5' => PDB_ADDR_LABEL_EMAIL,
+				  'display' => PDB_ADDR_LABEL_WORK,
 				  'reserved' => '');
       }
       $this->Records[$A] = $B;
@@ -497,7 +497,7 @@ class PalmAddress extends PalmDB {
       $this->AppInfo .= $this->Int8(0);
 
       // Field labels
-      $field = $this->String($this->Labels['name'],PDB_ADDR_LABEL_LENGTH -1);
+      $field = $this->String($this->Labels['lastName'],PDB_ADDR_LABEL_LENGTH -1);
       $this->AppInfo .= $this->PadString($field,PDB_ADDR_LABEL_LENGTH);
       $field = $this->String($this->Labels['firstName'],PDB_ADDR_LABEL_LENGTH -1);
       $this->AppInfo .= $this->PadString($field,PDB_ADDR_LABEL_LENGTH);
@@ -564,7 +564,7 @@ class PalmAddress extends PalmDB {
       }
       
       // Validates if the first element is empty.
-      $i = $list[0] != '' ? 1 : 0;
+      $i = ($list[0] != '' ? 1 : 0);
 
       $keys = array_keys($list);
       sort($keys);
@@ -613,7 +613,7 @@ class PalmAddress extends PalmDB {
 
 
    // Returns an array with the phone labels
-   function GetoPhoneLabels() {
+   function GetPhoneLabels() {
       return $this->phoneLabels;
    }
 
@@ -647,7 +647,7 @@ class PalmAddress extends PalmDB {
       $this->AppInfo = bin2hex($fileData);
       $this->CategoryList = $this->LoadCategoryData($fileData);
       $fileData = substr($fileData, PDB_CATEGORY_SIZE + 6);
-      $this->Labels['name'] = substr($fileData, 0, PDB_ADDR_LABEL_LENGTH);
+      $this->Labels['lastName'] = substr($fileData, 0, PDB_ADDR_LABEL_LENGTH);
       $index = PDB_ADDR_LABEL_LENGTH;
       $this->Labels['firstName'] = 
          substr($fileData, $index, PDB_ADDR_LABEL_LENGTH);
@@ -745,7 +745,7 @@ class PalmAddress extends PalmDB {
       $companyFieldOff = $this->LoadInt8(substr($fileData,8));
 
       // Load the fields.
-      $filters = array('name'      => 0x0001,
+      $filters = array('lastName'  => 0x0001,
 		       'firstName' => 0x0002,
 		       'company'   => 0x0004,
 		       'phone1'    => 0x0008,

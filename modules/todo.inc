@@ -13,7 +13,7 @@ define('PDB_TODO_ATTRIB_EXPUNGED', 0x80);
 define('PDB_TODO_ATTRIB_DELETED', 0x40);
 define('PDB_TODO_ATTRIB_ARCHIVE', 0x08);  // Only set if expunged or deleted
 define('PDB_TODO_ATTRIB_DIRTY', 0x20);
-define('PDB_TODO_ATTRIB_PRIVATE', x010);
+define('PDB_TODO_ATTRIB_PRIVATE', 0x010);
 
 // Easier to use one of these if you need it
 define('PDB_TODO_ATTRIB_DELE_EXP', 0xC0);  // Deleted and Expunged bits
@@ -194,6 +194,9 @@ class PalmTodoList extends PalmDB {
       if (!isset($B['priority'])) {
          $B['priority'] = 1;
       }
+      if (!isset($B['category'])) {
+         $B['category'] = 0;
+      }
       $this->Records[$A] = $B;
 
       if (isset($B['attributes'])) {
@@ -239,7 +242,7 @@ class PalmTodoList extends PalmDB {
       }
 
       // Validates if the first element is empty.
-      $i = $list[0] != '' ? 1 : 0;
+      $i = ($list[0] != '' ? 1 : 0);
 
       $keys = array_keys($list);
       sort($keys);

@@ -45,10 +45,12 @@ function StandardHeader($title = '', $curdir = '') {
     </td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">Modules</th></tr>
     <tr><td>
+       <a href="<?PHP echo $modulePath ?>addrbook.php">Address&nbsp;Book</a><br>
        <a href="<?PHP echo $modulePath ?>datebook.php">Datebook</a><br>
        <a href="<?PHP echo $modulePath ?>doc.php">DOC</a><br>
        <a href="<?PHP echo $modulePath ?>mobiledb.php">MobileDB</a><br>
-       <a href="<?PHP echo $modulePath ?>smallbasic.php">SmallBASIC</a>
+       <a href="<?PHP echo $modulePath ?>smallbasic.php">SmallBASIC</a><br>
+       <a href="<?PHP echo $modulePath ?>todo.php">Todo</a>
     </td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">Examples</th></tr>
     <tr><td>
@@ -127,7 +129,7 @@ OutString="";
 for (j=0;j<MaIlMe.length;j++){
 OutString+=MaIlMe[j];
 }document.write(unescape(OutString));
-</SCRIPT><NOSCRIPT>Sorry, you need javascript to see my email address</noscript><?PHP
+</SCRIPT><NOSCRIPT>Sorry, you need javascript to this email address</noscript><?PHP
 }
 
 

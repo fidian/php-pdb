@@ -46,8 +46,8 @@ define('PDB_RECORD_ATTRIB_EXPUNGED', 128);
 define('PDB_CATEGORY_NUM', 16);  // Number of categories
 define('PDB_CATEGORY_NAME_LENGTH', 16);  // Bytes allocated for name
 define('PDB_CATEGORY_SIZE', 276); // 2 + (num * length) + num + 1 + 1
-define('PDB_CATEGORY_MASK', 15);  // Bitmask -- use with attribute of record
-                                  // to get the category ID
+define('PDB_CATEGORY_MASK', 0x0f);  // Bitmask -- use with attribute of record
+                                    // to get the category ID
 
 
 // Double conversion

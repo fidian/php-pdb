@@ -70,6 +70,10 @@ href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
 approximate size.</li>
 <Li>Would backwards size searching for compressing DOC records be faster?
 Test it out.  DOC compression is too slow.</li>
+<li>Alter todo and addrbook to use the attributes from php-pdb's main
+class.</li>
+<li>Add more category functions from the todo and addrbook into the php-pdb
+main class.</li>
 </ul>
 
 <p><b>New Ideas:</b></p>
@@ -80,8 +84,6 @@ support</a></li>
 <li>How about adding <a
 href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
 ebooks for GutenPalm?  It's quite similar to DOC.</li>
-<li>Add todo support</li>
-<li>Add phonebook support</li>
 <li>Add memo support</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
 you have info, please mail me)</li>

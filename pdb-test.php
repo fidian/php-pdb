@@ -11,9 +11,11 @@
 ini_set('error_reporting', E_ALL);
 
 include "./php-pdb.inc";
+include "./modules/addrbook.inc";
 include "./modules/datebook.inc";
 include "./modules/doc.inc";
 include "./modules/smallbasic.inc";
+include "./modules/todo.inc";
 
 $Tests = array();
 $TestType = 'Unknown';
@@ -53,6 +55,8 @@ ob_start();
 </ul>
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
+<li>Addresses = <?PHP PassFail(AddressbookTest(),
+                              '563db99e05e0130d8e0fecbfdc066da5') ?></li>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
                               'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail(DocTest(false),
@@ -61,6 +65,8 @@ ob_start();
                          '26664289f16ba7e0ebbfeb3663babd86') ?></li>
 <li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
                          '28f7b1cd127f10dc06ec66c69ef74ffd') ?></li>
+<li>Todo = <?PHP PassFail(TodoTest(), 
+                              'a9395d688c7ae7b1cc9e983d761f4e5f') ?></li>
 </ul>
 <?PHP
 
@@ -184,6 +190,53 @@ Tracker</a></li>
 
 
 //
+// Address book
+//
+
+function AddressbookTest() {
+   $addr = new PalmAddress();
+   
+   // Create some categories
+   $categorias = array('VIP','AAA','Inicial');
+   $addr->SetCategoryList($categorias);
+   
+   // Add one entry
+   $fields = array('name' => 'Pascual',
+ 		   'firstName' => 'Eduardo',
+		   'phone1' => '21221552',
+		   'phone2' => '58808912',
+		   'phone5' => 'epascual@cie.com.mx',
+		   'address' => 'Hda. la Florida 10A',
+		   'city' => 'Izcalli');
+   $record['fields'] = $fields;
+   $addr->SetRecordRaw($record);
+   $addr->GoToRecord('+1');
+   
+   // Add another
+   $fields = array('name' => 'de tal',
+		   'firstName' => 'fulanito',
+		   'address' => 'Direccion',
+		   'phone1' => '21232425',
+		   'phone2' => 'fulanito@dondesea.com');
+   $phones = array('phone1' => PDB_ADDR_LABEL_HOME,
+		   'phone2' => PDB_ADDR_LABEL_EMAIL,
+		   'phone3' => PDB_ADDR_LABEL_WORK,
+		   'phone4' => PDB_ADDR_LABEL_FAX,
+		   'phone5' => PDB_ADDR_LABEL_OTHER,
+		   'display' => 1,
+		   'reserved' => '');
+   $record['fields'] = $fields;
+   $record['phoneLabel'] = $phones;
+   $record['category'] = 1;
+   $record['attributes'] = PDB_ADDR_ATTRIB_PRIVATE;
+   $addr->SetRecordRaw($record);
+   
+   return GenerateMd5($addr);
+}
+
+
+
+//
 // Datebook 
 //
 
@@ -272,6 +325,41 @@ EOS;
    $d->ConvertFromText($text);
  
    return GenerateMd5($d);
+}
+
+
+
+//
+// Todo
+//
+
+function TodoTest() {
+   $todo = new PalmTodoList();
+   
+   // Add some categories
+   $categorias = array('Visita','Fax','Correo');
+   $todo->SetCategoryList($categorias);
+   
+   // Add a record
+   $record = array('description' => 'Enviar Fax',
+                   'note' => "25\nProbar palm",
+		   'priority' => 2,
+		   'completed' => 0,
+		   'category' => 2,
+		   'due_date' => '');
+   $todo->SetRecordRaw($record);
+   $todo->GoToRecord('+1');
+   
+   // Add another record
+   $record = array('description' => 'Llamar a juan',
+                   'note' => '35',
+                   'category' => 0,
+                   'due_date' => '2002-5-31',
+                   'attributes' => PDB_TODO_ATTRIB_PRIVATE &
+		                   PDB_TODO_ATTRIB_DIRTY);
+   $todo->SetRecordRaw($record);
+
+   return GenerateMd5($todo);
 }
 
 

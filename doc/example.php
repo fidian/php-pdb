@@ -112,6 +112,25 @@ $pdb = new PalmDB("test", "test");
 $fp = fopen("your_file.pdb", "r");
 $pdb->ReadFile($fp);
 fclose($fp);
+
+// Show information about the database
+echo "Name: $addr->Name<br>\n";
+echo "Type: $addr->TypeID<br>";
+echo "Creator: $addr->CreatorID<br>\n";
+echo "Atttributes: $addr->Atributes<br>\n";
+echo "Version: $addr->Version<br>\n";
+echo "ModNum: $addr->ModNumber<br>\n";
+echo "CreationTime: $addr->CreationTime<br>\n";
+echo "ModTime: $addr->ModificationTime<br>\n";
+echo "BackTime: $addr->BackupTime<br>\n";
+echo "NumRec: ".$addr->GetRecordCount()."<br>\n";
+$recids = $addr->GetRecordIDs();
+foreach ($recids as $ID) {
+  $record = $addr->GetRecordRaw($ID);
+  echo "Record $ID:<BR>";
+  // Depending on what the record stored, you might be able to do this:
+  // echo "- Data: " . $record
+}
 ');
 
 ?>

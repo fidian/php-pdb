@@ -17,8 +17,8 @@ StandardHeader('Main');
 manipulate <a href="http://www.palmos.com">Palm OS</a> databases.  It lets
 you read, write, alter, and easily use data that is meant to be sent to or 
 retrieved from a handheld.  It requires PHP 4.0.1 or later, but due to
-security problems with PHP, I'd suggest you have version 4.1.2 or a patched
-earlier version (4.0.1 is the minimum).</p>
+security problems with PHP 4, I'd suggest you have version 4.1.2 or patch your
+current version..</p>
 
 <h3>Directly supported databases</h3>
 
@@ -27,13 +27,17 @@ base class and make life easier for the developer.  PHP-PDB can be used with
 your own <a href="custom.php">custom</a> database type as well.</p>
 
 <ul>
-<li><b>Datebook</b> - Reading and writing fully supported.</li>
-<li><b>DOC</b> - Can read and write compressed and uncompressed doc files.
-Can use embedded and stored bookmarks.</li>
-<li><B>MobileDB</b> - Can read and write databases.  No utility functions
-yet, so using this class is extremely difficult.</li>
-<li><B>SmallBASIC</b> - Can read and write databases.  Easily convert
-from/to this format.</li>
+<li><b><a href="modules/addrbook.php">Address Book</a></b> - Reading and
+writing fully supported.</li>
+<li><b><a href="modules/datebook.php">Datebook</a></b> - Reading and writing 
+fully supported.</li>
+<li><b><a href="modules/doc.php">DOC</a></b> - Can read and write 
+compressed and uncompressed doc files.  Can use embedded and stored 
+bookmarks.</li>
+<li><B><a href="modules/mobiledb.php">MobileDB</a></b> - Can read and write
+databases.  No utility functions yet, so this class is difficult to use.</li>
+<li><B><a href="modules/smallbasic.php">SmallBASIC</a></b> - Can read and 
+write databases.  Easily convert from/to this format.</li>
 </ul>
 
 <h3>Features</h3>
@@ -44,8 +48,8 @@ types of databases.</li>
 <li>The class supports reading databases as well as writing databases.</li>
 <li>Easily be able to pipe a Palm OS database to the browser or out to a
 file.</li>
-<li>Category support, but it is somewhat limited.</li>
-<li>Very limited appinfo and sortinfo support.</li>
+<li>Category support, but it is currently somewhat limited.</li>
+<li>Limited appinfo and sortinfo support exists.</li>
 </ul>
 
 <h3>As Seen In ...</h3>
@@ -57,8 +61,10 @@ about it!</p>
 <ul>
 <li><a href="http://rumkin.com/projects/marco/">Marco</a> - Data point
 conversion from different formats into the internal format used by Marco.</li>
+<!-- Removed because the patch author didn't get back to me.
 <li><a href="http://www.moregroupware.com/">Moregroupware</a> - A custom
 "export to palm datebook" patch was written.  It is being improved and
+-->
 should eventually be released from this site.</li>
 <li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
 href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC or

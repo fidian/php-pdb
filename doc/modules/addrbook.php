@@ -1,5 +1,5 @@
 <?PHP
-/* Documentation for PHP-PDB library -- Datebook module
+/* Documentation for PHP-PDB library -- Addrbook module
  *
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
