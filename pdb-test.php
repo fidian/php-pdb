@@ -133,12 +133,6 @@ function GenerateMd5(&$PalmDB) {
    $file = ob_get_contents();
    ob_end_clean();
    
-   $fp = fopen($PalmDB->Name . '-test.pdb', 'wb');
-   if ($fp) {
-      $PalmDB->WriteToFile($fp);
-      fclose($fp);
-   }
-   
    return md5($file);
 }
 
