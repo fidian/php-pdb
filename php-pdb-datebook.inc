@@ -306,12 +306,13 @@ class PalmDatebook extends PalmDB {
 	 if ($d['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
 	    $days = $d['Days'];
 	    $flags = 0;
-	    $QuickLookup = array(64, 32, 16, 8, 4, 2, 1);
+	    $QuickLookup = array(1, 2, 4, 8, 16, 32, 64);
 	    $i = 0;
 	    while ($i < strlen($days)) {
 	       $num = $days[$i];
 	       settype($num, 'integer');
-	       $flags = $flags | $QuickLookup[$num];
+	       if (isset($QuickLookup[$num]))
+	          $flags = $flags | $QuickLookup[$num];
 	       $i ++;
 	    }
 	    $RecordString .= $this->Int8($flags);
