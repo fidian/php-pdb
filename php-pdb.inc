@@ -60,9 +60,6 @@
       var $ModificationTime = 0; // Stored in unix time (Jan 1, 1970)
       var $BackupTime = 0; // Stored in unix time (Jan 1, 1970)
       
-      var $RecordGetFunc = ''; // If you need to specify a new function
-      var $RecordSizeFunc = ''; // See the DumpRecord and GetRecordSize
-
 
       // Creates a new database class
       function PalmDB($Type, $Creator, $Name = '')
@@ -132,7 +129,7 @@
       }
       
       
-      function GetRecordSize_Normal($num) {
+      function GetRecordSize_Class($num) {
          return strlen($this->Records[$num]) / 2;
       }
       
@@ -140,9 +137,7 @@
       function GetRecordSize($num = false) {
          if ($num === false)
 	    $num = $this->CurrentRecord;
-	 if ($RecordSizeFunc != '')
-	    return $this->RecordSizeFunc($num);
-	 return $this->GetRecordSize_Normal($num);
+	 return $this->GetRecordSize_Class($num);
       }
       
       
@@ -178,10 +173,8 @@
          $this->AppendCurrent($this->String($value));
       }
       
-      
-      function DumpRecord($Rec) {
-         if ($RecordGetFunc != '')
-	    return $RecordGetFunc($Rec);
+
+      function GetRecord($Rec) {
          if (isset($this->Records[$Rec]))
             return $this->Records[$Rec];
 	 return '';
@@ -278,7 +271,7 @@
 	 $keys = array_keys($this->Records);
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
-	    $data = $this->DumpRecord($index);
+	    $data = $this->GetRecord($index);
 	    //echo "Record $index -> $data<br>\n";
 	    fwrite($file, pack("H*", $data), 
 	           strlen($data) / 2);
@@ -297,7 +290,7 @@
 	 $keys = array_keys($this->Records);
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
-	    $data = $this->DumpRecord($index);
+	    $data = $this->GetRecord($index);
 	    //echo "Stdout Record $index -> $data<br>\n";
 	    echo pack("H*", $data);
 	 }

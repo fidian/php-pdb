@@ -17,8 +17,6 @@ class PalmDoc extends PalmDB {
       
       // Record 0 is reserved for header information
       $this->GoToRecord(1);
-      $this->RecordGetFunc = 'PalmDocRecordGet';
-      $this->RecordSizeFunc = 'PalmDocRecordSize';
    }
    
    function AddDocText ($String) {
@@ -65,13 +63,13 @@ class PalmDoc extends PalmDB {
       $this->GoToRecord($oldRec);
    }
    
-   function PalmDocRecordSize($num) {
+   function GetRecordSize_Class($num) {
       if ($num == 0)
          return 16;
-      return $this->GetRecordSize_Normal($num);
+      return PalmDB::GetRecordSize_Class($num);
    }
    
-   function PalmDocRecordGet($num) {
+   function GetRecord($num) {
       if ($num == 0)
          $this->MakeDocRecordZero();
       if (! isset($this->Records[$num]))
