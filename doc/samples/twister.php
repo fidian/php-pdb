@@ -373,7 +373,7 @@ function ConvertFromFormat($filedata) {
 
 
 function StoreAsPRC($title, $rawData) {
-   echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
+   //echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
    global $SavedPDB;
    
    if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
