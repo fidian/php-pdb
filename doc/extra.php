@@ -46,33 +46,35 @@ free to use for everyone.  Please see the LGPL for specific details.</p>
 
 <h3>Still to do</h3>
 
+<p><b>Modifications:</b></p>
+
 <ul>
 <li>Add better <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.</li>
+<li>Regex bookmark scanning for Twister!  (Idea from <a
+href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
+</ul>
+
+<p><b>New Ideas:</b></p>
+
+<ul>
 <li>Add <a href="http://pilot-db.sourceforge.net/">Pilot-DB</a>
 support</a></li>
+<li>How about adding <a
+href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
+ebooks for GutenPalm?  It's quite similar to DOC.</li>
 <li>Add todo support</li>
-<li>Add compression caching to DOC files.</li>
 <li>Add phonebook support</li>
 <li>Add memo support</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if
 you have info, please mail me)</li>
-<li>Maybe look closer at <a href="http://mmmm.free.fr/palm/">palmlib</a></li>
 <li>Wouldn't image support from <a
 href="http://palmimage.sourceforge.net/">PalmImage</a> be grand?  Especially
 if it merged with GD.</li>
 <li>Take an in-depth look <a
-href="http://zurk.sourceforge.net/zdoc.html">here</a> for DOC files and for
-PeanutPress files.</li>
-<li>How about adding <a
-href="http://gutenpalm.sourceforge.net/ztxt_format.php">zTXT</a> format
-ebooks for GutenPalm?  It's quite similar to DOC.</li>
-<li>Regex bookmark scanning for Twister!  (Idea from <a
-href="http://gutenpalm.sourceforge.net/makeztxt.php">makeztxt</a>)</li>
-<li>Finish adding <a
-href="http://smallbasic.sourceforge.net/">SmallBASIC</a> module to convert
-code to/from PDB format.</li>
+href="http://zurk.sourceforge.net/zdoc.html">here</a> for PeanutPress 
+files.</li>
 </ul>
 
 <?PHP

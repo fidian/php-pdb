@@ -13,6 +13,7 @@ ini_set('error_reporting', E_ALL);
 include "./php-pdb.inc";
 include "./modules/datebook.inc";
 include "./modules/doc.inc";
+include "./modules/smallbasic.inc";
 
 $Tests = array();
 $TestType = 'Unknown';
@@ -20,7 +21,12 @@ $TestType = 'Unknown';
 ?>
 <html><head><title>PHP-PDB Testing</title>
 <body bgcolor="#FFFFFF">
-<h1>Data conversion testing</h1><?PHP $TestType = 'Data' ?>
+<?PHP
+
+ob_start();
+
+?>
+<h1><a name="Data"></a>Data conversion testing</h1><?PHP $TestType = 'Data' ?>
 <ul>
 <li>Int8 = <?PHP PassFail(PalmDB::Int8(40), '28') ?></li>
 <li>Int16 = <?PHP PassFail(PalmDB::Int16(1796), '0704') ?></li>
@@ -28,18 +34,27 @@ $TestType = 'Unknown';
 <li>Double = <?PHP PassFail(PalmDB::Double(10.53), '40250f5c28f5c28f') ?></li>
 <li>String = <?PHP PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
 </ul>
-<h1>Modules</h1><?PHP $TestType = 'Modules' ?>
+<h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
-                              '0a3908e8563a7519d9fe5efb33f45836') ?></li>
+                              'acb80f080d5d8161fb6651e0fc0310df') ?></li>
 <li>Doc = <?PHP PassFail(DocTest(false),
                          'ed869c7a31e720537f759fcc88d8c447') ?></li>
 <li>Doc (compressed) = <?PHP PassFail(DocTest(true),
-                         '860f979ea90cbf9b4a2ebc6f48742ec5') ?></li>
+                         '26664289f16ba7e0ebbfeb3663babd86') ?></li>
+<li>SmallBASIC = <?PHP PassFail(SmallBASICTest(),
+                         '8d96040782a8fc085bc7cdddd4bb52ed') ?></li>
 </ul>
+<?PHP
+
+$results = ob_get_contents();
+ob_end_clean();
+
+?>
 <h1>Summary</h1>
 <table align=center bgcolor="#EFEFFF" border=1 cellpadding=10 cellspacing=0>
-<tr><th>Test Type</th><th>Pass</th><th>Fail</th><th>% Working</th></tr>
+<tr bgcolor="#C0C0FF"><th>Test Type</th>
+<th bgcolor="#C0FFC0">Pass</th><th bgcolor="#FFC0C0">Fail</th><th>% Working</th></tr>
 <?PHP
    $TestTotalPass = 0;
    $TestTotalFail = 0;
@@ -48,15 +63,20 @@ $TestType = 'Unknown';
       $Percent = $Test['Pass'] / ($Test['Pass'] + $Test['Fail']);
       $Percent *= 100;
       $Percent = intval($Percent);
-      echo "<tr><td>" . $Type . "</td><td align=center>" . 
-         $Test['Pass'] . "</td><td align=center>" .
+      echo "<tr";
+      if ($Test['Fail'])
+         echo " bgcolor=\"#FFDFDF\"";
+      echo "><td><a href=\"#" . $Type . "\">" . $Type . 
+         "</a></td><td align=center bgcolor=\"#EFFFEF\">" .
+         $Test['Pass'] . "</td><td align=center bgcolor=\"#FFEFEF\">" .
          $Test['Fail'] . "</td><td align=center>" . $Percent . 
 	 " %</td></tr>\n";
       $TestTotalPass += $Test['Pass'];
       $TestTotalFail += $Test['Fail'];
    }
-?><tr><td><b>Total</b></td><td align=center><b><?PHP echo $TestTotalPass
-?></b></td><td align=center><b><?PHP echo $TestTotalFail
+?><tr bgcolor="#C0C0FF"><td><b>Total</b></td>
+<td align=center bgcolor="#C0FFC0"><b><?PHP echo $TestTotalPass
+?></b></td><td align=center bgcolor="#FFC0C0"><b><?PHP echo $TestTotalFail
 ?></b></td><td align=center><b><?PHP
    $Percent = $TestTotalPass / ($TestTotalPass + $TestTotalFail);
    $Percent *= 100;
@@ -64,6 +84,56 @@ $TestType = 'Unknown';
    echo $Percent;
 ?> %</b></td></tr>
 </table>
+<?PHP 
+
+$TestTotalFail ++;
+if ($TestTotalFail) {
+
+?>
+<p align=center><a href="#SolveProblems">Click Here</a> for information
+about test failures and what should be done about them.</p>
+<?PHP
+
+}
+
+echo $results;
+
+if ($TestTotalFail) {
+
+?>
+<h1><a name="SolveProblems"></a>Test failure information</h1>
+
+<p>Please perform these steps, in order, to resolve the problem.</p>
+
+<ol>
+<li>Make sure that you are running the latest version of <a
+href="http://php-pdb.sourceforge.net">PHP-PDB</a>.  If you are not,
+upgrade.</li>
+<li>If the error still persists, and if you can, try the CVS version of
+PHP-PDB.  See the <a href="http://php-pdb.sourceforge.net/download.php">
+download page</a> for more information.</li>
+<li>Determine which tests failed.  Just look above this section for anything
+that says "<FONT color="red">fail</font>".</li>
+  <ul>
+  <li>If it was in the Data section, then something is <b>seriously</b> 
+  wrong.  Please send us a bug report immediately.</li>
+  <li>If it was in the Modules section, and if you don't need that module, 
+  then you can safely ignore the warning, but it would be really nice if you
+  reported the error to us.  (Just the fact that module <i>X</i> failed --
+  we don't need the long string of letters and numbers.)</li>
+  <li>If you can't see the error, then something is wacky.  Weird.  Try
+  looking at the Summary table (at the top) to see which section the problem
+  is in.</li>
+  </ul>
+<li>Report the problem to us in the <a
+href="http://sourceforge.net/tracker/?atid=397207&group_id=29740&func=browse">Bug
+Tracker</a></li>
+</ol>
+
+<?PHP
+}
+
+?>
 </body></html>
 <?PHP
 
@@ -118,6 +188,30 @@ EOS;
       $newText .= $t . "\n";
    }
    $d->AddDocText($newText);
+ 
+   return GenerateMd5($d);
+}
+
+
+function SmallBASICTest() {
+   $d = new PalmSmallBASIC("pen.bas");
+   $text = <<< EOS
+' pen
+
+print "Use /B (Graffiti) to exit"
+
+pen on
+while 1
+ if pen(0)
+  line pen(4),pen(5)
+ fi
+wend
+pen off
+EOS;
+   $text = str_replace("\r\n", "\n", $text);
+   $text = str_replace("\r", "\n", $text);
+   $text = explode("\n", $text);
+   $d->ConvertFromText($text);
  
    return GenerateMd5($d);
 }

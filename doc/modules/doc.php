@@ -131,10 +131,7 @@ Use</a> for more information.</p>
 <p>If the $pdb was set to be a compressed file, the contents will be
 transparently compressed.  Also, you can further manipulate the text
 normally after writing -- it will just be recompressed every time you write 
-the database.  The down side is that it doesn't check if the contents were
-modified before recompressing the document, so try to not output the file
-multiple times or you will be experiencing a lot of time loss due to the
-class not caching yet.</p>
+the database if the contents were changed.</p>
 
 <h3>Loading the database</h3>
 
@@ -152,37 +149,26 @@ character at the beginning of a line to mark that line as a bookmark.  Then,
 to signify which character is the "bookmark" character, you include it at
 the end of the DOC file in angle brackets.</p>
 
-<p>Make sure to not mix types of bookmarks!  In the tests I have performed,
-it appears that if the bookmark reader can handle embedded bookmarks, it
-only searches for embedded bookmarks if there are no stored bookmarks.  If
-you decide to use embedded bookmarks, it would be wise to pick a character
-that does not appear anywhere else in the document, because some doc readers
-don't check to see if that character is at the beginning of a line before
-adding it to the bookmark list.  If you pick a character like an apostrophe
-or a period, then you are potentially in for a huge surprise.</p>
+<p>Make sure to just pick one type of bookmarks to use!  In the <a
+href="../samples/bookmark_test.php">tests</a> that I have performed, it
+appears that if the bookmark reader can handle both types of bookmarks, it
+will only search for embedded bookmarks if there are no stored bookmarks.</p>
 
-<p><a href="../samples/viewSource.php?file=bookmark_test.php">This sample</a>
-will create a file with both types of bookmarks.  The
-first bookmark will be a stored bookmark, the second will use both types,
-and the third will be just an embedded bookmark.  Please note that the
-maximum length for a stored bookmark name is 15 characters.  The maximum
-length for embedded bookmarks could vary.</p>
+<p>If you decide to use embedded bookmarks, be very careful of the bookmark
+character that you pick, because some doc readers don't check to see if that
+character is at the beginning of a line before blindly adding it to the
+bookmark list.  If you pick a character like an apostrophe or a period, then
+you are potentially in for a huge surprise.</p>
 
-<p>The example will create two types of DOC files, one that has embedded
-bookmarks and one that does not.  You can get them from <a
-href="../samples/bookmark_test.php">here</a>.
-Below is a table showing various doc readers and what type of bookmarks they
-support.  Please help me expand this list so that the capabilities of more
-DOC readers can be known.  Just mail me (link at bottom of
-page) or the php-pdb-general 
-<a href="http://sourceforge.net/mail/?group_id=29740">mailing list</a>.</p>
+<p>Stored bookmark names are limited to 15 characters.  The maximum length
+for embedded bookmark names could vary.</p>
 
 <h4><a name="DocReaders">Doc Readers and Results of Bookmark Test</a></h4>
 
-<p>Please note that this list is not a comprehensive list of DOC readers.
-Also, if you have a DOC reader that you would like to add to this list, just
-email me the program name, URL, version, and what types of bookmarks it 
-supports. (see above -- the section "Adding Bookmarks")</p>
+<p>This list is not a comprehensive list of DOC readers.  If you know of a
+DOC reader that is not yet on this list, just email me the program name and
+URL, and I'll test it to see what kinds of bookmarks are supported.  (You
+can see my test <a href="../samples/bookmark_test.php">here</a>.)</p>
 
 <table bgcolor="DFDFFF" align=center cellpadding=3 cellspacing=0 border=1>
 <tr bgcolor="#CFCFFF"><th>Program and Version</th>
@@ -254,7 +240,8 @@ else
 
 <dt><b>AddBookmark($name, $position = false)</b></dt>
 <dd>If $position is specified, adds a bookmark at $position bytes into the
-file.</dd>
+file.  This is the uncompressed count of bytes, not the number of bytes of
+compressed text.</dd>
 <dd>If $position is not specified, adds a bookmark at the current position.
 I strongly recommend using this form.</dd>
 <dd>$name is limited to 15 characters and will automatically be trimmed if
@@ -263,7 +250,9 @@ it is too long.</dd>
 <dt><b>AddDocText($string)</b></dt>
 <dd>Adds the specified text to the end of the doc file.  To get newlines,
 use "\n".  This function can add single words, entire lines, paragraphs, or
-all of the text at once.  There is no size nor line limit.</dd>
+all of the text at once.  There is no size nor line limit.  It would be wise
+to have less than a few hundred kilobytes of total text, but that's at your
+discretion.</dd>
 
 <dt><b>EraseDocText()</b></dt>
 <dd>Erases all text from the document being generated.</dd>
@@ -290,7 +279,9 @@ $pdb->DownloadPDB("doc_test.pdb");
 ?>
 
 <p>Another example is the <a
-href="../samples/viewSource.php?file=bookmark_test.php">Bookmark Test</a>.</p>
+href="../samples/bookmark_test.php">Bookmark Test</a> that I use in order to
+find out what bookmark types are supported with each DOC reader I have 
+listed.</p>
 
 <?PHP
 

@@ -14,6 +14,7 @@ class PalmDoc extends PalmDB {
                               // $Bookmarks[position] = "name"
    var $IsCompressed = false;
    var $CompressedData = array();  // Filled when saving DOC file
+   var $CompressedDataOrig = array();
 
    
    function PalmDoc ($Title = '', $Compressed = true) {
@@ -190,10 +191,22 @@ class PalmDoc extends PalmDB {
    
 
    // Compresses the entire doc file
+   // The compressed information is cached for better performance with
+   // successive writes
    function CompressData() {
       $this->CompressedData = array();
+      foreach ($this->CompressedData as $index => $data) {
+         if (! isset($this->Records[$index])) {
+	    unset($this->CompressedDataOrig[$index]);
+	    unset($this->CompressedData[$index]);
+	 }
+      }
       foreach ($this->Records as $index => $str) {
-         $this->CompressedData[$index] = $this->CompressRecord($str);
+         if (! isset($this->CompressedDataOrig[$index]) ||
+	     $this->CompressedDataOrig[$index] != $str) {
+	    $this->CompressedDataOrig[$index] = $str;
+            $this->CompressedData[$index] = $this->CompressRecord($str);
+	 }
       }
    }
    

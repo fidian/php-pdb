@@ -52,17 +52,14 @@ function StandardHeader($title = '', $curdir = '') {
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">Examples</th></tr>
     <tr><td>
        <a href="<?PHP echo $samplePath 
-          ?>bookmark_test.php">Bookmark Test</a><br>
+          ?>bookmark_test.php">Bookmark&nbsp;Test</a><br>
        <a href="<?PHP echo $samplePath ?>twister.php">Twister!</a>
     </td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">SourceForge</th></tr>
     <tr><td>
-       <a href="http://sourceforge.net/project/showfiles.php?group_id=29740">
-          Download</a><br>
+       <a href="<?PHP echo $rootPath ?>download.php">Download</a><br>
        <a href="http://sourceforge.net/projects/php-pdb/">
           Project&nbsp;Page</a><br>
-       <a href="http://sourceforge.net/cvs/?group_id=29740">
-          CVS</a><br>
        <a href="http://sourceforge.net/mail/?group_id=29740">
           Mailing&nbsp;Lists</a><br>
        <a href="http://sourceforge.net/tracker/?atid=397207&group_id=29740&func=browse">
