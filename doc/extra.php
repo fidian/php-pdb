@@ -58,8 +58,11 @@ people who wrote other open-source programs that I learned from.</p>
    >ToPTIP</a>) was handy to have around when initially adding DOC support
    to compare output and make sure mine worked.</li>
 <li><a href="http://www.palm.com">Palm Computing, Inc.</a> -- Without them,
-   there would not be a PalmOS.  Also, they provided documentation that made
-   my life much easier.</li>
+   there would not be a PalmOS.  Also, they provided <a
+   href="http://www.palmos.com/dev/tech/docs/">documentation<a> (especially
+   detailing the <a
+   href="http://www.palmos.com/dev/tech/docs/FileFormats/FileFormatsTOC.html">file
+   formats</a>) that made my life significantly easier.</li>
 </ul>
 
 <?PHP
