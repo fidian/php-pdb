@@ -39,11 +39,19 @@ SourceForge provides.  (The module name is <tt>php-pdb</tt>.)</p>
 
 <p>Some systems don't use CVS.  Some don't like CVS.  If you are a user and
 not a sysadmin, you might not have any access to CVS.  Don't worry one bit --
-SourceForge has you covered!  For the purposes of archival, SourceForge
-makes nightly tarballs of the CVS tree.  This means you too can have the
-latest and greatest coded goodness in your machine!  Just download
-<a href="http://cvs.sourceforge.net/cvstarballs/php-pdb-cvsroot.tar.gz">
-php-pdb-cvsroot.tar.gz</a> and you'll be on your way to PHP-PDB bliss.
+we've got you covered!  Every night, the CVS archive is updated.  This means
+that you too can have the latest and greatest coded goodness in your machine.
+Just download whatever format you want and you will be on your way to
+PHP-PDB bliss.</p>
+
+<ul>
+<li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.tar.bz2">
+php-pdb.tar.bz2</a></li>
+<li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.tar.gz">
+php-pdb.tar.gz</a></li>
+<li><a href="http://php-pdb.sourceforge.net/php-pdb-cvs.zip">
+php-pdb.zip</a></li>
+</ul>
 
 <h3>Old versions</h3>
 
