@@ -1,8 +1,8 @@
 <?PHP
 
-include("functions.inc");
+include("../functions.inc");
 
-StandardHeader('Datebook Files');
+StandardHeader('Datebook Files', 'modules');
 
 ?>
 
