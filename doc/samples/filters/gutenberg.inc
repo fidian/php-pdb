@@ -60,10 +60,10 @@ function FilterGutenberg($fileData, $BreakOnChapter) {
    }
    
    $Return = array();
-   $FindingFirstChapter = true;
    $NewlineCount = 0;
    $Lines = explode("\n", $fileData);
    $Section = array_shift($Lines);
+   $Chapters = 0;
    
    while (count($Lines)) {
       $Line = array_shift($Lines);
@@ -78,12 +78,13 @@ function FilterGutenberg($fileData, $BreakOnChapter) {
 	 }
 	 if (substr($Line, $pos, 8) == 'CHAPTER ') {
 	    // Chapter Break
-	    if ($FindingFirstChapter) {
-	       $FindingFirstChapter = false;
-	       $Section .= "\n" . $Line;
-	    } else {
+	    $Chapters ++;
+	    if ($Chapters > $BreakOnChapter) {
+	       $Chapters = 1;
 	       $Return[] = rtrim($Section) . "\n";
 	       $Section = $Line;
+	    } else {
+	       $Section .= "\n" . $Line;
 	    }
 	 } else {
 	    $Section .= "\n" . $Line;
