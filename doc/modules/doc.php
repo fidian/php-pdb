@@ -11,6 +11,20 @@ include("../functions.inc");
 
 StandardHeader('DOC Files', 'modules');
 
+$BookmarkTest = array(
+   'CSpotRun' => array(
+      'Version' => 1.1,
+      'URL' => 'http://32768.com/cspotrun/',
+      'Stored' => true,
+      'Embedded' => false,
+      'Notes' => 'Freeware, open source' ),
+   'MiniWrite' => array(
+      'Version' => 1.4,
+      'URL' => 'http://www.solutionsinhand.com/mw/miniwrite.htm',
+      'Stored' => true,
+      'Embedded' => false,
+      'Notes' => 'DOC reader/writer')
+);
 ?>
 
 <p>Although the compressed form of DOC files and loading doc files is being
@@ -82,18 +96,60 @@ support.  If you wish to add to this file, just mail me (link at bottom of
 page) or the php-pdb-general mailing list.</p>
 
 <table bgcolor="DFDFFF" align=center cellpadding=3 cellspacing=0 border=1>
-<tr><th>Program and Version</th><th>Stored</th><th>Embedded</th>
+<tr bgcolor="#CFCFFF"><th>Program and Version</th>
+<th>Stored</th>
+<th>Embedded</th>
 <th>Notes</th></tr>
 
-<tr><td><b><a href="http://32768.com/cspotrun/">CSpotRun</a>, 1.1</b></td>
-<td align=center><font color="green"><B>Yes</B></font></td>
-<td align=center><font color="red"><B>No</B></font></td>
-<td><font size="-1">Freeware, open source</font></td></tr>
+<?PHP
 
-<tr><td><b><a href="http://www.solutionsinhand.com/mw/miniwrite.htm">MiniWrite</a>, 1.4</b></td>
-<td align=center><font color="green"><B>Yes</B></font></td>
-<td align=center><font color="red"><B>No</B></font></td>
-<td><font size="-1">DOC reader/writer</font></td></tr>
+   $Total = 0;
+   $Stored = 0;
+   $Embedded = 0;
+   
+   ksort($BookmarkTest);
+   foreach ($BookmarkTest as $Name => $Info) {
+      $Total ++;
+      if ($Info['Stored']) {
+         $StoredColor = 'green';
+	 $StoredString = 'Yes';
+	 $Stored ++;
+      } else {
+         $StoredColor = 'red';
+	 $StoredString = 'No';
+      }
+      if ($Info['Embedded']) {
+         $EmbeddedColor = 'green';
+	 $EmbeddedString = 'Yes';
+	 $Embedded ++;
+      } else {
+         $EmbeddedColor = 'red';
+	 $EmbeddedString = 'No';
+      }
+      
+?><tr><td><b><a href="<?PHP echo $Info['URL'] ?>"><?PHP echo $Name
+?></a>, <?PHP echo $Info['Version'] ?></b></td>
+<td align=center><font color="<?PHP echo $StoredColor ?>"><B><?PHP
+echo $StoredString ?></B></font></td>
+<td align=center><font color="<?PHP echo $EmbeddedColor ?>"><B><?PHP
+echo $EmbeddedString ?></B></font></td>
+<td><font size="-1"><?PHP echo $Info['Notes'] ?></font></td></tr>
+<?PHP
+
+   }
+   
+   $StoredPercent = $Stored / $Total;
+   $StoredPercent *= 100;
+   settype($StoredPercent, 'integer');
+   
+   $EmbeddedPercent = $Embedded / $Total;
+   $EmbeddedPercent *= 100;
+   settype($EmbeddedPercent, 'integer');
+   
+?><tr bgcolor="#CFCFFF"><td>Total:</td>
+<td align=center><?PHP echo $Stored . ' (' . $StoredPercent ?>%)</td>
+<td align=center><?PHP echo $Embedded . ' (' . $EmbeddedPercent ?>%)</td>
+<td>&nbsp;</td></tr>
 
 </table>
 
