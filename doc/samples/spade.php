@@ -25,7 +25,7 @@ just getting started and shows a great deal of potential.</p>
 <ul>
 <li><a href="../tools/spade.tar.gz">Download</a></li>
 <li><a href="spade/">Online Demo</a></li>
-</ul
+</ul>
 
 <p><i>Warning:</i> Since people can edit the records however they see fit,
 there might be vulgarity or other assorted nastiness.  Also, since Spade
