@@ -211,11 +211,11 @@
 	 if ($this->CreationTime != 0)
   	    $header .= $this->Int32($this->CreationTime + PDB_EPOCH_1904);
 	 else
-	    $header .= $this->Int32(0);
+	    $header .= $this->Int32(time() + PDB_EPOCH_1904);
 	 if ($this->ModificationTime != 0)
   	    $header .= $this->Int32($this->ModificationTime + PDB_EPOCH_1904);
 	 else
-	    $header .= $this->Int32(0);
+	    $header .= $this->Int32(time() + PDB_EPOCH_1904);
 	 if ($this->BackupTime != 0)
   	    $header .= $this->Int32($this->BackupTime + PDB_EPOCH_1904);
 	 else
@@ -242,7 +242,7 @@
 	 // Dump each record
 	 if ($this->GetRecordCount() != 0) {
 	    $Offset = PDB_HEADER_SIZE + PDB_INDEX_HEADER_SIZE;
-	    $Offset += PDB_RECORD_HEADER_SIZE * count($this->Records);
+	    $Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 	    $keys = $this->GetRecordIDs();
 	    sort($keys, SORT_NUMERIC);
   	    foreach ($keys as $index) {
@@ -253,14 +253,14 @@
 	          $header .= $this->Int8(0);
 		  
 	       // The unique id is just going to be the record number
-	       $UID = $this->Int32($index);
+	       // plus 0x6F8000
+	       $UID = $this->Int32($index + 7307264);
 	       $UID = substr($UID, 2);
 	       $header .= $UID;
 
                $Offset += $this->GetRecordSize($index);
 	    }
 	 }
-	 $header .= '0000'; // placeholder bytes
 
          // AppInfo and SortInfo blocks go here
 	 // It's a shame that we don't support them yet
