@@ -110,7 +110,6 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
  
 class PalmDatebook extends PalmDB {
    var $FirstDay;
-   var $CategoryData;
    
    
    // Constructor -- initialize the default values
@@ -119,7 +118,6 @@ class PalmDatebook extends PalmDB {
       $this->TypeID = 'DATA';
       $this->CreatorID = 'date';
       $this->FirstDay = 0;
-      $this->CategoryData = array(0 => 'Unfiled');
       $this->Records = array();
    }
    
@@ -377,8 +375,6 @@ class PalmDatebook extends PalmDB {
    // Parses $fileData for the information we need when loading a datebook
    // file
    function LoadAppInfo($fileData) {
-      // Category list
-      $this->CategoryData = PalmDB::LoadCategoryData($fileData);
       $fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
       if (strlen($fileData < 1))
          return;
