@@ -12,8 +12,8 @@ $PDB_DOC_RECORD_SIZE = 4096;
 class PalmDoc extends PalmDB {
    function PalmDoc ($Title = '') {
       $this->Name = $Title;
-      $this->Type = 'TEXt';
-      $this->Creator = 'REAd';
+      $this->TypeID = 'TEXt';
+      $this->CreatorID = 'REAd';
       
       // Record 0 is reserved for header information
       $this->GoToRecord(1);
