@@ -43,7 +43,7 @@ define('PDB_RECORD_ATTRIB_PRIVATE', 0x10);
 define('PDB_RECORD_ATTRIB_DELETED', 0x20);
 define('PDB_RECORD_ATTRIB_DIRTY', 0x40);
 define('PDB_RECORD_ATTRIB_EXPUNGED', 0x80);
-define('PDB_RECORD_ATTRIB_DEL_EXP', 0xC0);  // Mask for easier use
+define('PDB_RECORD_ATTRIB_DEL_EXP', 0xA0);  // Mask for easier use
 define('PDB_RECORD_ATTRIB_MASK', 0xF0);  // The 4 bytes for the attributes
 define('PDB_RECORD_ATTRIB_CATEGORY_MASK', 0xFF);  // 1 byte
 

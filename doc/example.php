@@ -244,37 +244,69 @@ $addr->ReadFile($fp);
 fclose($fp);
 
 // Fill the data array with entries from the address book.
-// The key will be the name of the person or company.
-// The value will be the category name and category ID.
+// $data["Category String"] = array("Person/Entry", "Person/Entry", ...)
 
 $data = array();
-foreach ($addr->RecordAttrs as $key => $val)
-{
-    // Get the category and record arrays to have quicker, cleaner
-    // access to the data
-    $cat = $addr->CategoryList[$val & PDB_CATEGORY_MASK];
-    $rec = $addr->Records[$key];
 
-    // Build the key for the $data array
-    $Index = $rec["LastName"] . ", " . $rec["FirstName"] . " @ " .
-      $rec["Company"];
-    $Index = trim($Index);
-    if ($rec["LastName"] == "")
-      $Index = $rec["FirstName"] . " @ " . $rec["Company"];
-      
-    // Build the value for the $data array
-    $Cate =  $cat["Name"] . "(" . $cat["ID"] . ")";
+// Preload the categories
+$Categories = $addr->GetCategoryList();
+
+// Record keys
+$RecordNumbers = $addr->GetRecordIDs();
+
+foreach ($RecordNumbers as $Rec)
+{
+    // Go to the record
+    $addr->GoToRecord($Rec);
     
-    // Add entry
-    $data[$Index] = $Cate;
+    $attrs = $addr->GetRecordAttrib();
+    
+    // If this record is not deleted or expunged, show it
+    if (! ($attrs & PDB_RECORD_ATTRIB_DEL_EXP))
+    {
+       // Build the name
+       $record = $addr->GetRecordRaw();
+       $Index = "";
+       if (isset($record["FirstName"]) && $record["FirstName"] != "")
+          $Index = $record["FirstName"];
+       if (isset($record["LastName"]) && $record["LastName"] != "")
+       {
+          if ($Index != "")
+	     $Index = $record["LastName"] . ", " . $Index;
+	  else
+	     $Index = $record["LastName"];
+       }
+       if (isset($record["Company"]) && $record["Company"] != "")
+       {
+          if ($Index != "")
+	     $Index .= " @ " . $record["Company"];
+	  else
+	     $Index = $record["Company"];
+       }
+      
+       // Build the value for the $data array
+       $cat = $Categories[$attrs & PDB_CATEGORY_MASK];
+       $Cate = $cat["Name"] . " (ID # " . $cat["ID"] . ")";
+    
+       // Add entry
+       if (! isset($data[$Cate]))
+          $data[$Cate] = array();
+       $data[$Cate][] = $Index;
+    }
 }
 
-// Sort alphabetically
-ksort($data);
-
 // Dump the data
-foreach ($data as $key => $val)
-  echo $key . " ---> " . $val . "\n";
+ksort($data);
+foreach ($data as $name => $arr)
+{
+   echo "<b>$name</b><br>\n";
+   
+   // Sort alphabetically
+   sort($arr);
+   
+   foreach ($arr as $entry)
+      echo " &nbsp; $entry<br>\n";
+}
 ');
 
 ?>
@@ -370,34 +402,30 @@ ShowExample('
 $data[$id] = "Name";
 
 // Harder, but this is how GetCategoryList() returns data
-$data[$id] = array(\'Name\' => "Name",
-                   \'Renamed\' => false);
+$data[$index] = array(\'Name\' => "Name",
+                      \'Renamed\' => false,
+	   	      \'ID\' => 27);
 		   
-/* $id is a number from 0 to 15.
+/* $index is a number from 0 to 15.
  * "Name" is the category\'s name
  * The Renamed flag is true/false.  Not sure what it does.
+ * ID is the unique ID given to that category.
  */
 ');
 
 ?></dd>
 <dd>Tips/Rules:<br>
 <ul>
-<li>I'd suggest numbering your categories sequentially.</li>
-<li>Do not have a category 0.  It must always be the 'Unfiled' category.
-If you do specify a category 0, then it will merely be overwritten.</li>
+<li>The first category ($index = 0, 'ID' => 0) is reserved for the 'Unfiled'
+category.  If you specify anything otherwise, it will be overwritten.</li>
 <li>There's a maximum of 16 categories, including 'Unfiled'.  This means
 that you only have 15 to play with.</li>
-<li>Categories 1-127 are typically reserved for handheld ID numbers</li>
-<li>Categories 128-255 are used for desktip ID numbers</li>
+<li>Category IDs 1-127 are typically reserved for handheld ID numbers</li>
+<li>Category IDs 128-255 are used for desktop ID numbers</li>
 <li>Do not let categories be created with ID numbers larger than 255 -- they
-will be ignored/erased.</li>
-<li>I'd strongly suggest not using a number higher than about 240.  You are
-given 16 categories.  If you don't use them all, blank ones are added to the
-end, and they are given sequentially larger numbers from the last ID found.
-This means that if you use an ID of 255 and you didn't use all of your 15
-categories that you can change, then a blank one with an ID of 256 will be
-added.  This error is caught but not corrected, and all of the category data
-will not be written when the file is saved/written to the browser.</li>
+will be ignored/erased or arbitrarily reassigned a different ID number.</li>
+<li>Don't let two categories have the same ID number.  One will be
+arbitrarily assigned a new number.</li>
 </ul>
 <li>If you just want to set the categories quickly, you can use code like
 this:<br><tt>$pdb->SetCategoryList(array(1 => 'Category1', 'Category2',
