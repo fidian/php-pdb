@@ -77,6 +77,7 @@
       var $CreatorID = '';        // The 'Creator' of the file (4 chars)
       var $Attributes = 0;        // Attributes (bitmask)
       var $Version = 0;           // Version of the file
+      var $ModNumber = 0;         // Modification number
       var $CreationTime = 0;      // Stored in unix time (Jan 1, 1970)
       var $ModificationTime = 0;  // Stored in unix time (Jan 1, 1970)
       var $BackupTime = 0;        // Stored in unix time (Jan 1, 1970)
@@ -248,35 +249,27 @@
        * Record manipulation functions
        */
       
-      // Returns the current record number
       // Sets the current record pointer to the new record number if an
       // argument is passed in.
-      // Does basic record initialization if we are going to a new record.
+      // Returns the old record number (just in case you want to jump back)
+      // Does not do basic record initialization if we are going to a new 
+      // record.
       function GoToRecord($num = false) {
          if ($num === false)
 	    return $this->CurrentRecord;
+	 if (gettype($num) == 'string' && ($num[0] = '+' || $num[0] == '-'))
+	    $num = $this->CurrentRecord + $num;
+	 $oldRecord = $this->CurrentRecord;
          $this->CurrentRecord = $num;
-	 if (! isset($this->Records[$this->CurrentRecord])) {
-	    $this->Records[$this->CurrentRecord] = '';
-	    $this->RecordAttrs[$this->CurrentRecord] = 0;
-	 }
-	 return $num;
+	 return $oldRecord;
       }
       
 
       // Returns the size of the current record if no arguments.
       // Returns the size of the specified record if arguments.
-      // Do not override this function -- override GetRecordSize_Class
       function GetRecordSize($num = false) {
          if ($num === false)
 	    $num = $this->CurrentRecord;
-	 return $this->GetRecordSize_Class($num);
-      }
-      
-      
-      // Returns the size of the record index passed in
-      // Override this function instead of GetRecordSize
-      function GetRecordSize_Class($num) {
          if (! isset($this->Records[$num]))
 	    return 0;
          return strlen($this->Records[$num]) / 2;
@@ -284,7 +277,7 @@
       
       
       // Adds to the current record.  The input data must be already
-      // hex encoded.
+      // hex encoded.  Initializes the record if it doesn't exist.
       function AppendCurrent($value) {
          if (! isset($this->Records[$this->CurrentRecord]))
 	    $this->Records[$this->CurrentRecord] = '';
@@ -353,7 +346,7 @@
          $keys = array_keys($this->Records);
 	 if (! is_array($keys) || count($keys) < 1)
 	    return array();
-	 sort($keys);
+	 sort($keys, SORT_NUMERIC);
 	 return $keys;
       }
       
@@ -548,7 +541,7 @@
 	 $Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 	 
 	 // Modification number, app information id, sort information id
-	 $header .= $this->Int32($this->Version);
+	 $header .= $this->Int32($this->ModNumber);
 
          $AppInfo_Size = $this->GetAppInfoSize();
 	 if ($AppInfo_Size > 0) {
@@ -577,6 +570,9 @@
          // Number of records
 	 $header .= $this->Int16($this->GetRecordCount());
 	 
+	 // Compensate for the extra 2 NULL characters in the $Offset
+	 $Offset += 2;
+	 
 	 // Dump each record
 	 if ($this->GetRecordCount() != 0) {
 	    $keys = $this->GetRecordIDs();
@@ -594,6 +590,9 @@
                $Offset += $this->GetRecordSize($index);
 	    }
 	 }
+	 
+	 // These are the mysterious two NULL characters that we need
+	 $header .= $this->Int16(0);
 
          // AppInfo and SortInfo blocks go here
 	 if ($AppInfo_Size > 0)
@@ -727,7 +726,7 @@
 	    $this->BackupTime = 0;
 	 
 	 // Modification number
-	 $this->Version = $this->LoadInt32($file);
+	 $this->ModNumber = $this->LoadInt32($file);
 
          // AppInfo and SortInfo size
 	 $AppInfoOffset = $this->LoadInt32($file);

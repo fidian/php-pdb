@@ -13,7 +13,7 @@ define('PDB_DATEBOOK_REPEAT_DAILY', 1);
 define('PDB_DATEBOOK_REPEAT_WEEKLY', 2);
 define('PDB_DATEBOOK_REPEAT_MONTH_BY_DAY', 3);
 define('PDB_DATEBOOK_REPEAT_MONTH_BY_DATE', 4);
-define('PDB_DATEBOOK_REPEAT_YEARLY', 0);
+define('PDB_DATEBOOK_REPEAT_YEARLY', 5);
 
 
 // Record flags
@@ -111,7 +111,6 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
 class PalmDatebook extends PalmDB {
    var $FirstDay;
    var $CategoryData;
-   var $DatebookRecords;
    
    
    // Constructor -- initialize the default values
@@ -121,6 +120,7 @@ class PalmDatebook extends PalmDB {
       $this->CreatorID = 'date';
       $this->FirstDay = 0;
       $this->CategoryData = array(0 => 'Unfiled');
+      $this->Records = array();
    }
    
 
@@ -161,57 +161,8 @@ class PalmDatebook extends PalmDB {
    }  
 
 
-   // Overrides the GetRecord method.  We store data in associative arrays
-   // in a different array (not $this->Records).  Just convert the data into
-   // the proper format and then use PalmDB::GetRecord to get the desired
-   // information
-   function GetRecord($num) {
-      $OldRecord = $this->GoToRecord();
-      $this->GoToRecord($num);
-      $this->ClearCurrentRecord();
-      
-      $data = $this->DatebookRecords[$this->CurrentRecord];
-      
-      if (! isset($data)) {
-         $this->GoToRecord($OldRecord);
-         return PalmDB::GetRecord($num);
-      }
-	 
-      // Start Time and End Time
-      // 4 bytes
-      // 0xFFFFFFFF if the event has no time
-      if (! isset($data['StartTime']) || ! isset($data['EndTime']) ||
-          strpos($data['StartTime'], ':') === false ||
-	  strpos($data['EndTime'], ':') === false) {
-	 $this->AppendInt16(65535);
-	 $this->AppendInt16(65535);
-      } else {
-         list($StartH, $StartM) = explode(':', $data['StartTime']);         
-         list($EndH, $EndM) = explode(':', $data['EndTime']);
-	 if ($StartH < 0 || $StartH > 23 || $StartM < 0 || $StartM > 59 ||
-	     $EndH < 0 || $EndH > 23 || $EndM < 0 || $EndM > 59) {
-	    $this->AppendInt16(65535);
-	    $this->AppendInt16(65535);
-	 } else {
-	    if ($EndH < $StartH || ($EndH == $StartH && $EndM < $StartM)) {
-	       $EndM = $StartM;
-	       if ($StartH < 23)
-  	          $EndH = $StartH + 1;
-	       else
-	          $EndH = $StartH;
-	    }
-	    $this->AppendInt8($StartH);
-	    $this->AppendInt8($StartM);
-	    $this->AppendInt8($EndH);
-	    $this->AppendInt8($EndM);
-	 }
-      }
-      
-      // The day of the event
-      // For repeating events, this is the first day the event occurs
-      $this->AppendInt16($this->DateToInt16($data['Date']));
-      
-      // Flags
+   // Prepares the record flags for the specified record;
+   function GetRecordFlags(& $data) {
       if (! isset($data['Flags']))
          $data['Flags'] = 0;
       $Flags = $data['Flags'] % 1024;
@@ -231,43 +182,125 @@ class PalmDatebook extends PalmDB {
       if (isset($data['WhenChanged']) && $data['WhenChanged'] != '' &&
           $data['WhenChanged'])
 	 $Flags += PDB_DATEBOOK_FLAG_WHEN;
+
+      $data['Flags'] = $Flags;
+   }
+   
+   
+   // Overrides the GetRecordSize method.
+   function GetRecordSize($num = false) {
+      if ($num === false)
+         $num = $this->CurrentRecord;
 	 
-      $this->AppendInt16($Flags);
+      if (! isset($this->Records[$num]) || ! is_array($this->Records[$num]))
+         return PalmDB::GetRecordSize($num);
+         
+      $data = $this->Records[$num];
+	 
+      // Start Time and End Time (4)
+      // The day of the event (2)
+      // Flags (2)
+      $Bytes = 8;
+      $this->GetRecordFlags($data);
+      
+      if ($data['Flags'] & PDB_DATEBOOK_FLAG_ALARM)
+         $Bytes += 2;
+      
+      if ($data['Flags'] & PDB_DATEBOOK_FLAG_REPEAT)
+	 $Bytes += 8;
+      
+      if ($data['Flags'] & PDB_DATEBOOK_FLAG_EXCEPTIONS)
+         $Bytes += 2 + count($data['Exceptions']) * 2;
+      
+      if ($data['Flags'] & PDB_DATEBOOK_FLAG_DESCRIPTION)
+         $Bytes += strlen($data['Description']) + 1;
+      
+      if ($data['Flags'] & PDB_DATEBOOK_FLAG_NOTE)
+         $Bytes += strlen($data['Note']) + 1;
+      
+      return $Bytes;
+   }
+   
+   
+   // Overrides the GetRecord method.  We store data in associative arrays.
+   // Just convert the data into the proper format and then return the
+   // generated string.
+   function GetRecord($num) {
+      if (! isset($this->Records[$num]) || ! is_array($this->Records[$num]))
+         return PalmDB::GetRecord($num);
+      
+      $data = $this->Records[$num];
+      $RecordString = '';
+      
+      // Start Time and End Time
+      // 4 bytes
+      // 0xFFFFFFFF if the event has no time
+      if (! isset($data['StartTime']) || ! isset($data['EndTime']) ||
+          strpos($data['StartTime'], ':') === false ||
+	  strpos($data['EndTime'], ':') === false) {
+	 $RecordString .= $this->Int16(65535);
+	 $RecordString .= $this->Int16(65535);
+      } else {
+         list($StartH, $StartM) = explode(':', $data['StartTime']);         
+         list($EndH, $EndM) = explode(':', $data['EndTime']);
+	 if ($StartH < 0 || $StartH > 23 || $StartM < 0 || $StartM > 59 ||
+	     $EndH < 0 || $EndH > 23 || $EndM < 0 || $EndM > 59) {
+	    $RecordString .= $this->Int16(65535);
+	    $RecordString .= $this->Int16(65535);
+	 } else {
+	    if ($EndH < $StartH || ($EndH == $StartH && $EndM < $StartM)) {
+	       $EndM = $StartM;
+	       if ($StartH < 23)
+  	          $EndH = $StartH + 1;
+	       else
+	          $EndH = $StartH;
+	    }
+	    $RecordString .= $this->Int8($StartH);
+	    $RecordString .= $this->Int8($StartM);
+	    $RecordString .= $this->Int8($EndH);
+	    $RecordString .= $this->Int8($EndM);
+	 }
+      }
+      
+      // The day of the event
+      // For repeating events, this is the first day the event occurs
+      $RecordString .= $this->Int16($this->DateToInt16($data['Date']));
+      
+      // Flags
+      $this->GetRecordFlags($data);
+      $Flags = $data['Flags'];
+      $RecordString .= $this->Int16($Flags);
       
       if ($Flags & PDB_DATEBOOK_FLAG_ALARM) {
-         $this->AppendInt8($AlarmMatch[1]);
+         $RecordString .= $this->Int8($AlarmMatch[1]);
 	 $AlarmMatch[2] = strtolower($AlarmMatch[2]);
 	 if ($AlarmMatch[2] == 'm')
-	    $this->AppendInt8(0);
+	    $RecordString .= $this->Int8(0);
 	 elseif ($AlarmMatch[2] == 'h')
-	    $this->AppendInt8(1);
+	    $RecordString .= $this->Int8(1);
 	 else
-	    $this->AppendInt8(2);
+	    $RecordString .= $this->Int8(2);
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
          $d = $data['Repeat'];
 	 
-         $this->AppendInt8($d['Type']);
+         $RecordString .= $this->Int8($d['Type']);
 	 
 	 if (! isset($d['unknown1']))
 	    $d['unknown1'] = 0;
-	 $this->AppendInt8($d['unknown1']);
+	 $RecordString .= $this->Int8($d['unknown1']);
       
 	 if (isset($d['End']))
-	    $this->AppendInt16($this->DateToInt16($d['End']));
+	    $RecordString .= $this->Int16($this->DateToInt16($d['End']));
 	 else
-	    $this->AppendInt16(65535);
+	    $RecordString .= $this->Int16(65535);
 	 
 	 if (! isset($d['Frequency']))
 	    $d['Frequency'] = 1;
-	 $this->AppendInt8($d['Frequency']);
+	 $RecordString .= $this->Int8($d['Frequency']);
 	    
-         if ($d['Type'] == PDB_DATEBOOK_REPEAT_NONE) {
-	    $this->AppendInt16(0);
-         } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_DAILY) {
-	    $this->AppendInt16(0);
-	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
+	 if ($d['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
 	    $days = $d['Days'];
 	    $flags = 0;
 	    $QuickLookup = array(64, 32, 16, 8, 4, 2, 1);
@@ -278,63 +311,40 @@ class PalmDatebook extends PalmDB {
 	       $flags = $flags & $QuickLookup[$num];
 	       $i ++;
 	    }
-	    $this->AppendInt8($flags);
-	    $this->AppendInt8($d['StartOfWeek']);
+	    $RecordString .= $this->Int8($flags);
+	    $RecordString .= $this->Int8($d['StartOfWeek']);
 	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
 	    if ($d['WeekNum'] > 5)
 	       $d['WeekNum'] = 5;
-	    $this->AppendInt8($d['WeekNum'] * 7 + $d['DayNum']);
-	    $this->AppendInt8(0);
-	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DATE) {
-	    $this->AppendInt16(0);
-	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_YEARLY) {
-	    $this->AppendInt16(0);
-	 } 
+	    $RecordString .= $this->Int8($d['WeekNum'] * 7 + $d['DayNum']);
+	    $RecordString .= $this->Int8(0);
+	 } else {
+	    $RecordString .= $this->Int16(0);
+	 }
 	 if (! isset($d['unknown2']))
 	    $d['unknown2'] = 0;
-	 $this->AppendInt8($d['unknown2']);
+	 $RecordString .= $this->Int8($d['unknown2']);
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_EXCEPTIONS) {
          $d = $data['Exceptions'];
-         $this->AppendInt16(count($d));
+         $RecordString .= $this->Int16(count($d));
 	 foreach ($d as $exception) {
-	    $this->AppendInt16($this->DateToInt16($exception));
+	    $RecordString .= $this->Int16($this->DateToInt16($exception));
 	 }
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
-         $this->AppendString($data['Description']);
-         $this->AppendInt8(0);
+         $RecordString .= $this->String($data['Description']);
+         $RecordString .= $this->Int8(0);
       }
       
       if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
-         $this->AppendString($data['Note']);
-	 $this->AppendInt8(0);
+         $RecordString .= $this->String($data['Note']);
+	 $RecordString .= $this->Int8(0);
       }
       
-      $this->GoToRecord($OldRecord);
-      return PalmDB::GetRecord($num);
-   }
-   
-   
-   // Sets a datebook record (specified with $this->CurrentRecord) to the
-   // array of information passed in.  Note:  This is the special datebook
-   // array as defined at the top of this file.  It is not the encoded
-   // data that PalmDB uses.
-   function SetDatebookRecord($RecordData) {
-      $this->DatebookRecords[$this->CurrentRecord] = $RecordData;
-   }
-   
-   
-   // Gets a datebook record (specified with $this->CurrentRecord).  If the
-   // record doesn't exist yet, it returns an empty array.  Note:  This is
-   // the special datebook array as defined at the top of this file.  It is
-   // not the encoded data that PalmDB uses.  Use GetRecord() for that.
-   function GetDatebookRecord($RecordData) {
-      if (! isset($this->DatebookRecords[$this->CurrentRecord]))
-         return array();
-      return $this->DatebookRecords[$this->CurrentRecord];
+      return $RecordString;
    }
    
    
@@ -346,11 +356,12 @@ class PalmDatebook extends PalmDB {
    
    
    // Returns the AppInfo block.  It is composed of the category list (which
-   // doesn't seem to be used) and four bytes that specify the first day
-   // of the week.  Not sure what that value is supposed to be.
+   // doesn't seem to be used and is just filled with NULL bytes) and four
+   // bytes that specify the first day of the week.  Not sure what that 
+   // value is supposed to be, so I just use zero.
    function GetAppInfo() {
-      // Category list
-      $this->AppInfo = PalmDB::CreateCategoryData($this->CategoryData);
+      // Category list (Nulls)
+      $this->AppInfo = $this->PadString('', PDB_CATEGORY_SIZE);
       
       // Unknown thing (first_day_in_week)
       // 00 00 FD 00 == where FD is the first day in week.
@@ -379,7 +390,6 @@ class PalmDatebook extends PalmDB {
    // storage method that is used for the rest of the class and for ease of
    // use.
    function LoadRecord($fileData, $RecordInfo) {
-      $this->GoToRecord($RecordInfo['UID']);
       $this->RecordAttrs[$RecordInfo['UID']] = $RecordInfo['Attrs'];
       
       $NewRec = $this->NewRecord();
@@ -496,7 +506,7 @@ class PalmDatebook extends PalmDB {
 	 $fileData = substr($fileData, 0, $i + 1);
       }
       
-      $this->SetDatebookRecord($NewRec);
+      $this->Records[$RecordInfo['UID']] = $NewRec;
    }
 }
 
