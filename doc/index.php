@@ -61,15 +61,18 @@ about it!</p>
 <ul>
 <li><a href="http://rumkin.com/projects/marco/">Marco</a> - Data point
 conversion from different formats into the internal format used by Marco.</li>
-<!-- Removed because the patch author didn't get back to me.
-<li><a href="http://www.moregroupware.com/">Moregroupware</a> - A custom
-"export to palm datebook" patch was written.  It is being improved and
--->
 should eventually be released from this site.</li>
+<li><a href="http://www.shiblon.com/trivia/">LDS Trivia</a> - Real-time trivia
+database creation from questions submitted on the web site.</li>	
 <li><a href="samples/twister.php">Twister!</a> - Web page, text, and <a
 href="http://promo.net/pg/">Project Gutenberg</a> file conversion to DOC or
 SmallBASIC format.</li>
-<!--
+	
+<!-- Removed because the patch author did not get back to me.
+<li><a href="http://www.moregroupware.com/">Moregroupware</a> - A custom
+"export to palm datebook" patch was written.  It is being improved and
+-->
+<!--  Is this still there?
 <li><a href="http://palmvoc.sourceforge.net/">palmvoc</a> - Free vocabulary
 trainer for Palm OS.</li>
 -->
