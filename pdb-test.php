@@ -31,9 +31,11 @@ $TestType = 'Unknown';
 <h1>Modules</h1><?PHP $TestType = 'Modules' ?>
 <ul>
 <li>Datebook = <?PHP PassFail(DatebookTest(), 
-                              'acb80f080d5d8161fb6651e0fc0310df') ?></li>
-<li>Doc = <?PHP PassFail(DocTest(), 
+                              '0a3908e8563a7519d9fe5efb33f45836') ?></li>
+<li>Doc = <?PHP PassFail(DocTest(false),
                          'ed869c7a31e720537f759fcc88d8c447') ?></li>
+<li>Doc (compressed) = <?PHP PassFail(DocTest(true),
+                         '860f979ea90cbf9b4a2ebc6f48742ec5') ?></li>
 </ul>
 <h1>Summary</h1>
 <table align=center bgcolor="#EFEFFF" border=1 cellpadding=10 cellspacing=0>
@@ -90,8 +92,8 @@ function DatebookTest() {
 }
 
 
-function DocTest() {
-   $d = new PalmDoc("Title Goes Here");
+function DocTest($IsCompressed) {
+   $d = new PalmDoc("Title Goes Here", $IsCompressed);
    $text = <<< EOS
 Mary had a little lamb,
 little lamb,
