@@ -70,11 +70,16 @@ align=right>
 
 
 function TinyFooter() {
+   global $PHP_SELF;
+   $small_self = strtolower($PHP_SELF);
 ?>
 <p><hr>
-<font size=-2><a href="http://sourceforge.net"><img
+<font size=-2><?PHP
+if (strpos($small_self, '.sourceforge.net/') !== false) {
+?><a href="http://sourceforge.net"><img
 src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
+<?PHP } ?>
 &copy;opyright 2001, Tyler Akins (<?PHP
 HideEmail("fidian@tiny.net") ?>)<br>
 All names, trademarks, etc. are property of their respective

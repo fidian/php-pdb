@@ -57,6 +57,12 @@ include('./filters/gutenberg.inc');
 
 session_start();
 
+$tiny_self = strtolower($PHP_SELF);
+if (strpos($tiny_self, '.sourceforge.net/') !== false)
+   $SourceForge = true;
+else
+   $SourceForge = false;
+
 $MyFilename = $PHP_SELF;
 $pos = strrpos($MyFilename, '/');
 $MyFilename = substr($MyFilename, $pos + 1);
@@ -88,10 +94,12 @@ Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
 
 
 function ShowInitialHelp() {
+   global $SourceForge;
+   
    StartHTML();
 ?><p>Twister is a conversion tool to convert web pages, and text files into
 Palm DOC format.  It can be later extended to write to zTXT and other
-formats, once PHP-PDB has a class for accessing them.</p>
+formats, once PHP-PDB has classes for accessing them.</p>
 
 <p><B><font size="+2" color="purple">Be Warned:</font></B> Twister is
 quite new and may not work well for you.  However, if it doesn't work to your
@@ -99,6 +107,13 @@ expectations, just contact the <a
 href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
 hopefully the bugs will vanish quickly.</p>
 
+<?PHP if ($SourceForge) { ?>
+<P><b>Because this script is hosted on <a
+href="http://sourceforge.net">SourceForge</a>,</b> the URL converter does
+not work.  However, if you were to copy this script to your own site and run
+it, the URL converter should work fine.</p>
+
+<?PHP } ?>
 <p>To start the conversion process, just fill in the form below.  The file
 will be converted (or an error message will be displayed) and you should see
 links for downloading the converted file.  This requires cookies to run
@@ -109,7 +124,7 @@ properly.</p>
 
 function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
-      $BreakOnChapter, $TargetType, $TitleOfDoc, $PHP_SELF, $filedata,
+      $BreakOnChapter, $TargetType, $TitleOfDoc, $SourceForge, $filedata,
       $urldata;
    // $UncompressedDoc
    
@@ -126,17 +141,17 @@ function ShowInitialForm() {
       if (isset($filedata)) echo ' value="' . htmlspecialchars($filedata)
       . '"'; ?>><br>
       
-      <?PHP if (stristr($PHP_SELF, ".sourceforge.net/") === false) { ?>
+      <?PHP if (! $SourceForge) { ?>
       <input type=radio name="Source" value="URL"<?PHP
       if (isset($Source) && $Source == 'URL') echo ' checked'; ?>> 
       URL:  <input type=input name=urldata size=60<?PHP
       if (isset($filedata)) echo ' value="' . htmlspecialchars($urldata)
       . '"'; ?>>
       <?PHP } else { ?><br>
-      <i>(Twister! supports converting URLs, but Sourceforge can't download
-      from URLs.  Download and install <a
+      <i>(Twister! supports converting URLs, but Sourceforge does not allow
+      downloading from URLs.  Download and install <a
       href="http://php-pdb.sourceforge.net/">PHP-PDB</a> on your own site
-      and Twister! should work fine.  It'll be included in the "doc/samples"
+      and Twister! should work fine.  It's be included in the "doc/samples"
       directory.)</i><?PHP
       } ?></td>
   </tr>
