@@ -1,0 +1,3 @@
+Spade, version 0.1
+
+For more information, see ../samples/spade.php

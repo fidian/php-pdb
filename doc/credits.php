@@ -24,6 +24,11 @@ with writing this class.</p>
    href="http://www.ooblick.com/software/coldsync/">P5-Palm</a>!  I used 
    several ideas when creating PHP-PDB, and a few comments really helped me
    out.</li>
+<li>Barth, Christoph &lt;<?PHP HideEmail('cbarth', 'urbanet.ch') ?>&gt; --
+   Wrote a <a href="tools/mgw_palm_pdb_patch.tar.gz">patch</a> to add export 
+   to Palm for <a href="http://www.moregroupware.org/">moregroupware</a>.
+   Here's the <a href="tools/mgw_palm_pdb_patch.txt">description</a> that 
+   I wrote about it.</li>
 <li>Beirne, Pat -- Created the first <a href="modules/doc.php">DOC</a>
    compression scheme -- see it <a 
    href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">here</a></li>
@@ -63,6 +68,9 @@ with writing this class.</p>
    <a href="http://www.pyrite.org/doc_format.php">description</a> about the 
    compression format and stored bookmarks which helped a lot for the
    <a href="modules/doc.php">DOC module</a>.</li>
+<li>Schindlauer, Roman &lt;<?PHP HideEmail('roman', 'fusion.at') ?>&gt; --
+   Worked out problems regarding address books and categories.  Also wrote
+   <a href="samples/spade.php">Spade</a></li>
 </ul>
 
 <?PHP

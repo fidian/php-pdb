@@ -56,6 +56,7 @@ function StandardHeader($title = '', $curdir = '') {
     <tr><td>
        <a href="<?PHP echo $samplePath 
           ?>bookmark_test.php">Bookmark&nbsp;Test</a><br>
+       <a href="<?PHP echo $samplePath ?>spade.php">Spade</a><br>
        <a href="<?PHP echo $samplePath ?>twister.php">Twister</a>
     </td></tr>
     <tr><th bgcolor="<?PHP echo $TH_Color ?>">SourceForge</th></tr>

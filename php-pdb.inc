@@ -710,7 +710,6 @@ class PalmDB {
       // Loop through the array
       for ($key = 0; $key < 16; $key ++) {
          if (isset($this->CategoryList[$key])) {
- 	    $CatsWritten ++;
 	    $RenamedFlags *= 2;
 	    
 	    // Set the "Renamed" flag if available
@@ -739,7 +738,7 @@ class PalmDB {
       // say whether this is the last one written by the palm, last one
       // written by the desktop, highest one written, or the ID for number
       // 15.
-      $TrailingBytes = $this->Int8($LastId);
+      $TrailingBytes = $this->Int8($LastID);
       $TrailingBytes .= $this->Int8(0);
 	 
       return $this->Int16($RenamedFlags) . $CategoryStr . $IdStr . 

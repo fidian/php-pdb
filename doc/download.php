@@ -53,6 +53,20 @@ php-pdb-cvs.tar.gz</a></li>
 php-pdb-cvs.zip</a></li>
 </ul>
 
+<h3>Other downloads</h3>
+
+<p>Christoph Barth has created a patch for <a
+href="http://www.moregroupware.org/">moregroupware</a> to allow exporting
+your calendar to a Palm.<br>
+[ <a href="tools/mgw_palm_pdb_patch.tar.gz">patch</a> | 
+<a href="tools/mgw_palm_pdb_patch.txt">readme</a> ]</p>
+
+<p>A simple address book editor, named Spade, was created by roman.  It is
+just beginning, but looks like it has enough potential, especially if you
+use coldsync or something else to synchronize databases.<br>
+[ <a href="samples/spade.php">download/readme/demo</a> ]</p>
+
+
 <h3>Old versions</h3>
 
 <p>If you have CVS, you can get old versions.  Just read the CVS man page or
