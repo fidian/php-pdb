@@ -18,6 +18,13 @@ include "./modules/smallbasic.inc";
 $Tests = array();
 $TestType = 'Unknown';
 
+
+
+//
+// Perform the tests
+// Cache the results
+//
+
 ?>
 <html><head><title>PHP-PDB Testing</title>
 <body bgcolor="#FFFFFF">
@@ -49,6 +56,12 @@ ob_start();
 
 $results = ob_get_contents();
 ob_end_clean();
+
+
+
+//
+// Create the summary table
+//
 
 ?>
 <h1>Summary</h1>
@@ -86,7 +99,14 @@ ob_end_clean();
 </table>
 <?PHP 
 
-$TestTotalFail ++;
+
+
+//
+// If there were failures,
+// Then print out some cool information
+// Also print out cached test results here
+//
+
 if ($TestTotalFail) {
 
 ?>
@@ -138,6 +158,17 @@ Tracker</a></li>
 <?PHP
 
 
+
+
+//////////////////////////////////////
+// Thus began the testing functions //
+//////////////////////////////////////
+
+
+//
+// Datebook 
+//
+
 function DatebookTest() {
    $d = new PalmDatebook();
 
@@ -161,6 +192,11 @@ function DatebookTest() {
    return GenerateMd5($d);
 }
 
+
+
+//
+// DOC
+//
 
 function DocTest($IsCompressed) {
    $d = new PalmDoc("Title Goes Here", $IsCompressed);
@@ -193,6 +229,11 @@ EOS;
 }
 
 
+
+//
+// SmallBASIC
+//
+
 function SmallBASICTest() {
    $d = new PalmSmallBASIC("pen.bas");
    $text = <<< EOS
@@ -217,6 +258,15 @@ EOS;
 }
 
 
+
+//////////////////////////////////////
+// Thus began the utility functions //
+//////////////////////////////////////
+
+//
+// GenerateMd5
+//
+
 function GenerateMd5(&$PalmDB) {
    // Change the dates so the header looks the same no matter when we
    // generate the file
@@ -232,6 +282,11 @@ function GenerateMd5(&$PalmDB) {
    return md5($file);
 }
 
+
+
+//
+// PassFail
+//
 
 function PassFail($test, $want = false) {
    global $TestType, $Tests;
