@@ -1,6 +1,6 @@
 <?PHP
 
-include("functions.inc");
+include("./functions.inc");
 
 StandardHeader('Basic Use');
 

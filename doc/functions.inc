@@ -1,11 +1,19 @@
 <?PHP
 
-function StandardHeader($title = '') {
+function StandardHeader($title = '', $curdir = '') {
    $newTitle = "PHP-PDB";
    
    if ($title != '')
       $newTitle .= ': ' . $title;
-      
+    
+   if ($curdir == 'modules') {
+      $modulePath = '';
+      $rootPath = '../';
+   } else {
+      $modulePath = 'modules/';
+      $rootPath = '';
+   }
+
 ?><HTML><HEAD><TITLE><?PHP echo $newTitle ?></TITLE></HEAD>
 <body bgcolor=#FFFFFF text=#000000>
 <h1 align=center><?PHP echo $newTitle ?></h1>
@@ -14,15 +22,15 @@ function StandardHeader($title = '') {
   <table align=center border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td>&nbsp;</td>
-    <td><a href="index.php">Main Page</a></td>
+    <td><a href="<?PHP echo $rootPath ?>index.php">Main Page</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="example.php">Basic Use</a></td>
+    <td><a href="<?PHP echo $rootPath ?>example.php">Basic Use</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="example-datebook.php">Datebook</a></td>
+    <td><a href="<?PHP echo $modulePath ?>datebook.php">Datebook</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="example-doc.php">DOC</a></td>
+    <td><a href="<?PHP echo $modulePath ?>doc.php">DOC</a></td>
     <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="extra.php">Extra Info</a></td>
+    <td><a href="<?PHP echo $rootPath ?>extra.php">Extra Info</a></td>
     <td>&nbsp;</td>
   </tr>
   </table>
@@ -97,4 +105,25 @@ bgcolor=#DFFFDF>
 ?></font></td></tr>
 </table>
 <?PHP
+}
+
+
+function ShowExampleFile($filename) {
+   if (! file_exists($filename)) {
+      ShowExample("$filename doesn't exist!");
+      return;
+   }
+   $fileData = file($filename);
+   $write = 0;
+   $output = '';
+   while (count($fileData)) {
+      $line = array_shift($fileData);
+      if (strpos($line, "END HERE") !== false)
+         $write = 0;
+      if ($write)
+         $output .= $line;
+      if (strpos($line, "START HERE") !== false)
+         $write = 1;
+   }
+   ShowExample($output);
 }
