@@ -50,6 +50,12 @@ define('PDB_CATEGORY_MASK', 15);  // Bitmask -- use with attribute of record
                                   // to get the category ID
 
 
+// Double conversion
+define('PDB_DOUBLEMETHOD_UNTESTED', 0);
+define('PDB_DOUBLEMETHOD_NORMAL', 1);
+define('PDB_DOUBLEMETHOD_REVERSE', 2);
+define('PDB_DOUBLEMETHOD_BROKEN', 3);
+
 /*
  * PalmDB Class
  *
@@ -72,6 +78,8 @@ class PalmDB {
    var $BackupTime = 0;        // Stored in unix time (Jan 1, 1970)
    var $AppInfo = '';          // Basic AppInfo block
    var $SortInfo = '';         // Basic SortInfo block
+   var $DoubleMethod = PDB_DOUBLEMETHOD_UNTESTED;
+                               // What method to use for converting doubles
 
 
    // Creates a new database class
@@ -185,11 +193,28 @@ class PalmDB {
    // Not sure if this will work on all platforms.
    // Double(10.53) should return "40250f5c28f5c28f"
    function Double($value) {
+      if ($this->DoubleMethod == PDB_DOUBLEMETHOD_UNTESTED) {
+         $val = bin2hex(pack('d', 10.53));
+	 $val = strtolower($val);
+	 if (substr($val, 0, 4) == '8fc2')
+	    $this->DoubleMethod = PDB_DOUBLEMETHOD_REVERSE;
+	 if (substr($val, 0, 4) == '4025')
+	    $this->DoubleMethod = PDB_DOUBLEMETHOD_NORMAL;
+	 if ($this->DoubleMethod == PDB_DOUBLEMETHOD_UNTESTED)
+	    $this->DoubleMethod = PDB_DOUBLEMETHOD_BROKEN;
+      }
+      
+      if ($this->DoubleMethod == PDB_DOUBLEMETHOD_BROKEN)
+         return '0000000000000000';
+	 
       $value = bin2hex(pack('d', $value));
-      $value = substr($value, 14, 2) . substr($value, 12, 2) . 
-         substr($value, 10, 2) . substr($value, 8, 2) . 
-	 substr($value, 6, 2) . substr($value, 4, 2) . 
-	 substr($value, 2, 2) . substr($value, 0, 2);
+      
+      if ($this->DoubleMethod == PDB_DOUBLEMETHOD_REVERSE)
+         $value = substr($value, 14, 2) . substr($value, 12, 2) . 
+            substr($value, 10, 2) . substr($value, 8, 2) . 
+   	    substr($value, 6, 2) . substr($value, 4, 2) . 
+	    substr($value, 2, 2) . substr($value, 0, 2);
+	    
       return $value;
    }
    

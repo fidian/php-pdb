@@ -38,7 +38,17 @@ ob_start();
 <li>Int8 = <?PHP PassFail(PalmDB::Int8(40), '28') ?></li>
 <li>Int16 = <?PHP PassFail(PalmDB::Int16(1796), '0704') ?></li>
 <li>Int32 = <?PHP PassFail(PalmDB::Int32(40195090), '02655412') ?></li>
-<li>Double = <?PHP PassFail(PalmDB::Double(10.53), '40250f5c28f5c28f') ?></li>
+<li>Double = <?PHP
+   // Doouble() refers to $this, so it must be in an instantiated class
+   $pdb = new PalmDB();
+   if (PassFail($pdb->Double(10.53), '40250f5c28f5c28f')) {
+      echo "<br>Don't worry -- this method is not used by anything in " .
+         "the PHP-PDB library yet.  It is a utility function that is " .
+	 "added for completeness.  If you absolutely do need this " .
+	 "function, take a look at the PHP-PDB source or just submit " .
+	 "a bug report.\n";
+   }
+?></li>
 <li>String = <?PHP PassFail(PalmDB::String('abcd', '3'), '616263') ?></li>
 </ul>
 <h1><a name="Modules"></a>Modules</h1><?PHP $TestType = 'Modules' ?>
@@ -135,8 +145,16 @@ download page</a> for more information.</li>
 <li>Determine which tests failed.  Just look above this section for anything
 that says "<FONT color="red">fail</font>".</li>
   <ul>
-  <li>If it was in the Data section, then something is <b>seriously</b> 
-  wrong.  Please send us a bug report immediately.</li>
+  <li>If it was in the Data section and it was not the Double test, then
+  something is <b>seriously</b> wrong.  Please send us a bug report 
+  immediately.</li>
+  <li>If it was the Double test in the Data section, then you do not need
+  to worry.  Nothing in the PHP-PDB library uses this function (yet), but
+  a class might be written to use the Double function.  It is a good idea
+  to get the problem fixed, just in case you wish to use double-precision
+  numbers saved in your generated databases.  If you do report the problem,
+  please include the entire error message that was generated (the <i>Wanted 
+  "abcdefg" but got "1234567"</i> message).</li>
   <li>If it was in the Modules section, and if you don't need that module, 
   then you can safely ignore the warning, but it would be really nice if you
   reported the error to us.  (Just the fact that module <i>X</i> failed --
@@ -311,10 +329,12 @@ function PassFail($test, $want = false) {
    if ($Failure) {
       echo "<FONT color=\"red\">fail</font><br>$FailMsg";
       $Tests[$TestType]['Fail'] ++;
-   } else {
-      echo "<FONT color=\"green\">pass</font>";
-      $Tests[$TestType]['Pass'] ++;
+      return 1;
    }
+   
+   echo "<FONT color=\"green\">pass</font>";
+   $Tests[$TestType]['Pass'] ++;
+   return 0;
 }
 
 ?>

@@ -199,7 +199,7 @@ function ShowInitialForm() {
          echo htmlspecialchars($BreakOnChapter);
       } else
          echo '0'; ?>"> chapters<br>
-      <i>(Use 0 to disable)
+      &nbsp; &nbsp; &nbsp;<i>(Use 0 to disable)
       
       </td>
   </tr>

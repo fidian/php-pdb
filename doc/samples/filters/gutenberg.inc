@@ -76,7 +76,7 @@ function FilterGutenberg($fileData, $BreakOnChapter) {
 	 while ($pos < strlen($Line) && $Line[$pos] == ' ') {
 	    $pos ++;
 	 }
-	 if (substr($Line, $pos, 8) == 'CHAPTER ') {
+	 if (strtoupper(substr($Line, $pos, 8)) == 'CHAPTER ') {
 	    // Chapter Break
 	    $Chapters ++;
 	    if ($Chapters > $BreakOnChapter) {
