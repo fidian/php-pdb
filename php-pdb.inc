@@ -47,12 +47,13 @@
    define('PDB_ATTRIB_OK_NEWER', 16);
    define('PDB_ATTRIB_RESET', 32);
    define('PDB_ATTRIB_OPEN', 64);
+   define('PDB_ATTRIB_LAUNCHABLE', 512);
    
    // Record Flags
-   define('PDB_RECORD_ATTRIB_PRIVATE', 8);
-   define('PDB_RECORD_ATTRIB_DELETED', 16);
-   define('PDB_RECORD_ATTRIB_DIRTY', 32);
-   define('PDB_RECORD_ATTRIB_EXPUNGED', 64);
+   define('PDB_RECORD_ATTRIB_PRIVATE', 16);
+   define('PDB_RECORD_ATTRIB_DELETED', 32);
+   define('PDB_RECORD_ATTRIB_DIRTY', 64);
+   define('PDB_RECORD_ATTRIB_EXPUNGED', 128);
    
    // Category support
    define('PDB_CATEGORY_NUM', 16);  // Number of categories
@@ -623,7 +624,6 @@
 	 sort($keys, SORT_NUMERIC);
 	 foreach ($keys as $index) {
 	    $data = $this->GetRecord($index);
-	    //echo "Record $index -> $data<br>\n";
 	    fwrite($file, pack("H*", $data), 
 	           strlen($data) / 2);
 	 }
@@ -794,17 +794,23 @@
 	 
 	 return false;
       }
-      
+
+  
+      // Generic function to load the AppInfo block into $this->AppInfo
       function LoadAppInfo($fileData) {
          $this->AppInfo = bin2hex($fileData);
 	 return false;
       }
       
+      
+      // Generic function to load the SortInfo block into $this->SortInfo
       function LoadSortInfo($fileData) {
          $this->SortInfo = bin2hex($fileData);
 	 return false;
       }
       
+      
+      // Generic function to load a record
       function LoadRecord($fileData, $recordInfo) {
          $this->Record[$recordInfo['UID']] = bin2hex($fileData);
 	 $this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];

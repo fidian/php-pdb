@@ -23,7 +23,8 @@ define('PDB_DATEBOOK_FLAG_EXCEPTIONS', 2048); // Are there any exceptions?
 define('PDB_DATEBOOK_FLAG_NOTE', 4096); // Is there an associated note?
 define('PDB_DATEBOOK_FLAG_REPEAT', 8192); // Does the event repeat?
 define('PDB_DATEBOOK_FLAG_ALARM', 16384); // Is there an alarm set?
-define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated? (hunh?)
+define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated? 
+                                         // (Internal use only?)
 
 
 /* The data for the GetRecord and SetRecord functions should return/be fed
@@ -45,8 +46,8 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated? (hunh?)
  * Flags                          User flags (highest bit allowed is 512)
  *
  * EndTime must happen at or after StartTime.  The time the event occurs
- * may not pass midnight.  If the event doesn't have a time, use '' or do
- * not define StartTime and EndTime.
+ * may not pass midnight (0:00).  If the event doesn't have a time, use '' 
+ * or do not define StartTime and EndTime.
  *
  * Repeating events:
  *
@@ -112,6 +113,8 @@ class PalmDatebook extends PalmDB {
    var $CategoryData;
    var $DatebookRecords;
    
+   
+   // Constructor -- initialize the default values
    function PalmDatebook () {
       $this->Name = 'DatebookDB';
       $this->TypeID = 'DATA';
@@ -143,6 +146,7 @@ class PalmDatebook extends PalmDB {
       return ($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2];
    }
    
+   
    // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
    // Into the human readable date string ( YYYY-MM-DD )( "2001-10-31" )
    function Int16ToDate($number) {
@@ -156,6 +160,11 @@ class PalmDatebook extends PalmDB {
       return $year . '-' . $month . '-' . $day;
    }  
 
+
+   // Overrides the GetRecord method.  We store data in associative arrays
+   // in a different array (not $this->Records).  Just convert the data into
+   // the proper format and then use PalmDB::GetRecord to get the desired
+   // information
    function GetRecord($num) {
       $OldRecord = $this->GoToRecord();
       $this->GoToRecord($num);
@@ -308,20 +317,37 @@ class PalmDatebook extends PalmDB {
       return PalmDB::GetRecord($num);
    }
    
+   
+   // Sets a datebook record (specified with $this->CurrentRecord) to the
+   // array of information passed in.  Note:  This is the special datebook
+   // array as defined at the top of this file.  It is not the encoded
+   // data that PalmDB uses.
    function SetDatebookRecord($RecordData) {
       $this->DatebookRecords[$this->CurrentRecord] = $RecordData;
    }
    
+   
+   // Gets a datebook record (specified with $this->CurrentRecord).  If the
+   // record doesn't exist yet, it returns an empty array.  Note:  This is
+   // the special datebook array as defined at the top of this file.  It is
+   // not the encoded data that PalmDB uses.  Use GetRecord() for that.
    function GetDatebookRecord($RecordData) {
       if (! isset($this->DatebookRecords[$this->CurrentRecord]))
          return array();
       return $this->DatebookRecords[$this->CurrentRecord];
    }
    
+   
+   // Returns the size of the AppInfo block.  It is the size of the
+   // category list plus four bytes.
    function GetAppInfoSize() {
       return PDB_CATEGORY_SIZE + 4;
    }
    
+   
+   // Returns the AppInfo block.  It is composed of the category list (which
+   // doesn't seem to be used) and four bytes that specify the first day
+   // of the week.  Not sure what that value is supposed to be.
    function GetAppInfo() {
       // Category list
       $this->AppInfo = PalmDB::CreateCategoryData($this->CategoryData);
@@ -336,6 +362,9 @@ class PalmDatebook extends PalmDB {
       return $this->AppInfo;
    }
    
+   
+   // Parses $fileData for the information we need when loading a datebook
+   // file
    function LoadAppInfo($fileData) {
       // Category list
       $this->CategoryData = PalmDB::LoadCategoryData($fileData);
@@ -345,6 +374,10 @@ class PalmDatebook extends PalmDB {
       $this->FirstDay = $this->LoadInt8($fileData);
    }
    
+   
+   // Converts the datebook record data loaded from a file into the internal
+   // storage method that is used for the rest of the class and for ease of
+   // use.
    function LoadRecord($fileData, $RecordInfo) {
       $this->GoToRecord($RecordInfo['UID']);
       $this->RecordAttrs[$RecordInfo['UID']] = $RecordInfo['Attrs'];
