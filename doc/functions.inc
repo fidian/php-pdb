@@ -32,7 +32,15 @@ function StandardHeader($title = '') {
 }
 
 function StandardFooter() {
-   echo "</body></html>\n";
+?>
+<hr>
+<p><a href="http://sourceforge.net"><img
+src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
+height="31" border="0" alt="SourceForge Logo" align=right></a>
+<font size=-2>&copy;opyright 2001, Tyler Akins</font>
+</body>
+</html>
+<?PHP
 }
 
 
