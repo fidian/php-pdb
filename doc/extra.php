@@ -50,6 +50,8 @@ free to use for everyone.</p>
 <li>Add better <a
 href="http://www.handmark.com/products/mobiledb/dbstructure.htm">MobileDB</a>
 support.</li>
+<li>Add <a href="http://pilot-db.sourceforge.net/">Pilot-DB</a>
+support</a></li>
 <li>Add todo format</li>
 <li>Add compression, decompression, and loading to DOC files.
 [ <a

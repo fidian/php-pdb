@@ -17,16 +17,32 @@ $BookmarkTest = array(
       'URL' => 'http://32768.com/cspotrun/',
       'Stored' => true,
       'Embedded' => false,
-      'Notes' => 'Freeware, open source' ),
+      'Notes' => 'Freeware, open source'),
+   'iSilo Free' => array(
+      'Version' => 1.5,
+      'URL' => 'http://www.palmgear.com/software/showsoftware.cfm?prodID=3914',
+      'Stored' => false,
+      'Embedded' => false,
+      'Notes' => 'Free version of iSilo.'),
    'MiniWrite' => array(
       'Version' => 1.4,
       'URL' => 'http://www.solutionsinhand.com/mw/miniwrite.htm',
+      'Stored' => true,
+      'Embedded' => false,
+      'Notes' => 'DOC reader/writer'),
+   'QED' => array(
+      'Version' => 2.62,
+      'URL' => 'http://www.palmgear.com/software/showsoftware.cfm?prodID=1552',
       'Stored' => true,
       'Embedded' => false,
       'Notes' => 'DOC reader/writer')
 );
 ?>
 
+<p>DOC files is the standard way of storing text files on a handheld.  You
+will need a DOC reader in order to see any DOC file you have loaded onto
+your device.  There are several ones listed <a 
+href="#DocReaders">below</a>.</p>
 <p>Although the compressed form of DOC files and loading DOC files are both
 being worked on, you can still create and write uncompressed doc files quite
 easily.</p>
@@ -96,6 +112,13 @@ support.  Please help me expand this list so that the capabilities of more
 DOC readers can be known.  Just mail me (link at bottom of
 page) or the php-pdb-general 
 <a href="http://sourceforge.net/mail/?group_id=29740">mailing list</a>.</p>
+
+<h4><a name="DocReaders">Doc Readers and Results of Bookmark Test</a></h4>
+
+<p>Please note that this list is not a comprehensive list of DOC readers.
+Also, if you have a DOC reader that you would like to add to this list, just
+email me the program name, URL, version, and what types of bookmarks it 
+supports. (see above -- the section "Adding Bookmarks")</p>
 
 <table bgcolor="DFDFFF" align=center cellpadding=3 cellspacing=0 border=1>
 <tr bgcolor="#CFCFFF"><th>Program and Version</th>
