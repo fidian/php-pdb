@@ -175,7 +175,7 @@ class PalmDatebook extends PalmDB {
           count($data['Repeat']) > 0)
 	 $Flags += PDB_DATEBOOK_FLAG_REPEAT;
       if (isset($data['Alarm']) && $data['Alarm'] != '' &&
-          ereg('^([0-9]+)([mMhHdD])$', $data['Alarm'], $AlarmMatch))
+          preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch))
          $Flags += PDB_DATEBOOK_FLAG_ALARM;
       if (isset($data['WhenChanged']) && $data['WhenChanged'] != '' &&
           $data['WhenChanged'])
@@ -274,7 +274,7 @@ class PalmDatebook extends PalmDB {
       $RecordString .= $this->Int16($Flags);
       
       if ($Flags & PDB_DATEBOOK_FLAG_ALARM &&
-          ereg('^([0-9]*)([mMhHdD])$', $data['Alarm'], $AlarmMatch)) {
+          preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch)) {
          $RecordString .= $this->Int8($AlarmMatch[1]);
 	 $AlarmMatch[2] = strtolower($AlarmMatch[2]);
 	 if ($AlarmMatch[2] == 'm')
