@@ -27,10 +27,10 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated?
                                          // (Internal use only?)
 
 
-/* The data for the GetRecord and SetRecord functions should return/be fed
- * an array.  Optional values can be set to '' or not defined.  If they are
- * anything else (including zero), they are considered to be 'set'.  Optional
- * values are marked with a ^.
+/* The data for the GetRecord function should return an array and the data
+ * inserted into $this->Records should be fed an array.  Optional values can
+ * be set to '' or not defined.  If they are anything else (including zero), 
+ * they are considered to be 'set'.  Optional values are marked with a ^.
  *
  * Key           Example          Description
  * ------------------------------------------
@@ -114,17 +114,13 @@ class PalmDatebook extends PalmDB {
    
    // Constructor -- initialize the default values
    function PalmDatebook () {
-      $this->Name = 'DatebookDB';
-      $this->TypeID = 'DATA';
-      $this->CreatorID = 'date';
+      PalmDB::PalmDB('DATA', 'date', 'DatebookDB');
       $this->FirstDay = 0;
-      $this->Records = array();
    }
    
 
    // Returns an array with default data for a new record.
-   // This doesn't actually add the record.  You need to SetDatebookRecord()
-   // to do that.
+   // This doesn't actually add the record.
    function NewRecord() {
       // Default event is untimed
       // Event's date is today
