@@ -694,9 +694,6 @@ class PalmDB {
 	 }
       }
       
-      // These are the mysterious two NULL characters that we need
-      $header .= $this->Int16(0);
-      
       // AppInfo and SortInfo blocks go here
       if ($AppInfo_Size > 0)
          // *new* method 1
@@ -708,6 +705,9 @@ class PalmDB {
          $header .= $this->GetSortInfo();
          //$header .= $this->PadTo4ByteBoundary($this->GetSortInfo());
 
+      // These are the mysterious two NULL characters that we need
+      $header .= $this->Int16(0);
+      
       return $header;
    }
    
