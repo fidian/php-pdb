@@ -53,11 +53,7 @@ support.</li>
 <li>Add <a href="http://pilot-db.sourceforge.net/">Pilot-DB</a>
 support</a></li>
 <li>Add todo support</li>
-<li>Add decompression and loading to DOC files, to make them complete.
-[ <a
-href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">AportisDoc</a>
-<a href="http://www.pyrite.org/doc_format.php">Pyrite</a> ]
-</li>
+<li>Add compression caching to DOC files.</li>
 <li>Add phonebook support</li>
 <li>Add memo support</li>
 <li>Add PDAToolbox support (waiting for information about structure -- if

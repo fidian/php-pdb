@@ -24,6 +24,13 @@ with writing this class.</p>
    href="http://www.ooblick.com/software/coldsync/">P5-Palm</a>!  I used 
    several ideas when creating PHP-PDB, and a few comments really helped me
    out.</li>
+<li>Beirne, Pat -- Created the first DOC compression scheme -- see it <a 
+   href="http://www.linuxmafia.com/pub/palmos/development/pilotdoc-compression.html">here</a></li>
+<li>Christopoulos, Nicholas - He is the "development team" of <a
+   href="http://smallbasic.sourceforge.net/">SmallBASIC</a>, and he explained
+   the <a
+   href="http://smallbasic.sourceforge.net/cgi-bin/wboard.cgi?board=wpalm?action=display?num=239">SmallBASIC
+   record layout</a> further for me.</li>
 <li>Dean, Wayne -- Helped me out with finding out why the Desktop 4.0 didn't
    like installing PHP-PDB generated .pdb files.  (Padding issue.)</li>
 <li>Dittgen, Pierre -- His <a 
