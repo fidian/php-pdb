@@ -26,6 +26,7 @@ define('PDB_MOBILEDB_DBVERSION', 1);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmMobileDB  extends PalmDB {
+   var $CategoryData;  // Category information
 
    // Creates a new database class
    function PalmMobileDB($Name = '') {
@@ -36,6 +37,10 @@ class PalmMobileDB  extends PalmDB {
    // Generic function to load the AppInfo block into $this->AppInfo
    // Should only be called within this class
    function LoadAppInfo($fileData) {
+      echo bin2hex(substr($fileData, 0, PDB_CATEGORY_SIZE)) . "<br>\n";
+      echo bin2hex(substr($fileData, PDB_CATEGORY_SIZE)) . "<br>\n";
+      $this->CategoryData = $this->LoadCategoryData($fileData);
+      $fileData = substr($fileData, PDB_CATEGORY_SIZE);
       $this->AppInfo = bin2hex($fileData);
       return false;
    }
