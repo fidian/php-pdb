@@ -35,7 +35,7 @@ only need to specify the name of the new database.</p>
 <?PHP
 
 ShowExample('
-$DB = new PalmMobileDB();
+$DB = new PalmMobileDB("Name of DB");
 ');
 
 ?>
@@ -64,7 +64,8 @@ do not create new MobileDB databases.</p>
 <h3>Example</h3>
 
 <p>This example is of poor quality since MobileDB support has just barely
-been added.</p>
+been added.  It is better to load a MobileDB and then work on it instead of
+trying to make one yourself.</p>
 
 <?PHP
 

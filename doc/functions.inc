@@ -16,37 +16,56 @@ function StandardHeader($title = '', $curdir = '') {
    if ($curdir == 'modules') {
       $modulePath = '';
       $rootPath = '../';
+      $samplePath = '../samples/';
+   } elseif ($curdir == 'samples') {
+      $modulePath = '../modules/';
+      $rootPath = '../';
+      $samplePath = '';
    } else {
       $modulePath = 'modules/';
       $rootPath = '';
+      $samplePath = 'samples/';
    }
+   
+   $TH_Color = '#AFAFDF';
 
 ?><HTML><HEAD><TITLE><?PHP echo $newTitle ?></TITLE></HEAD>
 <body bgcolor=#FFFFFF text=#000000>
 <h1 align=center><?PHP echo $newTitle ?></h1>
-<table align=center border=1 bgcolor=#DFDFAF cellpadding=2 cellspacing=0>
-<tr><td>
-  <table align=center border=0 cellpadding=0 cellspacing=0>
-  <tr>
-    <td>&nbsp;</td>
-    <td><a href="<?PHP echo $rootPath ?>index.php">Main Page</a></td>
-    <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="<?PHP echo $rootPath ?>example.php">Basic Use</a></td>
-    <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="<?PHP echo $modulePath ?>datebook.php">Datebook</a></td>
-    <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="<?PHP echo $modulePath ?>doc.php">DOC</a></td>
-    <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="<?PHP echo $modulePath ?>mobiledb.php">MobileDB</a></td>
-    <td>&nbsp;&nbsp;&nbsp;</td>
-    <td><a href="<?PHP echo $rootPath ?>extra.php">Extra Info</a></td>
-    <td>&nbsp;</td>
-  </tr>
+  <table border=0 cellpadding=5 cellspacing=0 bgcolor="#BFBFEF"
+align=right>
+    <tr><td><a href="<?PHP echo $rootPath 
+      ?>index.php">Main&nbsp;Page</a></td></tr>
+    <tr><th bgcolor="<?PHP echo $TH_Color ?>">General</th></tr>
+    <tr><td><a href="<?PHP echo $rootPath 
+      ?>example.php">Basic&nbsp;Use</a><br>
+      <a href="<?PHP echo $rootPath 
+      ?>extra.php">Extra&nbsp;Info</a></td></tr>
+    <tr><th bgcolor="<?PHP echo $TH_Color ?>">Modules</th></tr>
+    <tr><td><a href="<?PHP echo $modulePath 
+       ?>datebook.php">Datebook</a><br>
+       <a href="<?PHP echo $modulePath 
+       ?>doc.php">DOC</a><br>
+       <a href="<?PHP echo $modulePath 
+       ?>mobiledb.php">MobileDB</a></td></tr>
+    <tr><th bgcolor="<?PHP echo $TH_Color ?>">Examples</th></tr>
+    <tr><td><a href="<?PHP echo $samplePath
+       ?>viewSource.php?file=bookmark_test.php">Bookmark Test</a></td></tr>
+    <tr><th bgcolor="<?PHP echo $TH_Color ?>">SourceForge</th></tr>
+    <tr><td><a href="http://sourceforge.net/project/showfiles.php?group_id=29740">
+       Download</a><br>
+       <a href="http://sourceforge.net/projects/php-pdb/">
+       Project&nbsp;Page</a><br>
+       <a href="http://sourceforge.net/cvs/?group_id=29740">
+       CVS</a><br>
+       <a href="http://sourceforge.net/mail/?group_id=29740">
+       Mailing&nbsp;Lists</a><br>
+       <a href="http://sourceforge.net/tracker/?atid=397207&group_id=29740&func=browse">
+       Bug&nbsp;Reporting</a><br>
   </table>
-</td></tr>
-</table>
 <?PHP
 }
+
 
 function StandardFooter() {
 ?>
@@ -56,7 +75,10 @@ src="http://sourceforge.net/sflogo.php?group_id=29740" width="88"
 height="31" border="0" alt="SourceForge Logo" align=right></a>
 <font size=-2>&copy;opyright 2001, Tyler Akins (<?PHP
 HideEmail("fidian@tiny.net") ?>)<br><br>
-All names, trademarks, etc. are property of their respective owners.</font></p>
+All names, trademarks, etc. are property of their respective
+owners.</font></p>
+</td></tr>
+</table>
 </body>
 </html>
 <?PHP

@@ -11,26 +11,32 @@ include("./functions.inc");
 
 StandardHeader('Extra Information');
 
+if (file_exists('../pdb-test.php'))
+   $PDB_TEST = '../pdb-test.php';
+else
+   $PDB_TEST = 'samples/pdb-test.php';
 ?>
 
 <h3>Making sure PHP-PDB works</h3>
 
 <p>After you installed PHP-PDB somewhere, just use your web browser and view
-<tt>pdb-test.php</tt>.  It will perform a few tests and tell you the results
-of the tests.  They should all say <font color=green>pass</font>.  If they
-don't, contact me for help.</p>
+<tt>pdb-test.php</tt>.  It will perform a few tests and
+tell you the results of the tests.  They should all say 
+<font color=green>pass</font>.  If they don't, contact me for help.
+You can see <a href="<?PHP echo $PDB_TEST ?>">how the test looks</a> for
+this installation, but you will want to also test it on your machine.</p>
 
 <h3>Contact information</h3>
 
-<p>I finally have mailing lists set up on the <a
-href="http://sourceforge.net/projects/php-pdb/">project page</a> on <a
-href="http://sourceforge.net/">SourceForge</a>.  If you are asking for help,
-please subscribe to the mailing list and ask your question.  Your answer
-should come to you pretty fast.  If you abhore mailing lists and would
-greatly prefer to not subscribe to a mailing list, just email me directly.
-I'll simply forward your request to the mailing list and then ask that the
-list members reply to you and to the list.  My email address is at the
-bottom of the page.</p>
+<p>There are <a href="http://sourceforge.net/mail/?group_id=29740">mailing
+lists</a> set up so that you can get announcements of new versions and
+participate in a general discussion about PHP-PDB.  If you are asking
+for help, please subscribe to the general mailing list and ask your
+question.  Your answer should come to you pretty fast.  If you abhore
+mailing lists and would greatly prefer to not subscribe to one, just email
+me directly.  I'll simply forward your request to the mailing list and then
+ask that the list members reply to you and to the list.  My email address 
+is at the bottom of the page.</p>
 
 <h3>Legalese</h3>
 
@@ -73,7 +79,9 @@ ebooks for GutenPalm?</li>
 <h3>Credits and thanks</h3>
 
 <p>I did actually write all code from scratch, but credit should be given to
-people who wrote other open-source programs that I learned from.</p>
+people who wrote other open-source programs that I learned from.  This is
+also where I thank people, companies, and anything else that helped me out
+with this class.</p>
 
 <ul>
 <li>Arensburger, Andrew -- Thanks for making <a

@@ -27,8 +27,9 @@ $BookmarkTest = array(
 );
 ?>
 
-<p>Although the compressed form of DOC files and loading doc files is being
-worked on, you can still create and write uncompressed doc files.</p>
+<p>Although the compressed form of DOC files and loading DOC files are both
+being worked on, you can still create and write uncompressed doc files quite
+easily.</p>
 
 <h3>Including into your program</h3>
 
@@ -81,19 +82,20 @@ character at the beginning of a line to mark that line as a bookmark.  Then,
 to signify which character is the "bookmark" character, you include it at
 the end of the DOC file in angle brackets.</p>
 
-<p>The below sample will create a file with both types of bookmarks.  The
+<p><a href="../samples/viewSource.php?file=bookmark_test.php">This sample</a>
+will create a file with both types of bookmarks.  The
 first bookmark will be a stored bookmark, the second will use both types,
 and the third will be just an embedded bookmark.  Please note that the
-maximum length for a stored bookmark name is 15 character.  The maximum
+maximum length for a stored bookmark name is 15 characters.  The maximum
 length for embedded bookmarks could vary.</p>
 
-<?PHP ShowExampleFile('../samples/bookmark_test.php'); ?>
-
-<p>The example will create a test DOC (also availale <a
+<p>The example will create a test DOC (also available <a
 href="../samples/bookmark_test.php">here</a>) that has both kinds of bookmarks.
 Below is a table showing various doc readers and what type of bookmarks they
-support.  If you wish to add to this file, just mail me (link at bottom of
-page) or the php-pdb-general mailing list.</p>
+support.  Please help me expand this list so that the capabilities of more
+DOC readers can be known.  Just mail me (link at bottom of
+page) or the php-pdb-general 
+<a href="http://sourceforge.net/mail/?group_id=29740">mailing list</a>.</p>
 
 <table bgcolor="DFDFFF" align=center cellpadding=3 cellspacing=0 border=1>
 <tr bgcolor="#CFCFFF"><th>Program and Version</th>

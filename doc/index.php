@@ -18,11 +18,6 @@ manipulate <a href="http://www.palmos.com">PalmOS</a> databases.  It lets
 you read, write, alter, and easily use data that is meant to be sent to or 
 retrieved from a handheld.  It requires PHP 4.0.1 or later.</p>
 
-<P>For downloads, CVS access, bug reporting, patch submitting, requesting
-features, and tons of other information, please see our
-<a href="http://sourceforge.net/projects/php-pdb/">SourceForge Project
-Page</a>.</p>
-
 <h3>Directly supported databases</h3>
 
 <p>These types of databases have had separate classes written to extend the
