@@ -93,7 +93,10 @@ function FilterGutenberg($fileData, $BreakOnChapter) {
    }
    
    $Return[] = $Section;
-   
+
+   if (count($Return) == 1)
+      return $Return[0];
+      
    return $Return;
 }
 

@@ -140,7 +140,9 @@ function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
       $BreakOnChapter, $TargetType, $TitleOfDoc, $SourceForge, $filedata,
       $urldata, $UncompressedDoc, $TitleOfBasicFile;
-   
+
+   echo "<br>\n";
+
    ShowDownloadLinks();
    
 ?><form action="<?PHP echo $MyFilename 
@@ -308,22 +310,24 @@ function ConversionSanityChecks() {
 }
 
 
-function ShowInTable($Msg, $BGColor) {
+function ShowInTable($Msg, $BGColor, $border) {
    echo "<table align=center width=60% bgcolor=\"" . $BGColor .
-      "\" border=1 cellpadding=10 cellspacing=2>";
+      "\" border=1 cellpadding=$border cellspacing=2>";
    echo "<tr><td align=center>";
    echo "<B>" . nl2br(htmlspecialchars($Msg)) . "</B>";
-   echo "</td></tr></table><br>\n";
+   echo "</td></tr></table>\n";
 }
 
 
 function ShowError($Err) {
-   ShowInTable($Err, '#FFA0A0');
+   echo "<br>\n";
+   ShowInTable($Err, '#FFA0A0', 10);
+   echo "<br>\n";
 }
 
 
 function ShowStatus($Str) {
-   ShowInTable($Str, '#A0FFA0');
+   ShowInTable($Str, '#A0FFA0', 4);
    flush();
 }
 
@@ -376,7 +380,7 @@ function GetTheFile() {
    if ($Source == 'URL') {
       $IsGood = false;
       foreach (array("http://", "ftp://") as $match) {
-         if (strncasecmp($urldata, $match, strlen($match)) == 0)
+         if (strcasecmp(substr($urldata, 0, strlen($match)), $match) == 0)
 	    $IsGood = true;
       }
       if (! $IsGood) {
@@ -446,8 +450,26 @@ function StoreAsPRC($title, $rawData) {
          $prc = new PalmDoc($title);
       $prc->AddDocText($rawData);
       if (!isset($CompressWarningDisplayed)) {
-         ShowStatus("Compressing the DOC.\nThis could take a very long time.");
-	 $CompressWarningDisplayed;
+         $WarningTime = '';
+	 if (count($prc->Records) > 5)
+	    $WarningTime = 'a bit';
+	 if (count($prc->Records) > 10)
+	    $WarningTime = 'a while';
+	 if (count($prc->Records) > 15)
+	    $WarningTime = 'a long time';
+	 if (count($prc->Records) > 25)
+	    $WarningTime = 'a very long time';
+	 if (count($prc->Records) > 40)
+	    $WarningTime = 'enough time to write a poem';
+	 if (count($prc->Records) > 60)
+	    $WarningTime = 'enough time for you learn a new hobby';
+	 if (count($prc->Records) > 100)
+	    $WarningTime = 'so long that PHP will likely time out and ' .
+	       'kill this conversion';
+	 if ($WarningTime != '')
+            ShowStatus("Compressing the DOC.\nThis could take " .
+	       $WarningTime . '.');
+	 $CompressWarningDisplayed = true;
       }
    } elseif ($TargetType == 'SmallBASIC') {
       $prc = new PalmSmallBASIC($title);
