@@ -6,7 +6,26 @@
  * Licensed under the GNU LGPL
  * See the LEGAL file for more information
  */
- 
+
+// Repeat types
+define('PDB_DATEBOOK_REPEAT_NONE', 0);
+define('PDB_DATEBOOK_REPEAT_DAILY', 1);
+define('PDB_DATEBOOK_REPEAT_WEEKLY', 2);
+define('PDB_DATEBOOK_REPEAT_MONTH_BY_DAY', 3);
+define('PDB_DATEBOOK_REPEAT_MONTH_BY_DATE', 4);
+define('PDB_DATEBOOK_REPEAT_YEARLY', 0);
+
+
+// Record flags
+define('PDB_DATEBOOK_FLAG_DESCRIPTION', 1024); // Record has description
+                                            // (mandatory, as far as I know)
+define('PDB_DATEBOOK_FLAG_EXCEPTIONS', 2048); // Are there any exceptions?
+define('PDB_DATEBOOK_FLAG_NOTE', 4096); // Is there an associated note?
+define('PDB_DATEBOOK_FLAG_REPEAT', 8192); // Does the event repeat?
+define('PDB_DATEBOOK_FLAG_ALARM', 16384); // Is there an alarm set?
+define('PDB_DATEBOOK_FLAG_WHEN', 32768); // Was the 'when' updated? (hunh?)
+
+
 /* The data for the GetRecord and SetRecord functions should return/be fed
  * an array.  Optional values can be set to '' or not defined.  If they are
  * anything else (including zero), they are considered to be 'set'.  Optional
@@ -19,25 +38,73 @@
  * Date          2001-01-23       Year-Month-Day of event
  * Description   Title            This is the title of the event
  * Alarm         5d               ^ Number of units (m=min, h=hours, d=days)
- * Repeat        ???              ^ Repeating event data
+ * Repeat        ???              ^ Repeating event data (array)
  * Note          NoteNote         ^ A note for the event
  * Exceptions    ???              ^ Exceptions to the event
+ * WhenChanged   ???              ^ True if "when info" for event has changed
+ * Flags                          User flags (highest bit allowed is 512)
  *
  * EndTime must happen at or after StartTime.  The time the event occurs
  * may not pass midnight.  If the event doesn't have a time, use '' or do
  * not define StartTime and EndTime.
- * 
- * Repeat events can be:
- *            No repeat (unset or empty string)
- *   D        Daily repeat
- *   W[days]  Weekly repeat that happens on the specified days
- *   M[days]  Monthly repeat event *blahblah*
- *   Y        Yearly repeat
- * 
- * Repeat events also have a frequency.
+ *
+ * Repeating events:
+ *
+ *    No repeat (or leave the array undefined):
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_NONE;
+ *
+ *    Daily repeating events:
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_DAILY;
+ *       $repeat['Frequency'] = FREQ;  // Explained below
+ *       $repeat['End'] = END_DATE;  // Explained below
+ *
+ *    Weekly repeating events:
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_WEEKLY;
+ *       $repeat['Frequency'] = FREQ;  // Explained below
+ *       $repeat['Days'] = DAYS; // Explained below
+ *       $repeat['End'] = END_DATE;  // Explained below
+ *       $repeat['StartOfWeek'] = SOW; // Explained below
+ *
+ *    "Monthly by day" repeating events:
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_MONTH_BY_DAY;
+ *       $repeat['WeekNum'] = WEEKNUM;  // Explained below
+ *       $repeat['DayNum'] = DAYNUM;  // Explained below
+ *       $repeat['Frequency'] = FREQ;  // Explained below
+ *       $repeat['End'] = END_DATE;  // Explained below
+ *
+ *    "Monthly by date" repeating events:
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_MONTH_BY_DATE;
+ *       $repeat['Frequency'] = FREQ;  // Explained below
+ *       $repeat['End'] = END_DATE;  // Explained below
+ *
+ *    Yearly repeating events:
+ *       $repeat['Type'] = PDB_DATEBOOK_REPEAT_YEARLY;
+ *       $repeat['Frequency'] = FREQ;  // Explained below
+ *       $repeat['End'] = END_DATE;  // Explained below
+ *
+ *    There is also two mysterious 'unknown' fields for the repeat event that
+ *    will be populated if the database is loaded from a file.  They will
+ *    otherwise default to 0.  They are 'unknown1' and 'unknown2'.
+ *
+ *    FREQ = Frequency of the event.  If it is a daily event and you want it
+ *           to happen every other day, set Frequency to 2.  This will default
+ *           to 1 if not specified.
+ *    END_DATE = The last day, month, and year on which the event occurs.
+ *               Format is YYYY-MM-DD
+ *    DAYS = What days during the week the moth occurs.  This is a string of
+ *           numbers from 0 - 6.  I'm not sure if 0 = Sunday or if 0 = 
+ *           start of week from the preferences.
+ *    SOW = As quoted from P5-Palm:  "I'm not sure what this is, but the
+ *          Datebook app appears to perform some hairy calculations
+ *          involving this."
+ *    WEEKNUM = The number of the week on which the event occurs.  5 is the
+ *              last week of the month.
+ *    DAYNUM = The day of the week on which the event occurs.  Again, I don't
+ *             know if 0 = Sunday or if 0 = start of week from the prefs.
  *
  * Exceptions are specified in an array consisting of dates the event occured
- * and did not happen or should not be shown.
+ * and did not happen or should not be shown.  Dates are in the format
+ * YYYY-MM-DD
  */
  
 class PalmDatebook extends PalmDB {
@@ -50,8 +117,44 @@ class PalmDatebook extends PalmDB {
       $this->Type = 'date';
       $this->Creator = 'DATA';
       $this->FirstDay = 0;
-      $this->CategoryData = array();
+      $this->CategoryData = array(0 => 'Unfiled');
    }
+   
+
+   // Returns an array with default data for a new record.
+   // This doesn't actually add the record.  You need to SetDatebookRecord()
+   // to do that.
+   function NewRecord() {
+      // Default event is untimed
+      // Event's date is today
+      $Event['Date'] = date("Y-m-d");
+      
+      // Set an alarm 10 min before the event
+      $Event['Alarm'] = '10m';
+      
+      return $Event;
+   }
+   
+   
+   // Converts a date string ( YYYY-MM-DD )( "2001-10-31" )
+   // into bitwise ( YYYY YYYM MMMD DDDD )
+   function DateToInt16($date) {
+      $YMD = explode('-', $date);
+      return ($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2];
+   }
+   
+   // Converts a bitwise date ( YYYY YYYM MMMD DDDD )
+   // Into the human readable date string ( YYYY-MM-DD )( "2001-10-31" )
+   function Int16ToDate($number) {
+      $year = $number / 512;
+      settype($year, "integer");
+      $year += 1904;
+      $number = $number % 512;
+      $month = $number / 32;
+      settype($month, "integer");
+      $day = $number % 32;
+      return $year . '-' . $month . '-' . $day;
+   }  
 
    function GetRecord($num) {
       $this->ClearCurrentRecord();
@@ -67,29 +170,130 @@ class PalmDatebook extends PalmDB {
 	  strpos($data['EndTime'], ':') === false) {
 	 $this->AppendInt16(65535);
 	 $this->AppendInt16(65535);
+      } else {
+         list($StartH, $StartM) = explode(':', $data['StartTime']);         
+         list($EndH, $EndM) = explode(':', $data['EndTime']);
+	 if ($StartH < 0 || $StartH > 23 || $StartM < 0 || $StartM > 59 ||
+	     $EndH < 0 || $EndH > 23 || $EndM < 0 || $EndM > 59) {
+	    $this->AppendInt16(65535);
+	    $this->AppendInt16(65535);
+	 } else {
+	    if ($EndH < $StartH || ($EndH == $StartH && $EndM < $StartM) {
+	       $EndM = $StartM;
+	       if ($StartH < 23)
+  	          $EndH = $StartH + 1;
+	       else
+	          $EndH = $StartH;
+	    }
+	    $this->AppendInt8($StartH);
+	    $this->AppendInt8($StartM);
+	    $this->AppendInt8($EndH);
+	    $this->AppendInt8($EndM);
+	 }
       }
       
       // The day of the event
       // For repeating events, this is the first day the event occurs
-      //
-      // 'Date' = "2001-10-31"
-      // bitwise:  [YYYY YYYM  MMMD DDDD]
-      $YMD = explode('-', $data['Date']);
-      $this->AppendInt16(($YMD[0] - 1904) * 512 + $YMD[1] * 32 + $YMD[2]);
+      $this->AppendInt16($this->DateToInt16($data['Date']));
       
       // Flags
-      // 0x80 = When ("Was the 'when' updated?" or some junk)
-      // 0x40 = Alarm (Is there one set?)
-      // 0x20 = Repeat (When do I repeat and how often?)
-      // 0x10 = Note (Is there a note attached?)
-      // 0x08 = Exceptions (Are there any exceptions?)
-      // 0x04 = Description (Mandatory, as far as I know)
-      // 0x02 = Unknown
-      // 0x01 = Unknown
-      $Flags = 0x04;
+      $Flags = $data['Flags'] % 1024;
+      if (isset($data['Description']) && $data['Description'] != '')
+         $Flags += PDB_DATEBOOK_FLAG_DESCRIPTION;
+      if (isset($data['Exceptions']) && is_array($data['Exceptions']) &&
+          count($data['Exceptions']) > 0)
+	 $Flags += PDB_DATEBOOK_FLAG_EXCEPTIONS;
+      if (isset($data['Note']) && $data['Note'] != '')
+         $Flags += PDB_DATEBOOK_FLAG_NOTE;
+      if (isset($data['Repeat']) && is_array($data['Repeat']) &&
+          count($data['Repeat']) > 0)
+	 $Flags += PDB_DATEBOOK_FLAG_REPEAT;
+      if (isset($data['Alarm']) && $data['Alarm'] != '' &&
+          ereg('^([0-9]+)([mMhHdD])$', $data['Alarm'], $AlarmMatch))
+         $Flags += PDB_DATEBOOK_FLAG_ALARM;
+      if (isset($data['WhenChanged']) && $data['WhenChanged'] != '' &&
+          $data['WhenChanged'])
+	 $Flags += PDB_DATEBOOK_FLAG_WHEN;
+	 
       $this->AppendInt16($Flags);
-      $this->AppendString($data['Description']);
-      $this->AppendInt8(0);
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_ALARM) {
+         $this->AppendInt8($AlarmMatch[1]);
+	 $AlarmMatch[2] = strtolower($AlarmMatch[2]);
+	 if ($AlarmMatch[2] == 'm')
+	    $this->AppendInt8(0);
+	 elseif ($AlarmMatch[2] == 'h')
+	    $this->AppendInt8(1);
+	 else
+	    $this->AppendInt8(2);
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
+         $this->AppendInt8($d['Type']);
+	 
+	 if (! isset($d['unknown1']))
+	    $d['unknown1'] = 0;
+	 $this->AppendInt8($d['unknown1']);
+      
+         $d = $data['Repeat'];
+	 if (isset($d['End'])
+	    $this->AppendInt16($this->DateToInt16($d['End']));
+	 else
+	    $this->AppendInt16(65535);
+	 
+	 if (! isset($d['Frequency']))
+	    $d['Frequency'] = 1;
+	 $this->AppendInt8($d['Frequency']);
+	    
+         if ($d['Type'] == PDB_DATEBOOK_REPEAT_NONE) {
+	    $this->AppendInt16(0);
+         } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_DAILY) {
+	    $this->AppendInt16(0);
+	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
+	    $days = $d['Days'];
+	    $flags = 0;
+	    $QuickLookup = array(64, 32, 16, 8, 4, 2, 1);
+	    $i = 0;
+	    while ($i < strlen($days)) {
+	       $num = $days[$i];
+	       settype($num, 'integer');
+	       $flags = $flags & $QuickLookup[$num];
+	       $i ++;
+	    }
+	    $this->AppendInt8($flags);
+	    $this->AppendInt8($d['StartOfWeek']);
+	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
+	    if ($d['WeekNum'] > 5)
+	       $d['WeekNum'] = 5;
+	    $this->AppendInt8($d['WeekNum'] * 7 + $d['DayNum']);
+	    $this->AppendInt8(0);
+	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DATE) {
+	    $this->AppendInt16(0);
+	 } elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_YEARLY) {
+	    $this->AppendInt16(0);
+	 } 
+	 if (! isset($d['unknown2']))
+	    $d['unknown2'] = 0;
+	 $this->AppendInt8($d['unknown2']);
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_EXCEPTIONS) {
+         $d = $data['Exceptions'];
+         $this->AppendInt16(count($d));
+	 foreach ($d as $exception) {
+	    $this->AppendInt16($this->DateToInt16($exception));
+	 }
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
+         $this->AppendString($data['Description']);
+         $this->AppendInt8(0);
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
+         $this->AppendString($data['Note']);
+	 $this->AppendInt8(0);
+      }
    }
    
    function SetDatebookRecord($RecordData) {
@@ -128,6 +332,113 @@ class PalmDatebook extends PalmDB {
       if (strlen($fileData < 1))
          return;
       $this->FirstDay = $this->LoadInt8($fileData);
+   }
+   
+   function LoadRecord($fileData, $RecordInfo) {
+      $this->GoToRecord($RecordInfo['UID']);
+      $this->RecordAttrs[$RecordInfo['UID']] = $RecordInfo['Attrs'];
+      $NewRec = $this->NewRecord();
+      $StartH = $this->LoadInt8(substr($fileData, 0, 1));
+      $StartM = $this->LoadInt8(substr($fileData, 1, 1));
+      $EndH = $this->LoadInt8(substr($fileData, 2, 1));
+      $EndM = $this->LoadInt8(substr($fileData, 3, 1));
+      $NewRec['StartTime'] = $StartH . ':' . $StartM;
+      $NewRec['EndTime'] = $EndH . ':' . $EndM;
+      $NewRec['Date'] = $this->LoadInt16(substr($fileData, 4, 2));
+      $Flags = $this->LoadInt16(substr($fileData, 6, 2));
+      $fileData = substr($fileData, 8);
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_WHEN)
+         $NewRec['WhenChanged'] = true;
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_ALARM) {
+         $amount = $this->LoadInt8(substr($fileData, 0, 1));
+	 $unit = $this->LoadInt8(substr($fileData, 1, 1));
+	 if ($unit == 0)
+	    $unit = 'm';
+	 elseif ($unit == 1)
+	    $unit = 'h';
+	 else
+	    $unit = 'd';
+	 $NewRec['Alarm'] = $amount . $unit;
+	 $fileData = substr($fileData, 2);
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
+         $Repeat = array();
+	 $Repeat['Type'] = $this->LoadInt8(substr($fileData, 0, 1));
+	 $Repeat['unknown1'] = $this->LoadInt8(substr($fileData, 1, 1));
+	 $End = $this->LoadInt16(substr($fileData, 2, 2));
+	 $Repeat['Frequency'] = $this->LoadInt8(substr($fileData, 4, 1));
+	 $RepeatOn = $this->LoadInt8(substr($fileData, 5, 1));
+	 $RepeatSoW = $this->LoadInt8(substr($fileData, 6, 1));
+	 $Repeat['unknown2'] = $this->LoadInt8(substr($fileData, 7, 1));
+	 $fileData = substr($fileData, 8);
+	 
+	 if ($End != 65535)
+  	    $Repeat['End'] = $this->Int16ToDate($End);
+      
+         if ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
+	    $days = '';
+	    if ($RepeatOn & 64)
+	       $days .= '0';
+	    if ($RepeatOn & 32)
+	       $days .= '1';
+	    if ($RepeatOn & 16)
+	       $days .= '2';
+	    if ($RepeatOn & 8)
+	       $days .= '3';
+	    if ($RepeatOn & 4)
+	       $days .= '4';
+	    if ($RepeatOn & 2)
+	       $days .= '5';
+	    if ($RepeatOn & 1)
+	       $days .= '6';
+	    $Repeat['Days'] = $days;
+	    $Repeat['StartOfWeek'] = $RepeatSoW;
+	 } elseif ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
+	    $Repeat['DayNum'] = $RepeatOn % 7;
+	    $RepeatOn /= 7;
+	    settype($RepeatOn, 'integer');
+	    $Repeat['WeekNum'] = $RepeatOn;
+	 }
+	 
+	 $NewRec['Repeat'] = $Repeat;
+      }
+
+      if ($Flags & PDB_DATEBOOK_FLAG_EXCEPTIONS) {
+         $Exceptions = array();
+	 $number = $this->LoadInt16(substr($fileData, 0, 2));
+	 $fileData = substr($fileData, 2);
+	 while ($number --) {
+	    $Exc = $this->LoadInt16(substr($fileData, 0, 2));
+	    $Exceptions[] = $this->Int16ToDate($Exc);
+	    $fileData = substr($fileData, 2);
+	 }
+	 $NewRec['Exceptions'] = $Exceptions;
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
+         $i = 0;
+	 $NewRec['Description'] = '';
+	 while ($fileData[i] != "\0") {
+	    $NewRec['Description'] .= $fileData[$i];
+	    $i ++;
+	 }
+	 $fileData = substr($fileData, 0, $i + 1);
+      }
+      
+      if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
+         $i = 0;
+	 $NewRec['Note'] = '';
+	 while ($fileData[i] != "\0") {
+	    $NewRec['Note'] .= $fileData[$i];
+	    $i ++;
+	 }
+	 $fileData = substr($fileData, 0, $i + 1);
+      }
+      
+      $this->SetDatebookRecord($NewRec);
    }
 }
 
