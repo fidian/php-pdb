@@ -29,7 +29,7 @@
     */
 
    /*
-    * Define global variables
+    * Define constants
     */
 
    // Sizes
@@ -53,6 +53,11 @@
    define('PDB_RECORD_ATTRIB_DELETED', 16);
    define('PDB_RECORD_ATTRIB_DIRTY', 32);
    define('PDB_RECORD_ATTRIB_EXPUNGED', 64);
+   
+   // Category support
+   define('PDB_CATEGORY_NUM', 16);  // Number of categories
+   define('PDB_CATEGORY_NAME_LENGTH', 16);  // Bytes allocated for name
+   define('PDB_CATEGORY_SIZE', 276); // 2 + (num * length) + num + 1 + 1
    
    
    /*
@@ -147,6 +152,28 @@
 	 if ($maxLen !== false && $maxLen > 0)
 	    $value = substr($value, 0, $maxLen * 2);
          return $value;
+      }
+      
+      
+      // Pads a hex-encoded value (typically a string) to a fixed size.
+      // May grow too long if $value starts too long
+      // $value = hex encoded value
+      // $minLen = Append nulls to $value until it reaches $minLen
+      // $minLen is the desired size of the string, unencoded.
+      // PadString('6162', 3) results in '616200' (remember the hex encoding)
+      function PadString($value, $minLen) {
+         $PadBytes = '00000000000000000000000000000000';
+	 $PadMe = $minLen - (strlen($value) / 2);
+	 while ($PadMe > 0) {
+	    if ($PadMe > 16)
+	       $value .= $PadBytes;
+	    else
+	       return $value . substr($PadBytes, 0, $PadMe * 2);
+	       
+	    $PadMe = $minLen - (strlen($value) / 2);
+	 }
+	 
+	 return $value;
       }
 
 
@@ -304,6 +331,80 @@
 
 
       /*
+       * Category Support
+       */
+       
+      // Creates the hex-encoded data to be stuck in the AppInfo
+      // block if the database supports categories.
+      //
+      // Data format:
+      //    $categoryArray[id#] = name
+      // Or:
+      //    $categoryArray[id#]['name'] = name
+      //    $categoryArray[id#]['renamed'] = true / false
+      //
+      // Tips:
+      //  * I'd suggest numbering your categories sequentially
+      //  * Do not have a category 0.  It must always be 'Unfiled'.  This
+      //    function will overwrite any category with the ID of 0.
+      //  * There is a maximum of 16 categories, including 'Unfiled'.
+      //
+      // Category 0 is reserved for 'Unfiled'
+      // Categories 1-127 are used for handheld ID numbers
+      // Categories 128-255 are used for desktop ID numbers
+      // Do not let category numbers be created larger than 255
+      function CreateCategoryData($CategoryArray) {
+         $CategoryArray[0] = array('name' => 'Unfiled', 'renamed' => 0)
+	 $CatsWritten = 0;
+	 $LastIdWritten = 0;
+	 $RenamedFlags = 0;
+	 $CategoryStr = '';
+	 $IdStr = ''
+	 $keys = array_keys($CategoryArray);
+	 sort($keys);
+	 foreach ($keys as $id) {
+	    if ($CatsWritten < PDB_CATEGORY_NUM) {
+	       $CatsWritten ++;
+	       $LastIdWritten = $id;
+	       $RenamedFlags *= 2;
+	       if (is_array($CategoryArray[$id]) && 
+	           isset($CategoryArray[$id]['renamed']) &&
+		   $CategoryArray[$id]['renamed'])
+		  $RenamedFlags += 1;
+	       $name = '';
+	       if (is_array($CategoryArray[$id])) {
+	          if (isset($CategoryArray[$id]['name']))
+		     $name = $CategoryArray[$id]['name'];
+	       } else
+	          $name = CategoryArray[$id];
+	       $name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
+	       $CategoryStr .= $this->PadString($name,
+	                                        PDB_CATEGORY_NAME_LENGTH);
+	       $IdStr .= $this->Int8($id);
+	    }
+	 }
+	 
+	 while ($CatsWritten < PDB_CATEGORY_NUM) {
+	    $CatsWritten ++;
+	    $LastIdWritten ++;
+	    $RenamedFlags *= 2;
+	    $CategoryStr .= $this->PadString('', PDB_CATEGORY_NAME_LENGTH);
+	    $IdStr .= $this->Int8($LastIdWritten);
+	 }
+	 
+	 $TrailingBytes = $this->Int8($LastIdWritten);
+	 $TrailingBytes .= $this->Int8(0);
+	 
+	 // Error checking
+	 if ($LastIdWritten >= 256)
+	    return $this->PadString('', PDB_CATEGORY_SIZE);
+	 
+	 return $this->Int32($RenamedFlags) . $CategoryStr . $IdStr . 
+	    $TrailingBytes;
+      }
+     
+     
+      /*
        * Database Writing Functions
        */
       
@@ -314,9 +415,7 @@
       function MakeHeader() {
          // 32 bytes = name, but only 31 available (one for null)
 	 $header = $this->String($this->Name, 31);
-	 $header .= 
-	   '0000000000000000000000000000000000000000000000000000000000000000';
-	 $header = substr($header, 0, 64);
+	 $header = $this->PadString($header, 32);
 	 
 	 // Attributes & version fields
 	 $header .= $this->Int16($this->Attributes);
