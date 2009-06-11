@@ -289,7 +289,7 @@ class PalmDB {
       // Back to binary 
       $dnum = unpack('d', $string);
       
-      return $dnum[''];
+      return array_shift($dnum);
    }
    
 
@@ -847,7 +847,7 @@ class PalmDB {
       if ($this->ModificationTime != 0)
          $header .= $this->Int32($this->ModificationTime + PDB_EPOCH_1904);
       else
-         $header .= $this->Int32(time() + PDB_EPOCH_1904);
+         $header .= $this->Int32(0);
       if ($this->BackupTime != 0)
          $header .= $this->Int32($this->BackupTime + PDB_EPOCH_1904);
       else
