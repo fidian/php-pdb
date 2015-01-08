@@ -440,6 +440,22 @@ class PalmDoc extends PalmDB {
       $Ret = PalmDB::ReadFile($file);
       if ($Ret != false)
          return $Ret;
+
+      // There may be doc files where the record UIDs start at some
+      // some arbitrary nonzero UID and are sequential thereafter.
+      // This code renumbers them to start at zero.
+      $minKey = min(array_keys($this->Records));
+      if ($minKey != 0) {
+         $clone = array();
+         $cloneAttrs = array();
+         foreach ($this->Records as $id => $data) {
+             $clone[$id - $minKey] = $data;
+             $cloneAttrs[$id - $minKey] = $this->RecordAttrs[$id];
+         }
+         $this->Records = $clone;
+         $this->RecordAttrs = $cloneAttrs;
+      }
+
       if (! isset($this->Records[0]))
          return true;
       if ($this->ParseRecordZero())
