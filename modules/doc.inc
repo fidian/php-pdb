@@ -509,6 +509,7 @@ class PalmDoc extends PalmDB {
 	    $Out .= $Key;
 	 } elseif ($KeyVal >= 0x01 && $KeyVal <= 0x08) {
 	    // Read next N bytes verbatim
+	    $pos += 2;
 	    $Out .= substr($data, $pos, $KeyVal * 2);
 	    $pos += $KeyVal * 2;
 	 } elseif ($KeyVal >= 0xC0 && $KeyVal <= 0xFF) {
