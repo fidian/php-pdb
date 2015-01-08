@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /* Class extender for List databases.
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -15,10 +15,10 @@
  * Format is for List, presumably all versions
  */
 
+
 /*
  * Define constants
  */
-
 define('PDB_MEMO_MAXCHARS', 4096);
 
 
@@ -29,44 +29,39 @@ define('PDB_MEMO_MAXCHARS', 4096);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmMemo extends PalmDB {
-   // Creates a new database class
-   function PalmMemo() {
-      PalmDB::PalmDB('DATA', 'memo', 'MemoDB');
-   }
+	// Creates a new database class
+	public function PalmMemo() {
+		PalmDB::PalmDB('DATA', 'memo', 'MemoDB');
+	}
 
 
-   // Returns the size of the current record if no arguments.
-   // Returns the size of the specified record if arguments.
-   function GetRecordSize($num = false) {
-      if ($num === false)
-         $num = $this->CurrentRecord;
-      if (! isset($this->Records[$num]))
-         return 0;
+	/* Returns the size of the current record if no arguments.
+	 * Returns the size of the specified record if arguments. */
+	public function GetRecordSize($num = false) {
+		if ($num === false)
+            $num = $this->CurrentRecord;
 
-      return strlen($this->Records[$num]) / 2;
-   }
-   
+		if (!isset($this->Records[$num]))
+            return 0;
+		return strlen($this->Records[$num]) / 2;
+	}
 
-   // Gets a memo's text
-   // Returns the text of the specified memo or the current memo record
-   function GetText($num = false)
-   {
-      if ($num === false)
-         $num = $this->CurrentRecord;
-      if (! isset($this->Records[$num]))
-         return '';
-	 
-      return pack('H*', $this->Records[$num]);
-   }
-   
-   
-   // Sets a memo's text or the text of the current memo record
-   function SetText($text, $num = false)
-   {
-      if ($num === false)
-         $num = $this->CurrentRecord;
-      $this->Records[$num] = $this->String($text, PDB_MEMO_MAXCHARS - 1) .
-         $this->Int8(0);
-   }
+	/* Gets a memo's text
+	 * Returns the text of the specified memo or the current memo record */
+	function GetText($num = false) {
+		if ($num === false)
+            $num = $this->CurrentRecord;
+
+		if (!isset($this->Records[$num]))
+            return '';
+		return pack('H*', $this->Records[$num]);
+	}
+
+	// Sets a memo's text or the text of the current memo record
+	function SetText($text, $num = false) {
+		if ($num === false)
+            $num = $this->CurrentRecord;
+		$this->Records[$num] = $this->String($text, PDB_MEMO_MAXCHARS - 1) . $this->Int8(0);
+	}
 }
-?>
+
