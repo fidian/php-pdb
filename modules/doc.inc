@@ -543,9 +543,20 @@ class PalmDoc extends PalmDB {
 	    
 	    $PosBits = $BigByte >> 3;
 	    $PosBits &= 0x7FF;
-	    $PosBits = strlen($Out) - ($PosBits * 2);
-	    if ($PosBits >= 0)
-	       $Out .= substr($Out, $PosBits, $CopyBits * 2);
+	    if ($CopyBits > $PosBits) {
+	        // The compression algorithm seems to require that if the number of bytes
+	        // to copy exceeds the number of bytes available, we repeat the available
+	        // bytes until we have the number we need. I've only ever seen this with
+	        // $PosBits == 1 so I'm going to leave the other cases unhandled.
+	        if ($PosBits == 1) {
+	            $PosBits = strlen($Out) - ($PosBits * 2);
+	            $Out .= str_repeat(substr($Out, $PosBits, 2), $CopyBits);
+	        }
+	    } else {
+	        $PosBits = strlen($Out) - ($PosBits * 2);
+	        if ($PosBits >= 0)
+	            $Out .= substr($Out, $PosBits, $CopyBits * 2);
+	    }
 	 }
       }
       
