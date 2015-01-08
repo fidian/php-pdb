@@ -454,6 +454,23 @@ class PalmDoc extends PalmDB {
 		if ($Ret != false)
             return $Ret;
 
+        // There may be doc files where the record UIDs start at some
+        // some arbitrary nonzero UID and are sequential thereafter.
+        // This code renumbers them to start at zero.
+        $minKey = min(array_keys($this->Records));
+        if ($minKey != 0) {
+            $clone = array();
+            $cloneAttrs = array();
+
+            foreach ($this->Records as $id => $data) {
+                $clone[$id - $minKey] = $data;
+                $cloneAttrs[$id - $minKey] = $this->RecordAttrs[$id];
+            }
+
+            $this->Records = $clone;
+            $this->RecordAttrs = $cloneAttrs;
+        }
+
 		if (!isset($this->Records[0]))
             return true;
 
@@ -527,6 +544,7 @@ class PalmDoc extends PalmDB {
 				$Out .= $Key;
 			} elseif ($KeyVal >= 0x01 && $KeyVal <= 0x08) {
 				// Read next N bytes verbatim
+                $pos += 2;
 				$Out .= substr($data, $pos, $KeyVal * 2);
 				$pos += $KeyVal * 2;
 			} elseif ($KeyVal >= 0xC0 && $KeyVal <= 0xFF) {
@@ -543,6 +561,23 @@ class PalmDoc extends PalmDB {
 				$CopyBits += 3;
 				$PosBits = $BigByte >> 3;
 				$PosBits &= 0x7FF;
+
+                if ($CopyBits > $PosBits) {
+                    // The compression algorithm seems to require that if the number of bytes
+                    // to copy exceeds the number of bytes available, we repeat the available
+                    // bytes until we have the number we need. I've only ever seen this with
+                    // $PosBits == 1 so I'm going to leave the other cases unhandled.
+                    if ($PosBits == 1) {
+                        $PosBits = strlen($Out) - ($PosBits * 2);
+                        $Out .= str_repeat(substr($Out, $PosBits, 2), $CopyBits);
+                    }
+                } else {
+                    $PosBits = strlen($Out) - ($PosBits * 2);
+
+                    if ($PosBits >= 0)
+                        $Out .= substr($Out, $PosBits, $CopyBits * 2);
+                }
+
 				$PosBits = strlen($Out) - ($PosBits * 2);
 
 				if ($PosBits >= 0)
