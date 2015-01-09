@@ -52,15 +52,6 @@ include('../functions.inc');
 // (Speaking from experience.)
 set_time_limit(1200);
 
-// The viewSource.php file will not let you view the filter
-// files.  If you want to see them, you can use the web-based
-// CVS viewer that SourceForge provides.  This awfully long URL
-// is broken onto two lines -- make sure it is all on one in 
-// your browser.
-//
-//     http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/php-pdb/
-//     php-pdb/doc/samples/filters/
-
 include('./filters/text.inc');
 include('./filters/html.inc');
 include('./filters/gutenberg.inc');
@@ -92,12 +83,10 @@ exit();
 function StartHTML($title = '') {
    if ($title == '')
       $title = 'Twister';
-      
+
 ?><html><head><title><?PHP echo $title ?></title></head>
 <body bgcolor="#FFFFFF">
-<p align=center><b><font size="+3"><?PHP echo $title ?></font></b><br>
-<font size="-1">(<a href="viewSource.php?file=twister.php">View
-Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
+<p align=center><b><font size="+3"><?PHP echo $title ?></font></b></p>
 <?PHP
 }
 
@@ -123,7 +112,7 @@ off (like SourceForge), but it should work for you if you
 download <a href="http://php-pdb.sourceforge.net/download.php">PHP-PDB</a>
 and have it running on your own site.  <font size="-1">(Sorry.)</font></p>
 
-<?PHP 
+<?PHP
    }
 }
 
@@ -137,7 +126,7 @@ function ShowInitialForm() {
 
    ShowDownloadLinks();
 
-?><form action="<?PHP echo $MyFilename 
+?><form action="<?PHP echo $MyFilename
 ?>" method="post" enctype="multipart/form-data">
 <input type=hidden name=action value="convert">
 <table border=1 align=center cellpadding=5 cellspacing=0>
@@ -150,9 +139,9 @@ function ShowInitialForm() {
       if (isset($urldata)) echo ' value="' . htmlspecialchars($urldata)
       . '"'; ?>><br>
       <?PHP } ?>
-      
+
       <input type=radio name="Source" value="File"<?PHP
-      if ((isset($Source) && $Source == 'File') || 
+      if ((isset($Source) && $Source == 'File') ||
 	  ! ini_get('allow_url_fopen'))
          echo ' checked'; ?>>
       File:  <input type=file name=filedata size=45<?PHP
@@ -162,11 +151,11 @@ function ShowInitialForm() {
   <tr>
     <td align=right><b>Source Type:</b></td>
     <td><input type=radio name="SourceType" value="HTML"<?PHP
-      if (! isset($SourceType) || ($SourceType != 'Text' && 
+      if (! isset($SourceType) || ($SourceType != 'Text' &&
          $SourceType != 'Gutenberg')) echo ' checked'; ?>>
       HTML<br>
       <br>
-      
+
       <input type=radio name="SourceType" value="Text"<?PHP
       if (isset($SourceType) && $SourceType == 'Text') echo ' checked'; ?>>
       Text<br>
@@ -174,13 +163,13 @@ function ShowInitialForm() {
       if (isset($RewrapParagraphs) && $RewrapParagraphs) echo ' checked'; ?>>
       Rewrap paragraphs<br>
       <br>
-      
+
       <input type=radio name="SourceType" value="Gutenberg"<?PHP
-      if (isset($SourceType) && $SourceType == 'Gutenberg') 
+      if (isset($SourceType) && $SourceType == 'Gutenberg')
          echo ' checked'; ?>>
-      Project Gutenberg Text (<a href="http://promo.net/pg">What is 
+      Project Gutenberg Text (<a href="http://promo.net/pg">What is
       this?</a>)<br>
-      &nbsp; &nbsp; &nbsp;Create a new DOC file every 
+      &nbsp; &nbsp; &nbsp;Create a new DOC file every
       <input type=text name="BreakOnChapter" size=4 value="<?PHP
       if (isset($BreakOnChapter)) {
          settype($BreakOnChapter, 'integer');
@@ -188,13 +177,13 @@ function ShowInitialForm() {
       } else
          echo '0'; ?>"> chapters<br>
       &nbsp; &nbsp; &nbsp;<i>(Use 0 to disable)
-      
+
       </td>
   </tr>
   <tr>
     <td align=right><b>Convert Into:</b></td>
     <td><input type=radio name="TargetType" value="DOC"<?PHP
-      if (! isset($TargetType) || 
+      if (! isset($TargetType) ||
 	  ($TargetType != 'SmallBASIC' && $TargetType != 'zTXT'))
          echo ' checked'; ?>> DOC<br>
       &nbsp; &nbsp; &nbsp;DOC Title:
@@ -204,8 +193,8 @@ function ShowInitialForm() {
       &nbsp; &nbsp; &nbsp;<input type=checkbox name="UncompressedDoc">
       Don't compress DOC file (faster to convert, larger file)
       <br><br>
-	
-	
+
+
       <input type=radio name="TargetType" value="zTXT"<?PHP
 	if (isset($TargetType) && $TargetType == 'zTXT')
 	   echo ' checked'; ?>> zTXT (Weasel Reader)<br>
@@ -213,14 +202,14 @@ function ShowInitialForm() {
       <input type=text name="TitleOfzTXT" value="<?PHP
       if (isset($TitleOfzTXT)) echo htmlspecialchars($TitleOfzTXT); ?>">
       <br><br>
-      
+
 
       <input type=radio name="TargetType" value="SmallBASIC"<?PHP
       if (isset($TargetType) && $TargetType == 'SmallBASIC')
          echo ' checked'; ?>> SmallBASIC<br>
       &nbsp; &nbsp; &nbsp;Name of File:
       <input type=text name="TitleOfBasicFile" value="<?PHP
-      if (isset($TitleOfBasicFile)) 
+      if (isset($TitleOfBasicFile))
          echo htmlspecialchars($TitleOfBasicFile); ?>">
       </td>
   </tr>
@@ -236,7 +225,7 @@ function ShowInitialForm() {
 
 function ConvertFile() {
    global $TitleOfDoc, $TitleOfBasicFile, $TargetType;
-   
+
    StartHTML('Converting File');
    if (ConversionSanityChecks()) {
       ShowInitialForm();
@@ -247,20 +236,20 @@ function ConvertFile() {
       ShowInitialForm();
       return;
    }
-   
+
    $rawData = ConvertFromFormat($filedata);
    if ($rawData === false) {
       ShowInitialForm();
       return;
    }
-   
+
    if ($TargetType == 'SmallBASIC')
       $DaTitle = $TitleOfBasicFile;
    if ($TargetType == 'DOC')
       $DaTitle = $TitleOfDoc;
    if ($TargetType == 'zTXT')
       $DaTitle = $TitleOfzTXT;
-   
+
    if (is_array($rawData)) {
       foreach ($rawData as $index => $d) {
          StoreAsPRC($DaTitle . ' [' . ($index + 1) . '/' .
@@ -269,9 +258,9 @@ function ConvertFile() {
    } else {
       StoreAsPRC($DaTitle, $rawData);
    }
-   
+
    ShowStatus("Conversion complete!");
-   
+
    ShowInitialForm();
 }
 
@@ -282,25 +271,25 @@ function ConversionSanityChecks() {
       $SourceType, $TitleOfBasicFile;
 
    if (! isset($TargetType) || ($TargetType != 'DOC' && $TargetType !=
-       'SmallBASIC' && $TargetType != 'zTXT')) { 
-       ShowError('Invalid target type.'); 
+       'SmallBASIC' && $TargetType != 'zTXT')) {
+       ShowError('Invalid target type.');
        return true;
-   } 
-   
-   if ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == '')) { 
-      ShowError('You must specify a title for the DOC file.'); 
-      return true; 
-   } 
-   
-   if ($TargetType == 'zTXT' && (! isset($TitleOfzTXT) || $TitleOfzTXT == '')) { 
-      ShowError('You must specify a title for the zTXT file.'); 
-      return true; 
-   } 
-   
-   if ($TargetType == 'SmallBASIC' && (! isset($TitleOfBasicFile) || 
+   }
+
+   if ($TargetType == 'DOC' && (! isset($TitleOfDoc) || $TitleOfDoc == '')) {
+      ShowError('You must specify a title for the DOC file.');
+      return true;
+   }
+
+   if ($TargetType == 'zTXT' && (! isset($TitleOfzTXT) || $TitleOfzTXT == '')) {
+      ShowError('You must specify a title for the zTXT file.');
+      return true;
+   }
+
+   if ($TargetType == 'SmallBASIC' && (! isset($TitleOfBasicFile) ||
        $TitleOfBasicFile == '')) {
       ShowError('You must specify a file name for the SmallBASIC file.');
-      return true; 
+      return true;
    }
 
    if (! isset($Source) || ($Source != 'File' && $Source != 'URL')) {
@@ -315,12 +304,12 @@ function ConversionSanityChecks() {
       ShowError('Invalid URL source.  Make sure to specify a URL.');
       return true;
    }
-   if ($SourceType != 'Text' && $SourceType != 'HTML' && 
+   if ($SourceType != 'Text' && $SourceType != 'HTML' &&
        $SourceType != 'Gutenberg') {
       ShowError('Invalid source type.');
       return true;
    }
-   
+
    return false;
 }
 
@@ -369,7 +358,7 @@ function ShowSize($bytes) {
     $bytes *= $rounder;
     settype($bytes, 'integer');
     $bytes /= $rounder;
-    
+
     return $bytes . ' ' . $tags[$index];
 }
 
@@ -387,7 +376,7 @@ function GetTheFile() {
       while (! feof($fp)) {
          $d .= fread($fp, 8192);
       }
-      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) . 
+      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) .
          ".\nStarting conversion of the file.");
       fclose($fp);
       return $d;
@@ -413,7 +402,7 @@ function GetTheFile() {
       while (! feof($fp)) {
          $d .= fread($fp, 8192);
       }
-      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) . 
+      ShowStatus('File loaded.  Total size is ' . ShowSize(strlen($d)) .
          ".\nStarting conversion of the file.");
       fclose($fp);
       return $d;
@@ -425,7 +414,7 @@ function GetTheFile() {
 
 function ConvertFromFormat($filedata) {
    global $SourceType, $RewrapParagraphs, $BreakOnChapter;
-   
+
    if ($SourceType == 'Text') {
       if (! isset($RewrapParagraphs))
          $RewrapParagraphs = false;
@@ -447,14 +436,14 @@ function ConvertFromFormat($filedata) {
 function StoreAsPRC($title, $rawData) {
    // echo "<h1>$title</h1>\n<pre>$rawData\n</pre>\n"; return;
    global $SavedPDB, $UncompressedDoc, $TargetType, $CompressWarningDisplayed;
-   
+
    $fileName = preg_replace('/[^-a-zA-Z_0-9]/', '_', $title);
-   
+
    if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
       $SavedPDB = array();
       session_register('SavedPDB');
    }
-   
+
    $SavedInfo['Title'] = $title;
    $SavedInfo['Type'] = $TargetType;
    $SavedInfo['Time'] = time();
@@ -504,7 +493,7 @@ function StoreAsPRC($title, $rawData) {
    $prc = ob_get_contents();
    ob_end_clean();
    $SavedInfo['Data'] = $prc;
-   
+
    $key = $fileName;
    $num = 1;
    while (isset($SavedPDB[$key])) {
@@ -517,7 +506,7 @@ function StoreAsPRC($title, $rawData) {
 
 function ShowDownloadLinks() {
    global $SavedPDB, $MyFilename;
-   
+
    if (! isset($SavedPDB) || ! is_array($SavedPDB)) {
       $SavedPDB = array();
       session_register('SavedPDB');
@@ -549,7 +538,7 @@ function ShowDownloadLinks() {
   </tr>
 <?PHP
       }
-   
+
       echo "</table>\n";
    }
 }
@@ -557,7 +546,7 @@ function ShowDownloadLinks() {
 
 function ErasePDB() {
    global $file, $SavedPDB;
-   
+
    if (isset($SavedPDB) && is_array($SavedPDB) && isset($SavedPDB[$file]))
       unset($SavedPDB[$file]);
 }
@@ -565,8 +554,8 @@ function ErasePDB() {
 
 function DownloadPDB() {
    global $file, $SavedPDB, $HTTP_USER_AGENT;
-   
-   if (! isset($SavedPDB) || ! is_array($SavedPDB) || 
+
+   if (! isset($SavedPDB) || ! is_array($SavedPDB) ||
        ! isset($SavedPDB[$file])) {
       StartHTML('Error Downloading File');
       ShowError('The specified file no longer is saved.  It most ' .
@@ -576,7 +565,7 @@ function DownloadPDB() {
    }
 
    $filename = $file . '.pdb';
-   
+
    if (strstr($HTTP_USER_AGENT, 'compatible; MSIE ') !== false &&
        strstr($HTTP_USER_AGENT, 'Opera') === false) {
       // IE doesn't properly download attachments.  This should work

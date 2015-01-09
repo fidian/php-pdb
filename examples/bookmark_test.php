@@ -22,11 +22,9 @@ if (! isset($Stored)) {
 ?>
 <html><head><title>Bookmark Test Generator</title>
 </head><body bgcolor=#FFFFFF>
-<p align=center><b><font size="+3">Bookmark Test Generator</font></b><br>
-<font size="-1">(<a href="viewSource.php?file=bookmark_test.php">View
-Source</a> -- <a href="../">Back to PHP-PDB Documentation</a>)</font></p>
+<p align=center><b><font size="+3">Bookmark Test Generator</font></b></p>
 <h3 align=center>What kind of bookmarks do you want generated?</h2>
-<h3 align=center><a href="bookmark_test.php?Stored=1">Stored</a> - 
+<h3 align=center><a href="bookmark_test.php?Stored=1">Stored</a> -
 <a href="bookmark_test.php?Stored=0">Embedded</a></h3>
 <hr>
 <p>When using this test, make sure to have a freshly loaded copy of the file
@@ -35,8 +33,8 @@ reader.  If you don't, the database can be altered and you would be getting
 inaccurate results.</p>
 
 <p>For instance, if you create a DOC file with embedded bookmarks and you
-run it through AportisDOC, it will scan the file and create stored 
-bookmarks.  Then, if you open it with another DOC reader, you might think 
+run it through AportisDOC, it will scan the file and create stored
+bookmarks.  Then, if you open it with another DOC reader, you might think
 that embedded bookmarks are supported, even if the program only supports
 stored bookmarks.</p>
 
@@ -83,7 +81,7 @@ if ($Stored)
    $pdb->AddBookmark("Stored Bookmark");
 else
    $pdb->AddText("*Embedded Bookmark\n");
-   
+
 $pdb->AddText("This is where \"$UcFirst Bookmark\" should " .
 "take you, if this document reader properly supports $ThisTest " .
 "bookmarks.\n\n" .
