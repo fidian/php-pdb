@@ -11,7 +11,7 @@ Check out it's feature-rich [API].  You get all this and more, especially if you
 Directly Supported Databases
 ----------------------------
 
-These types of databases have had separate classes written to extend the base class and make life easier for the developer.  PHP-PDB can be used with your own [custom database](doc/db-custom.md) type as well.
+These types of databases have had separate classes written to extend the base class and make life easier for the developer.  PHP-PDB can be used with your own [custom database](doc/custom.md) type as well.
 
 * [Address Book](doc/db-addrbook.md) - Reading and writing fully supported.
 * [Datebook](doc/db-datebook.md) - Reading and writing fully supported.
