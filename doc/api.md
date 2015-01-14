@@ -52,30 +52,30 @@ Loading the database
 This function reads data from the opened file and tries to load it properly.  Returns false if there is no error.
 
     // Create a dummy instance of the class
-$addr = new PalmDB("test", "test");
-// Load a file
-$fp = fopen("your_file.pdb", "r");
-$addr->ReadFile($fp);
-fclose($fp);
-
-// Show information about the database
-echo "Name: $addr->Name<br>\n";
-echo "Type: $addr->TypeID<br>";
-echo "Creator: $addr->CreatorID<br>\n";
-echo "Attributes: $addr->Attributes<br>\n";
-echo "Version: $addr->Version<br>\n";
-echo "ModNum: $addr->ModNumber<br>\n";
-echo "CreationTime: $addr->CreationTime<br>\n";
-echo "ModTime: $addr->ModificationTime<br>\n";
-echo "BackTime: $addr->BackupTime<br>\n";
-echo "NumRec: ".$addr->GetRecordCount()."<br>\n";
-$recids = $addr->GetRecordIDs();
-foreach ($recids as $ID) {
-  $record = $addr->GetRecordRaw($ID);
-  echo "Record $ID:<BR>";
-  // Depending on what the record stored, you might be able to do this:
-  // echo "- Data: " . $record
-}
+    $addr = new PalmDB("test", "test");
+    // Load a file
+    $fp = fopen("your_file.pdb", "r");
+    $addr->ReadFile($fp);
+    fclose($fp);
+    
+    // Show information about the database
+    echo "Name: $addr->Name<br>\n";
+    echo "Type: $addr->TypeID<br>";
+    echo "Creator: $addr->CreatorID<br>\n";
+    echo "Attributes: $addr->Attributes<br>\n";
+    echo "Version: $addr->Version<br>\n";
+    echo "ModNum: $addr->ModNumber<br>\n";
+    echo "CreationTime: $addr->CreationTime<br>\n";
+    echo "ModTime: $addr->ModificationTime<br>\n";
+    echo "BackTime: $addr->BackupTime<br>\n";
+    echo "NumRec: ".$addr->GetRecordCount()."<br>\n";
+    $recids = $addr->GetRecordIDs();
+    foreach ($recids as $ID) {
+      $record = $addr->GetRecordRaw($ID);
+      echo "Record $ID:<BR>";
+      // Depending on what the record stored, you might be able to do this:
+      // echo "- Data: " . $record
+    }
 
 
 Category Support and Record Attributes
@@ -83,137 +83,137 @@ Category Support and Record Attributes
 
 If you plan on using categories, you will need to understand a bit of tricky information.  The attributes byte also has the category information in it.  The lower four bits (0x0F) usually are the category number (0 - 15), but if the record is deleted or expunged, then it is no longer category information and the fourth bit (0x08) is a flag for if the record should be archived or not.  This may be a bit confusing, so here's some code to help you out:
 
-// Get the record attributes
-$attr = $pdb->GetRecordAttrib();
-
-// If the record is deleted or expunged ...
-if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
-   // Check if the record should be archived
-   if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
-      echo "Record is deleted/expunged and should be archived.\n";
-   else
-      echo "Record is deleted/expunged and should not be archived.\n";
-} else {
-   // If the record is not deleted/expunged, then the lower four
-   // bits are the category number.
-   echo "Record is not deleted/expunged.\n";
-   echo "Record category number = " . ($attr & PDB_CATEGORY_MASK) . "\n";
-}
+    // Get the record attributes
+    $attr = $pdb->GetRecordAttrib();
+    
+    // If the record is deleted or expunged ...
+    if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
+       // Check if the record should be archived
+       if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
+          echo "Record is deleted/expunged and should be archived.\n";
+       else
+          echo "Record is deleted/expunged and should not be archived.\n";
+    } else {
+       // If the record is not deleted/expunged, then the lower four
+       // bits are the category number.
+       echo "Record is not deleted/expunged.\n";
+       echo "Record category number = " . ($attr & PDB_CATEGORY_MASK) . "\n";
+    }
 
 This little bit of code might help you figure out more information about the attributes.
 
-$attrib = $pdb->GetRecordAttrib();
-
-// Show which attributes are there
-if ($attrib & PDB_RECORD_ATTRIB_EXPUNGED) echo "Record is expunged.<br>\n";
-if ($attrib & PDB_RECORD_ATTRIB_DELETED) echo "Record is deleted.<br>\n";
-if ($attrib & PDB_RECORD_ATTRIB_DIRTY) echo "Record is dirty.<br>\n";
-if ($attrib & PDB_RECORD_ATTRIB_PRIVATE) echo "Record is private.<br>\n";
-if ($attrib & PDB_RECORD_ATTRIB_DEL_EXP) {
-   // The archive bit is only set if the record is deleted or expunged.
-   // Otherwise, the lower bits specify the category.
-   if ($attrib & PDB_ADDR_ATTRIB_ARCHIVE)
-      echo "Record is marked to be archived.<br>\n";
-}
+    $attrib = $pdb->GetRecordAttrib();
+    
+    // Show which attributes are there
+    if ($attrib & PDB_RECORD_ATTRIB_EXPUNGED) echo "Record is expunged.<br>\n";
+    if ($attrib & PDB_RECORD_ATTRIB_DELETED) echo "Record is deleted.<br>\n";
+    if ($attrib & PDB_RECORD_ATTRIB_DIRTY) echo "Record is dirty.<br>\n";
+    if ($attrib & PDB_RECORD_ATTRIB_PRIVATE) echo "Record is private.<br>\n";
+    if ($attrib & PDB_RECORD_ATTRIB_DEL_EXP) {
+       // The archive bit is only set if the record is deleted or expunged.
+       // Otherwise, the lower bits specify the category.
+       if ($attrib & PDB_ADDR_ATTRIB_ARCHIVE)
+          echo "Record is marked to be archived.<br>\n";
+    }
 
 In order to define/see what the 16 categories are, you use the `SetCategoryList()` and `GetCategoryList()` functions.  See `SetCategoryList()` for special rules that apply to the array of data.  If you wish to include category support in your module/application, you will need to create an extender class and add `LoadAppInfo()` and `GetAppInfo()` functions which load/save the category data correctly:
 
-// LoadAppInfo() example
-function LoadAppInfo($fileData) {
-   // Load category data
-   $this->LoadCategoryData($fileData);
-   // Skip past category data
-   $fileData = substr($fileData, PDB_CATEGORY_SIZE);
-
-   // .... rest of your code goes here
-}
-
-
-// GetAppInfo() example
-function GetAppInfo() {
-   $AppInfo = $this->CreateCategoryData();
-
-   // .... rest of your code goes here
-   // .... append data to the $AppInfo string
-
-   return $AppInfo;
-}
+    // LoadAppInfo() example
+    function LoadAppInfo($fileData) {
+       // Load category data
+       $this->LoadCategoryData($fileData);
+       // Skip past category data
+       $fileData = substr($fileData, PDB_CATEGORY_SIZE);
+    
+       // .... rest of your code goes here
+    }
+    
+    
+    // GetAppInfo() example
+    function GetAppInfo() {
+       $AppInfo = $this->CreateCategoryData();
+    
+       // .... rest of your code goes here
+       // .... append data to the $AppInfo string
+    
+       return $AppInfo;
+    }
 
 Here is a more thorough example that illustrates how the category numbers, category IDs, records, attributes and various other things all work together.  For this to work properly, make sure that there is a file called `AddressDB.pdb` and make sure that it is an address book database.
 
-include "php-pdb.inc";            // Load PHP-PDB class
-include "modules/addrbook.inc";   // Load Addressbook module
-
-// Load address book
-$addr = new PalmAddress();
-$fp = fopen("AddressDB.pdb","r");
-$addr->ReadFile($fp);
-fclose($fp);
-
-// Fill the data array with entries from the address book.
-// $data["Category String"] = array("Person/Entry", "Person/Entry", ...)
-
-$data = array();
-
-// Preload the categories
-$Categories = $addr->GetCategoryList();
-
-// Record keys
-$RecordNumbers = $addr->GetRecordIDs();
-
-foreach ($RecordNumbers as $Rec)
-{
-    // Go to the record
-    $addr->GoToRecord($Rec);
-
-    $attrs = $addr->GetRecordAttrib();
-
-    // If this record is not deleted or expunged, show it
-    if (! ($attrs & PDB_RECORD_ATTRIB_DEL_EXP))
+    include "php-pdb.inc";            // Load PHP-PDB class
+    include "modules/addrbook.inc";   // Load Addressbook module
+    
+    // Load address book
+    $addr = new PalmAddress();
+    $fp = fopen("AddressDB.pdb","r");
+    $addr->ReadFile($fp);
+    fclose($fp);
+    
+    // Fill the data array with entries from the address book.
+    // $data["Category String"] = array("Person/Entry", "Person/Entry", ...)
+    
+    $data = array();
+    
+    // Preload the categories
+    $Categories = $addr->GetCategoryList();
+    
+    // Record keys
+    $RecordNumbers = $addr->GetRecordIDs();
+    
+    foreach ($RecordNumbers as $Rec)
     {
-       // Build the name
-       $record = $addr->GetRecordRaw();
-       $Index = "";
-       if (isset($record["FirstName"]) && $record["FirstName"] != "")
-          $Index = $record["FirstName"];
-       if (isset($record["LastName"]) && $record["LastName"] != "")
-       {
-          if ($Index != "")
-             $Index = $record["LastName"] . ", " . $Index;
-          else
-             $Index = $record["LastName"];
-       }
-       if (isset($record["Company"]) && $record["Company"] != "")
-       {
-          if ($Index != "")
-             $Index .= " @ " . $record["Company"];
-          else
-             $Index = $record["Company"];
-       }
-
-       // Build the value for the $data array
-       $cat = $Categories[$attrs & PDB_CATEGORY_MASK];
-       $Cate = $cat["Name"] . " (ID # " . $cat["ID"] . ")";
-
-       // Add entry
-       if (! isset($data[$Cate]))
-          $data[$Cate] = array();
-       $data[$Cate][] = $Index;
+        // Go to the record
+        $addr->GoToRecord($Rec);
+    
+        $attrs = $addr->GetRecordAttrib();
+    
+        // If this record is not deleted or expunged, show it
+        if (! ($attrs & PDB_RECORD_ATTRIB_DEL_EXP))
+        {
+           // Build the name
+           $record = $addr->GetRecordRaw();
+           $Index = "";
+           if (isset($record["FirstName"]) && $record["FirstName"] != "")
+              $Index = $record["FirstName"];
+           if (isset($record["LastName"]) && $record["LastName"] != "")
+           {
+              if ($Index != "")
+                 $Index = $record["LastName"] . ", " . $Index;
+              else
+                 $Index = $record["LastName"];
+           }
+           if (isset($record["Company"]) && $record["Company"] != "")
+           {
+              if ($Index != "")
+                 $Index .= " @ " . $record["Company"];
+              else
+                 $Index = $record["Company"];
+           }
+    
+           // Build the value for the $data array
+           $cat = $Categories[$attrs & PDB_CATEGORY_MASK];
+           $Cate = $cat["Name"] . " (ID # " . $cat["ID"] . ")";
+    
+           // Add entry
+           if (! isset($data[$Cate]))
+              $data[$Cate] = array();
+           $data[$Cate][] = $Index;
+        }
     }
-}
-
-// Dump the data
-ksort($data);
-foreach ($data as $name => $arr)
-{
-   echo "<b>$name</b><br>\n";
-
-   // Sort alphabetically
-   sort($arr);
-
-   foreach ($arr as $entry)
-      echo " &nbsp; $entry<br>\n";
-}
+    
+    // Dump the data
+    ksort($data);
+    foreach ($data as $name => $arr)
+    {
+       echo "<b>$name</b><br>\n";
+    
+       // Sort alphabetically
+       sort($arr);
+    
+       foreach ($arr as $entry)
+          echo " &nbsp; $entry<br>\n";
+    }
 
 Check out the explanations for the `SetRecordAttrib()`, `GetRecordAttrib()`, `GetCategoryList()`, `SetCategoryList()`, `CreateCategoryData()`, and `LoadCategoryData()` functions below.
 

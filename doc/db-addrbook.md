@@ -240,4 +240,5 @@ This second example shows how to read a database.
       echo "$k = $v<br>";
     }
 
-API: api.md
+
+[API]: api.md

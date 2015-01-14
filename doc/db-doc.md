@@ -91,7 +91,7 @@ If `$position` is not specified, adds a bookmark at the current position.  I str
 `$name` is limited to 15 characters and will automatically be trimmed if it is too long.
 
 
-### `AddText($string)i`
+### `AddText($string)`
 
 Adds the specified text to the end of the doc file.  To get newlines, use "\n".  This function can add single words, entire lines, paragraphs, or all of the text at once.  There is no size nor line limit.  It would be wise to have less than a few hundred kilobytes of total text, but that's at your discretion.
 
