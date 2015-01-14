@@ -1,8 +1,6 @@
 PHP-PDB
 =======
 
-This is being moved over from SourceForge.  See all of the documentation at [php-pdb.sourceforge.net/](http://php-pdb.sourceforge.net/) until it appears here.
-
 PHP-PDB is a set of [PHP] classes that manipulate [Palm OS] databases.  It lets you read, write, alter, and easily use data that is meant to be sent to or retrieved from a handheld.  It requires PHP 4.0.1 or later, but due to security problems with PHP 4, I'd suggest you have version 4.1.2 or patch your current version.
 
 Check out it's feature-rich [API].  You get all this and more, especially if you use one of the database-specific modules.
