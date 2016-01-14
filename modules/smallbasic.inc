@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL
  * See the doc/LEGAL file for more information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  */
 define('PDB_SMALLBASIC_MAIN_SECTION', 'Main');
 define('PDB_SMALLBASIC_MAX_SECTION', 32766);

@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
  * See the doc/LEGAL file for more information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  */
 
 // Please note that these filters are not perfect, but they do get the
@@ -16,7 +16,7 @@
 
 function FilterHTML($fileData) {
    global $FilterHTMLLinks;
-   
+
    $Filters = array(
       "'<script[^>]*>(.*)</script>'sie" =>   // Strip out javascript
          "FilterHTMLScript('\\1')",         // (It's very pesky)
@@ -39,7 +39,7 @@ function FilterHTML($fileData) {
          "\n---------------------------------------\n",
 	                                    // Horizontal rules
       "'<h\d[^>]*>'i" => "\n\n",            // Headers
-      "'</h\d[^>]*>'i" => "\n",             
+      "'</h\d[^>]*>'i" => "\n",
       "'<[^>]* alt=[\\'\"]([^\"\\'>]*)[\"\\'][^>]*>'i" =>
          "\\1",                             // Anything with alt tags
       "'<[^>]* alt=([^ >]*)[^>]*>'i" => "\\1",
@@ -51,7 +51,7 @@ function FilterHTML($fileData) {
       "'&lt;'i" => '<',
       "'&gt;'i" => '>',
       "'&(nbsp|#160);'i" => ' ',
-      "'&([^ ;<]*);'e" => 
+      "'&([^ ;<]*);'e" =>
          "FilterHTMLEntity('\\1')",         // Replace HTML entities
       "'&#(\d+);'e" => "chr(\\1)"           // evaluate &#xxx; as php
    );
@@ -59,7 +59,7 @@ function FilterHTML($fileData) {
    $fileData = preg_replace(array_keys($Filters), array_values($Filters),
                             $fileData);
    $fileData = trim($fileData) . "\n";
-			    
+
    if (isset($FilterHTMLLinks) && is_array($FilterHTMLLinks)) {
       $fileData .= "\n\nLinks found:\n";
       foreach ($FilterHTMLLinks as $index => $Link) {
@@ -68,7 +68,7 @@ function FilterHTML($fileData) {
 	 $fileData .= "\n";
       }
    }
-			   
+
    return $fileData;
 }
 
@@ -76,42 +76,42 @@ function FilterHTML($fileData) {
 function FilterHTMLPre($Str) {
    $tempStr = strtolower($Str);
    $pos = strpos($tempStr, "</pre");
-   
+
    if ($pos === false)
       return nl2br($Str);
-   
+
    $pre = substr($Str, 0, $pos);
    $pos = strpos($Str, '>', $pos);
-   
+
    if ($pos === false)
       return nl2br($Str);
-      
+
    $post = substr($Str, $pos + 1);
    $pre = nl2br($pre);
-   
-   $post = preg_replace("'<pre[^>]*>(.*)</pre[^>]*>'sie", 
+
+   $post = preg_replace("'<pre[^>]*>(.*)</pre[^>]*>'sie",
       "FilterHTMLPre('\\1')", $post . '</pre>');
-   
+
    return $pre . $post;
 }
 
 function FilterHTMLScript($Str) {
    $tempStr = strtolower($Str);
    $pos = strpos($tempStr, "</script");
-   
+
    if ($pos === false)
       return '';
-   
+
    $pos = strpos($Str, '>', $pos);
-   
+
    if ($pos === false)
       return '';
-      
+
    $post = substr($Str, $pos + 1);
-   
-   $post = preg_replace("'<script[^>]*>(.*)</script>'sie", 
+
+   $post = preg_replace("'<script[^>]*>(.*)</script>'sie",
       "FilterHTMLScript('\\1')", $post . '</script>');
-   
+
    return $post;
 }
 
@@ -268,10 +268,10 @@ function FilterHTMLEntity($Ent) {
 
 function FilterHTMLRipLink($Link) {
    global $FilterHTMLLinks;
-   
+
    if (! isset($FilterHTMLLinks))
       $FilterHTMLLinks = array();
-   
+
    $FilterHTMLLinks[] = $Link;
    return '[' . count($FilterHTMLLinks) . ']';
 }
@@ -279,10 +279,10 @@ function FilterHTMLRipLink($Link) {
 
 function FilterHTMLRipFrame($Src) {
    global $FilterHTMLLinks;
-   
+
    if (! isset($FilterHTMLLinks))
       $FilterHTMLLinks = array();
-      
+
    $FilterHTMLLinks[] = $Src;
    return '[' . count($FilterHTMLLinks) . ' -- Frame:  ' . $Src . ']';
 }

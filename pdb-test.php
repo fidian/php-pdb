@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
  * See the doc/LEGAL file for more legal information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  */
 
 
@@ -168,11 +168,8 @@ if ($TestTotalFail) {
 
 <ol>
 <li>Make sure that you are running the latest version of <a
-href="http://php-pdb.sourceforge.net">PHP-PDB</a>.  If you are not,
+href="https://github.com/fidian/php-pdb">PHP-PDB</a>.  If you are not,
 upgrade.</li>
-<li>If the error still persists, and if you can, try the CVS version of
-PHP-PDB.  See the <a href="http://php-pdb.sourceforge.net/download.php">
-download page</a> for more information.</li>
 <li>Determine which tests failed.  Just look above this section for anything
 that says "<FONT color="red">fail</font>".</li>
   <ul>
@@ -195,8 +192,7 @@ that says "<FONT color="red">fail</font>".</li>
   is in.</li>
   </ul>
 <li>Report the problem to us in the <a
-href="http://sourceforge.net/tracker/?atid=397207&group_id=29740&func=browse">Bug
-Tracker</a></li>
+href="https://github.com/fidian/php-pdb/issues">Issue Tracker</a></li>
 </ol>
 
 <?php

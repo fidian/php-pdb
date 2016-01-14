@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
  * See the doc/LEGAL file for more information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  */
 
 /* Variables possibly passed in:
@@ -103,13 +103,13 @@ converted and you will see links to download the converted file.</p>
 <p>Twister is quite new and may not work perfectly.  If you experience
 problems or if something is not converted quite right (like the HTML looks
 goofy when converted to text), the just contact the <a
-href="http://php-pdb.sourceforge.net/">PHP-PDB development team</a> and
+href="https://github.com/fidian/php-pdb">PHP-PDB development team</a> and
 we will see what we can do.</p>
 
 <?PHP if (! ini_get('allow_url_fopen')) { ?>
 <P><b>The URL converter doesn't work on sites with "allow_url_fopen" turned
-off (like SourceForge), but it should work for you if you
-download <a href="http://php-pdb.sourceforge.net/download.php">PHP-PDB</a>
+off, but it should work for you if you download
+<a href="https://github.com/fidian/php-pdb">PHP-PDB</a>
 and have it running on your own site.  <font size="-1">(Sorry.)</font></p>
 
 <?PHP
@@ -119,7 +119,7 @@ and have it running on your own site.  <font size="-1">(Sorry.)</font></p>
 
 function ShowInitialForm() {
    global $MyFilename, $Source, $SourceType, $RewrapParagraphs,
-      $BreakOnChapter, $TargetType, $TitleOfDoc, $SourceForge, $filedata,
+      $BreakOnChapter, $TargetType, $TitleOfDoc, $filedata,
       $urldata, $UncompressedDoc, $TitleOfBasicFile;
 
    echo "<br>\n";

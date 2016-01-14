@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
  * See the doc/LEGAL file for more information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  *
  *
  * As a note, storing all of the information as hexadecimal kinda sucks,

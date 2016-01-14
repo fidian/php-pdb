@@ -4,7 +4,7 @@
  * Copyright (C) 2001 - PHP-PDB development team
  * Licensed under the GNU LGPL software license.
  * See the doc/LEGAL file for more information
- * See http://php-pdb.sourceforge.net/ for more information about the library
+ * See https://github.com/fidian/php-pdb for more information about the library
  */
 
 if (file_exists('../../php-pdb.inc')) {
@@ -66,7 +66,7 @@ $pdb->AddText("This is a test file to see if $ThisTest " .
 "bookmarks are recognized by a document reader.  To determine if " .
 "$OtherTest bookmarks are supported, you'll need to use the " .
 "other bookmark test, which is available from " .
-"http://php-pdb.sourceforge.net/ (in the examples)." .
+"https://github.com/fidian/php-pdb (in the examples)." .
 "To figure out if it worked, look for the bookmark list in this " .
 "document reader.  If it has a bookmark named \"$UcFirst " .
 "Bookmark\", then it worked.  If not, then this document reader " .
@@ -74,7 +74,7 @@ $pdb->AddText("This is a test file to see if $ThisTest " .
 "This document was automatically generated using the PHP-PDB " .
 "library -- a free, GPL'd PHP library that manipulates PDB " .
 "files.  Feel free to give it a look at\n" .
-"http://php-pdb.sourceforge.net\n\n");
+"https://github.com/fidian/php-pdb\n\n");
 
 // Add the bookmark
 if ($Stored)
